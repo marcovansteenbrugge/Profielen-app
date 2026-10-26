@@ -11,8 +11,8 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen programmavenster met WebView2 (versie 2.10.0)
 
-> **Nu van jou gevraagd:** besluit **B3** (hoe gaan je instellingen mee), zodat F2 kan starten. F0 en F1 zijn gebouwd en door jou gecontroleerd.
-> **Later nodig:** vrijgave van **F2** (na B3) en **F3**.
+> **Nu van jou gevraagd:** vrijgave van **F2** (instellingen exporteren en importeren); B3 is besloten. F0 en F1 zijn gebouwd en door jou gecontroleerd.
+> **Later nodig:** vrijgave van **F3** (oplevering 2.10.0).
 
 De Profielviewer opent straks in een eigen Windows-venster in plaats van in een kaal Chrome- of Edge-venster, zonder welkomstschermen of een apart browserprofiel. De viewer zelf blijft hetzelfde; het werk gaat in vier fasen, en elke fase start pas na jouw akkoord.
 
@@ -33,7 +33,7 @@ Letterlijk akkoord (F0 tot en met F1, via chat): "akkoord voor bouwen F0 en F1"
 |---|---|---|---|---|
 | ✅ | B1 | Welke bouwsteen voor het venster | Ons voorstel | F0 |
 | ✅ | B2 | Hoe kom je terug in het oude venster | Ons voorstel | F0 |
-| ⏳ | B3 | Hoe gaan je instellingen mee | **Nog niet beoordeeld** | F2 |
+| ✅ | B3 | Hoe gaan je instellingen mee | Ons voorstel | F2 |
 
 ## Besluiten
 
@@ -73,9 +73,8 @@ Meer uitleg: plan, punt 6, B1
 
 Meer uitleg: plan, punt 6, B2
 
-### ⏳ B3 · Hoe gaan je instellingen mee
+### ✅ B3 · Hoe gaan je instellingen mee
 **Je beslist:** hoe stempelgegevens, logo's en andere instellingen uit het oude venster in het nieuwe komen.
-*Nog niet nodig: dit mag wachten tot F1 klaar is.*
 
 | | Ons voorstel | Alternatief |
 |---|---|---|
@@ -84,11 +83,11 @@ Meer uitleg: plan, punt 6, B2
 | **Nadeel** | Extra knoppen en een extra fase; recente projectmappen moet je wel één keer opnieuw openen | Elke collega moet alles opnieuw invullen |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-10-26 22:06 · **nodig vóór** F2
+**Besloten door** Marco van Steenbrugge · **op** 2026-10-26 23:45 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B3, en punt 8 (gegevens en privacy)
 
@@ -103,5 +102,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-26 22:09 | Vrijgave F0 en F1 op planversie 1 | Marco van Steenbrugge, via chat |
 | 2026-10-26 23:28 | F0 gebouwd en per criterium getoetst op Marco's laptop (venster, sluiten, noodroute, F12); tijden hierboven staan in UTC, vanaf hier lokale tijd | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-26 23:43 | F1 gebouwd en per criterium getoetst op Marco's laptop (tweede start, plek en grootte, buiten beeld) | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-26 23:45 | B3 akkoord met voorstel ("B3 akkoord") | Marco van Steenbrugge, via chat |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
