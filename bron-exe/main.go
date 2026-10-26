@@ -3,8 +3,9 @@
 // Eén los programma: bevat de complete viewer (html, js, bibliotheken) en
 // start een klein webservertje op deze computer (alleen 127.0.0.1, niet
 // bereikbaar vanaf het netwerk). Daarna opent de viewer in een eigen
-// app-venster van Chrome of Edge. Sluit je dat venster, dan stopt het
-// programma vanzelf.
+// WebView2-venster (venster_windows.go). Lukt dat niet, of start je met
+// --browservenster (of PV_VENSTER=browser), dan in een app-venster van
+// Chrome of Edge. Sluit je het venster, dan stopt het programma vanzelf.
 package main
 
 import (
@@ -158,6 +159,17 @@ func main() {
 	})
 	go http.Serve(ln, mux)
 
+	if browservensterGevraagd() {
+		log.Println("oude venster gevraagd (--browservenster of PV_VENSTER=browser)")
+	} else if openWebView2(url) {
+		log.Println("venster gesloten, programma stopt")
+		return
+	} else {
+		melding("Het eigen programmavenster (WebView2) kon niet starten.\n\n" +
+			"De viewer opent nu in een venster van Chrome of Edge.")
+	}
+
+	// Terugvaloptie: Chrome/Edge-app-venster, stoppen via de hartslag van de pagina.
 	laatsteHartslag.Store(time.Now().UnixNano())
 	var browserKlaar atomic.Bool
 	openVenster(url, func() { browserKlaar.Store(true) })
@@ -222,6 +234,16 @@ func main() {
 			log.Println("45 s geen hartslag terwijl het venster nog open is: pagina vastgelopen of druk bezig, server blijft draaien")
 		}
 	}
+}
+
+// browservensterGevraagd: het oude Chrome/Edge-venster in plaats van WebView2.
+func browservensterGevraagd() bool {
+	for _, a := range os.Args[1:] {
+		if a == "--browservenster" || a == "-browservenster" {
+			return true
+		}
+	}
+	return strings.EqualFold(os.Getenv("PV_VENSTER"), "browser")
 }
 
 // draaitAl geeft "" (draait niet), "start" (eerste venster is nog aan het

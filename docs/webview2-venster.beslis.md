@@ -21,8 +21,8 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
-| F0 | Eigen venster: openen, sluiten, Afsluiten-knop, noodroute naar het oude venster | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 22:10 | B1, B2 | - |
-| F1 | Eén venster tegelijk, en het venster onthoudt plek en grootte | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 22:10 | - | - |
+| F0 | Eigen venster: openen, sluiten, Afsluiten-knop, noodroute naar het oude venster | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 22:09 | B1, B2 | - |
+| F1 | Eén venster tegelijk, en het venster onthoudt plek en grootte | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 22:09 | - | - |
 | F2 | Instellingen meenemen uit het oude venster | ○ nog niet | - | B3 | - |
 | F3 | Oplevering 2.10.0: versie, LEESMIJ, handleiding, tests, exe en zip | ○ nog niet | - | - | - |
 
@@ -100,4 +100,4 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-26 22:06 | Marco van Steenbrugge bevestigd als beslisser ("Ja ik ben Marco"), via chat | Marco van Steenbrugge, via chat |
 | 2026-10-26 22:06 | Plan opgesteld en voorgelegd | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-26 22:09 | B1 en B2 akkoord met voorstel ("B1 en B2 akkoord") | Marco van Steenbrugge, via chat |
-| 2026-10-26 22:10 | Vrijgave F0 en F1 op planversie 1 | Marco van Steenbrugge, via chat |
+| 2026-10-26 22:09 | Vrijgave F0 en F1 op planversie 1 | Marco van Steenbrugge, via chat |
