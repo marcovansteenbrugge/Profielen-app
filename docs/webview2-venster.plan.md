@@ -2,8 +2,8 @@
 plan: webview2-venster
 titel: Eigen programmavenster met WebView2 (versie 2.10.0)
 versie: 1
-status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ○ · F1 ○ · F2 ⏳ · F3 ○           # berekend door de skill
+status: deels-vrijgegeven        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ▶ · F1 ▶ · F2 ⏳ · F3 ○           # berekend door de skill
 opgesteld: 2026-10-26
 opgesteld_door: Claude Code, in opdracht van Marco van Steenbrugge
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
@@ -76,8 +76,8 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ○ niet vrijgegeven | Eigen WebView2-venster: binding in `go.mod`, venster naar de bestaande server, titel met versie, icoon, gemaximaliseerd, gegevensmap, venster dicht = proces stopt, Afsluiten-knop sluit het venster, terugval op Chrome/Edge (automatisch en handmatig), DevTools alleen met `PV_DEVTOOLS=1` | `GOOS=windows CGO_ENABLED=0 go build` slaagt en `go vet` is schoon. Marco bevestigt op zijn laptop: venster opent binnen 3 s zonder Chrome-profiel; sluiten (kruisje en Afsluiten-knop) stopt het proces (Taakbeheer); met `--browservenster` opent het oude venster; F12 doet niets zonder `PV_DEVTOOLS=1` | B1, B2 | M | Claude Code, high | `F0:` |
-| F1 | ○ niet vrijgegeven | Eén exemplaar (`/__ptsviewer/voorgrond`) en venster onthouden (`venster.json`) | Build slaagt. Marco bevestigt: tweede start opent geen tweede venster en brengt het bestaande naar voren; positie en grootte zijn na herstart hetzelfde; buiten beeld → gemaximaliseerd | F0 | S | Claude Code, medium | `F1:` |
+| F0 | ▶ vrijgegeven | Eigen WebView2-venster: binding in `go.mod`, venster naar de bestaande server, titel met versie, icoon, gemaximaliseerd, gegevensmap, venster dicht = proces stopt, Afsluiten-knop sluit het venster, terugval op Chrome/Edge (automatisch en handmatig), DevTools alleen met `PV_DEVTOOLS=1` | `GOOS=windows CGO_ENABLED=0 go build` slaagt en `go vet` is schoon. Marco bevestigt op zijn laptop: venster opent binnen 3 s zonder Chrome-profiel; sluiten (kruisje en Afsluiten-knop) stopt het proces (Taakbeheer); met `--browservenster` opent het oude venster; F12 doet niets zonder `PV_DEVTOOLS=1` | B1, B2 | M | Claude Code, high | `F0:` |
+| F1 | ▶ vrijgegeven, na F0 | Eén exemplaar (`/__ptsviewer/voorgrond`) en venster onthouden (`venster.json`) | Build slaagt. Marco bevestigt: tweede start opent geen tweede venster en brengt het bestaande naar voren; positie en grootte zijn na herstart hetzelfde; buiten beeld → gemaximaliseerd | F0 | S | Claude Code, medium | `F1:` |
 | F2 | ⏳ wacht op B3 | Instellingen overnemen volgens B3 | Volgens B3. Bij het voorstel: nieuwe test in `tests/` die exporteren en importeren van `ptsviewer-*`/`pv.*` toetst en `fouten: geen` geeft; Marco bevestigt dat zijn PDF-stempel na import in het nieuwe venster staat | F0, B3 | S | Claude Code, medium | `F2:` |
 | F3 | ○ niet vrijgegeven | Oplevering 2.10.0: `zet_versie.py 2.10.0`, `.syso` opnieuw, LEESMIJ-blok "Nieuw in 2.10.0", handleiding, `tools/bouw.ps1`, tag `v2.10.0` | `node run_alle.js` helemaal groen (Marco's laptop of hier met Chromium); `dist\Lutrea-Profielviewer-2.10.0.exe` en de zip bestaan; Marco bevestigt de handmatige lijst: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT (PDOK) | F0, F1, F2 | S | Claude Code, medium | `F3:` en `2.10.0:` |
 
