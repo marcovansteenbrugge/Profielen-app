@@ -1,0 +1,31 @@
+const fs = require('fs');
+const H = require('./hulp');
+const { chromium } = H;
+const D = H.data('snoei_test'), U = H.UIT;
+(async () => {
+  await H.start();
+  const b = await chromium.launch({ ...H.browserOpties(), args: ['--no-sandbox'] });
+  const p = await b.newPage({ viewport: { width: 1600, height: 950 } });
+  await p.addInitScript(require('./zonder_map.js'));
+  const fouten = []; p.on('pageerror', e => fouten.push(e.message));
+  await p.route(/pdok\.nl/, r => r.abort());
+  await p.route(/brk-kadastrale-kaart/, r => r.fulfill({ status: 200, contentType: 'application/json', body: fs.readFileSync(D + '/kadaster_percelen.geojson') }));
+  await p.goto(H.URL);
+  await p.evaluate(() => localStorage.setItem('ptsviewer-a-maaiveld', '0'));
+  await p.reload();
+  console.log('voor laden uit?', await p.isDisabled('#toonKadaster'));
+  await p.setInputFiles('#ptsBestand', D + '/bospad_scan.pts');
+  for (let i = 0; i < 400; i++) { if (/driehoeken/.test(await p.textContent('#status'))) break; await p.waitForTimeout(250); }
+  await p.click('#kadasterOphalenKnop'); await p.waitForTimeout(2500);
+  console.log('na kadaster:', await p.isDisabled('#toonKadaster'), await p.isChecked('#toonKadaster'));
+  const clip = { x: 0, y: 190, width: 790, height: 740 };
+  await p.screenshot({ path: H.UIT + '/toon_aan.png', clip });
+  await p.uncheck('#toonKadaster'); await p.waitForTimeout(400);
+  await p.screenshot({ path: H.UIT + '/toon_uit.png', clip });
+  await p.click('#wisKadasterKnop'); await p.waitForTimeout(300);
+  console.log('na wis:', await p.isDisabled('#toonKadaster'));
+  await p.click('#kadasterOphalenKnop'); await p.waitForTimeout(2500);
+  console.log('opnieuw:', await p.isDisabled('#toonKadaster'), await p.isChecked('#toonKadaster'));
+  console.log('fouten:', fouten.join(' | ') || 'geen');
+  await b.close();
+})();

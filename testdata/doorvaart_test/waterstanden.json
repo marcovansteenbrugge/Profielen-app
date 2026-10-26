@@ -1,0 +1,6 @@
+{
+  "waterstand_bij_peiling_m_nap": 0.4,
+  "maatgevend_hoogwater_m_nap": 1.1,
+  "streefpeil_m_nap": 0.4,
+  "toelichting": "Testwaarden. Doorvaarthoogte wordt meestal getoetst ten opzichte van een maatgevende (hoge) waterstand."
+}

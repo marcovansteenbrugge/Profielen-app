@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lutrea Profielviewer 2.9.5</title>
+<meta name="theme-color" content="#1B2A38">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --ink:#1B2A38; --ink-soft:#425064; --ink-dim:#6B7A8C;
+    --paper:#F3F5F6; --surface:#FFFFFF; --line:#DCE3E8;
+    --red:#C6472B; --teal:#1E7FA6; --gold:#A9781F;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font:14px/1.4 "Segoe UI",system-ui,sans-serif;
+    display:flex; flex-direction:column; height:100vh;
+  }
+  header{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:10px 16px; background:var(--surface); border-bottom:1px solid var(--line);
+  }
+  header .merk{flex:none; display:flex; align-items:center}
+  header .merk img{height:34px; display:block}
+  header h1{font-size:15px; margin:0; font-weight:700; white-space:nowrap}
+  header .zacht{color:var(--ink-dim); font-size:12px}
+  header .rek{flex:1}
+  button, input[type=number]{
+    font:inherit; padding:5px 10px; border:1px solid var(--line); border-radius:5px;
+    background:var(--paper); color:var(--ink); cursor:pointer;
+  }
+  input[type=number]{width:64px; cursor:text}
+  button:hover{background:#E4E9EC}
+  button.aan{background:var(--teal); color:#fff; border-color:var(--teal)}
+  button:disabled{opacity:.45; cursor:default}
+  label.veld{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-soft)}
+  #status{font-size:12.5px; color:var(--ink-dim); white-space:nowrap}
+
+  main{
+    flex:1; min-height:0; display:grid; background:var(--paper);
+    grid-template-columns: var(--kolom1, 1.3fr) 6px var(--kolom2, 1fr);
+    grid-template-rows: var(--rij1, 1fr) 6px var(--rij2, 1fr);
+  }
+  .paneel{background:var(--surface); position:relative; display:flex; flex-direction:column; min-height:0; min-width:0}
+  .paneel .kop{
+    display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; padding:6px 12px;
+    border-bottom:1px solid var(--line); font-size:12px; color:var(--ink-soft); flex:none;
+  }
+  .paneel .kop .rek{flex:1}
+  .paneel .inhoud{flex:1; min-height:0; position:relative}
+  #vlak{grid-column:1; grid-row:1 / 4}
+  #langsPaneel{grid-column:3; grid-row:1}
+  #dwarsPaneel{grid-column:3; grid-row:3}
+  .splitter{background:var(--line)}
+  .splitter:hover, .splitter.actief{background:var(--teal)}
+  #kolomSplitter{grid-column:2; grid-row:1 / 4; cursor:col-resize}
+  #rijSplitter{grid-column:3; grid-row:2; cursor:row-resize}
+  canvas{display:block; width:100%; height:100%; cursor:crosshair}
+  canvas.pannen{cursor:grab}
+  canvas.puntGrijp{cursor:move}
+  canvas.klikbaar{cursor:pointer}
+  #dwarsPaneel:fullscreen{width:100vw; height:100vh; background:var(--surface)}
+  canvas[hidden]{display:none}
+  #canvas3D{position:absolute; inset:0; cursor:grab}
+  #drieDKnoppen[hidden]{display:none}
+  #drieDLagen{position:absolute; top:10px; left:10px; z-index:3; background:rgba(255,255,255,0.92); border:1px solid var(--line, #D5DADF); border-radius:8px; padding:8px 10px 6px; font-size:12px; color:var(--ink, #1B2A38); box-shadow:0 2px 10px rgba(27,42,56,0.10); display:flex; flex-direction:column; gap:3px; min-width:150px}
+  #drieDLagen[hidden], #drieDLagen label[hidden]{display:none}
+  #drieDLagen .kopje{font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft, #5B6B7B); margin-bottom:2px}
+  #drieDLagen label{display:flex; align-items:center; gap:6px; cursor:pointer; white-space:nowrap}
+  #drieDLagen input{margin:0}
+  #drieDLagen .lg{display:inline-block; width:14px; height:9px; border-radius:2px}
+  .lg.bodem{background:linear-gradient(90deg,#2b7a3d,#c9b458,#b5643c)}
+  .lg.onder{background:#4A5462}
+  .lg.boven{background:#B3B8BE}
+  .lg.water{background:rgba(62,143,214,0.45); border:1px solid #3E8FD6}
+  .lg.box{border:1.5px dashed #C6472B; background:rgba(198,71,43,0.12)}
+  .lg.conflict{background:radial-gradient(circle,#D8452A 45%,transparent 50%)}
+  .lg.schip{border:1.5px solid #4E5B6B; border-radius:0 6px 6px 0}
+  .lg.as{height:0; border-top:2px dashed #1B2A38}
+  .lg.maaiveld{background:linear-gradient(90deg,#786E50 0 35%,#C7B894 35% 65%,#786E50 65%)}
+  .lg.begroeiing{background:radial-gradient(circle,#6F9A5B 40%,transparent 45%) 0 0/5px 5px}
+  .lg.snoei{border:1.5px dashed #1B2A38; background:rgba(198,71,43,0.10)}
+  svg{display:block; width:100%; height:100%}
+  #svgDwars{cursor:grab; user-select:none}
+  #svgDwars.slepen{cursor:grabbing}
+  #svgLangs{cursor:grab; user-select:none}
+  #svgLangs.slepen{cursor:grabbing}
+  .niets{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--ink-dim); font-size:13px; text-align:center; padding:0 24px}
+  .niets[hidden]{display:none}
+
+  .maatlijn{stroke:var(--line); stroke-width:1}
+  .as{stroke:var(--ink); stroke-width:1.6; fill:none}
+  .as-tik{stroke:var(--ink); stroke-width:1}
+  .tekst{fill:var(--ink-dim); font:13.8px "Segoe UI",system-ui,sans-serif}
+  .lijn{stroke:var(--teal); stroke-width:1.8; fill:none}
+  .huidig-station{stroke:var(--red); stroke-width:1.2; stroke-dasharray:4 3}
+  .maat{fill:var(--ink); font:600 14.5px "Segoe UI",system-ui,sans-serif}
+  .maat-stip{fill:var(--ink)}
+  .maat-bgt{fill:var(--red); font:700 17px "Segoe UI",system-ui,sans-serif}
+  .maat-bgt-stip{fill:var(--red)}
+  .maat-bgt-naam{fill:var(--red); font:600 15px "Segoe UI",system-ui,sans-serif}
+  .bgt-grenslijn{stroke:var(--red); stroke-width:0.8; stroke-dasharray:2 3; opacity:.6}
+  .as-naam{fill:var(--ink); font:700 17px "Segoe UI",system-ui,sans-serif; stroke:#fff; stroke-width:3px; paint-order:stroke; stroke-linejoin:round}
+  .bgt-naam{fill:var(--ink); font:600 17px "Segoe UI",system-ui,sans-serif}
+  .lijn-b{stroke:#8E3FAE}
+  .water-vlak{fill:#5AA9E6; fill-opacity:.28; stroke:none}
+  .waterlijn{stroke:#1F6FB5; stroke-width:1.6}
+  .waterlijn-hulp{stroke:#1F6FB5; stroke-width:0.8; stroke-dasharray:3 3; opacity:.55}
+  .waterpeil-teken{fill:none; stroke:#1F6FB5; stroke-width:1.2}
+  .waterpeil-tekst{fill:#1F6FB5; font:700 15px "Segoe UI",system-ui,sans-serif}
+  .maat-b{fill:#8E3FAE}
+  .maat-stip-b{fill:#8E3FAE}
+  .legenda-tekst{fill:var(--ink-soft); font:600 14.5px "Segoe UI",system-ui,sans-serif}
+  .maatlijn-v{stroke:#E8EDF1; stroke-width:1}
+  .maatketting{stroke:var(--ink-soft); stroke-width:1; fill:none}
+  .maatketting-tekst{fill:var(--ink-soft); font:600 13.8px "Segoe UI",system-ui,sans-serif}
+  .afstand-as{stroke:var(--ink-dim); stroke-width:1}
+  .tekst-nap{fill:var(--ink); font-weight:700}
+  .tekst-eenheid{font-weight:600}
+  .nap-lijn{stroke:var(--ink); stroke-width:1.3; stroke-dasharray:10 3 2 3}
+  .nap-tekst{fill:var(--ink); font:700 13px "Segoe UI",system-ui,sans-serif; stroke:#fff; stroke-width:3px; paint-order:stroke; stroke-linejoin:round}
+  .legenda-kop{fill:var(--ink); font:700 14.5px "Segoe UI",system-ui,sans-serif}
+  .legenda-item{fill:var(--ink); font:13px "Segoe UI",system-ui,sans-serif}
+  .legenda-voet{fill:var(--ink-soft); font:600 13px "Segoe UI",system-ui,sans-serif}
+  .wolkStreep{display:inline-block; width:16px; height:3px; margin:0 4px 0 3px; background:var(--teal); vertical-align:middle}
+  .wolkStreep.b{background:#8E3FAE}
+  #wolkKeuze label{display:inline-flex; align-items:center; margin-right:6px}
+
+  select{font:inherit; padding:4px 6px; border:1px solid var(--line); border-radius:5px; background:var(--paper); color:var(--ink)}
+
+  /* ── PDF-instellingen ── */
+  dialog#pdfDialoog{
+    border:none; border-radius:10px; padding:0; width:min(1240px, calc(100vw - 32px));
+    max-height:calc(100vh - 32px); box-shadow:0 20px 60px rgba(27,42,56,.35); color:var(--ink);
+  }
+  dialog#pdfDialoog::backdrop{background:rgba(27,42,56,.45)}
+  dialog.dxfDialoog{border:none; border-radius:12px; padding:18px 20px; width:min(560px, 94vw); max-height:86vh; color:var(--ink); box-shadow:0 18px 50px rgba(27,42,56,.3)}
+  dialog.dxfDialoog::backdrop{background:rgba(27,42,56,.45)}
+  dialog.dxfDialoog h3{margin:0 0 6px; font-size:16px}
+  dialog.dxfDialoog .hint{margin:0 0 10px; font-size:12.5px; color:var(--ink-soft)}
+  .dxfLijst{max-height:56vh; overflow:auto; border:1px solid var(--line); border-radius:8px; padding:4px 8px}
+  .dxfLijst label{display:flex; align-items:center; gap:8px; padding:3px 0; font-size:13px}
+  .dxfGroep{font-weight:700; font-size:12px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; margin:8px 0 2px}
+  .dxfKleur{width:14px; height:4px; border-radius:2px; flex:none}
+  .dxfNaam{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  dialog.dxfDialoog .knoppen{display:flex; gap:8px; margin-top:12px; align-items:center}
+  dialog.dxfDialoog .rek{flex:1}
+  .pdf-kop{display:flex; align-items:center; gap:10px; padding:14px 20px; border-bottom:1px solid var(--line)}
+  .pdf-kop h2{margin:0; font-size:16px}
+  .pdf-kop img{height:22px}
+  .pdf-lijf{display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px 22px; padding:16px 20px; overflow:auto; max-height:calc(100vh - 180px)}
+  @media (max-width:900px){ .pdf-lijf{grid-template-columns:minmax(0, 1fr)} .pdf-lijf .voorbeeldVak{grid-column:auto} }
+  .pdf-lijf .voorbeeldVak{grid-column:span 2; display:flex; flex-direction:column}
+  .voorbeeldVak canvas{display:block; margin:0 auto; border:1px solid var(--line); border-radius:3px; background:#fff; box-shadow:0 2px 8px rgba(27,42,56,.14)}
+  .voorbeeldBalk{display:flex; align-items:center; gap:8px; margin:0 0 8px; font-size:12.5px; color:var(--ink-soft)}
+  .voorbeeldBalk span{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .voorbeeldBalk button{padding:2px 9px}
+  .pdf-lijf fieldset{border:1px solid var(--line); border-radius:8px; padding:10px 12px 12px; margin:0; min-width:0}
+  .pdf-lijf legend{font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-dim); padding:0 4px}
+  .pdf-lijf .rij{display:flex; align-items:center; gap:8px; margin:6px 0; font-size:13px}
+  .pdf-lijf .rij > span:first-child{width:112px; flex:none; color:var(--ink-soft)}
+  .pdf-lijf .rij textarea{flex:1; min-width:0; font:inherit; padding:4px 7px; border:1px solid var(--line); border-radius:5px; background:#fff; resize:vertical}
+  .pdf-lijf .rij input[type=text], .pdf-lijf .rij input[type=date], .pdf-lijf .rij select{flex:1; min-width:0; font:inherit; padding:4px 7px; border:1px solid var(--line); border-radius:5px; background:#fff}
+  .pdf-lijf .rij input[type=number]{width:76px}
+  .pdf-lijf label.vink{display:flex; align-items:center; gap:7px; margin:5px 0; font-size:13px}
+  .pdf-lijf .hint{font-size:11.5px; color:var(--ink-dim); margin:4px 0 0}
+  .pdf-lijf .hint.waarschuw{color:var(--red)}
+  .pdf-voet{display:flex; align-items:center; gap:10px; padding:12px 20px; border-top:1px solid var(--line); background:var(--paper)}
+  .pdf-voet .info{flex:1; font-size:12.5px; color:var(--ink-soft)}
+  .pdf-voet #pdfStatus{display:block; color:var(--teal); font-weight:600}
+  #afsluitKnop{margin-left:auto}
+  .zoomgroep{display:inline-flex; gap:0}
+  .zoomgroep button{border-radius:0; margin-left:-1px}
+  .zoomgroep button:first-child{border-radius:5px 0 0 5px; margin-left:0}
+  .zoomgroep button:last-child{border-radius:0 5px 5px 0}
+  .zoomgroep select{border-radius:5px 0 0 5px; max-width:130px}
+  input.bestandKnop{width:104px; color:transparent; overflow:hidden}
+  input.bestandKnop::file-selector-button{color:var(--ink)}
+  input.bestandKnop:disabled::file-selector-button{opacity:.45}
+  .zoomkader{position:absolute; border:1.5px dashed var(--teal); background:rgba(30,127,166,.10); pointer-events:none; z-index:5}
+  .venster{cursor:crosshair !important}
+  #afsluitKnop:hover{background:var(--red); color:#fff; border-color:var(--red)}
+  .afgesloten{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; background:var(--paper); color:var(--ink-soft); font-size:15px; z-index:100}
+  .afgesloten img{height:40px}
+  button.primair{background:var(--teal); color:#fff; border-color:var(--teal)}
+  button.primair:hover{background:#176A8B}
+
+
+  /* ── lint (bovenbalk) met groepen ── */
+  header#lint{display:flex; align-items:stretch; flex-wrap:nowrap; gap:6px 0; padding:6px 10px 6px 14px; background:var(--surface); border-bottom:1px solid var(--line); overflow-x:auto; scrollbar-width:thin}
+  #lint > *{flex:none}
+  /* inklapbare groepen: klik op de kop */
+  #lint .groep h2{cursor:pointer; user-select:none; display:flex; align-items:center; gap:5px; white-space:nowrap}
+  #lint .groep h2::after{content:''; width:0; height:0; border-left:4px solid transparent; border-right:4px solid transparent; border-top:5px solid currentColor; opacity:.7; transition:transform .15s}
+  #lint .groep h2:hover{color:var(--ink)}
+  #lint .groep.ingeklapt h2::after{transform:rotate(-90deg)}
+  #lint .groep.ingeklapt > :not(h2){display:none}
+  #lint .groep.ingeklapt{justify-content:flex-start; padding-right:8px}
+  #lint .groep.ingeklapt h2{writing-mode:vertical-rl; transform:rotate(180deg); flex-direction:row-reverse; margin:auto 0; padding:2px 0}
+  #lint .groep.ingeklapt h2::after{transform:rotate(-90deg)}
+  #lint .toetsRaster{display:grid; grid-template-columns:auto auto; gap:4px 6px; align-items:center}
+  #lint .toetsRaster .dvChip{max-width:118px}
+  #lint .merkBlok{display:flex; flex-direction:column; justify-content:center; gap:4px; padding-right:10px}
+  #lint .groep{display:flex; flex-direction:column; gap:4px; padding:0 11px; border-left:1px solid var(--line); min-width:0}
+  #lint .groep h2{margin:0 0 1px; font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--teal)}
+  #lint .rij{display:flex; align-items:center; gap:6px; min-height:28px}
+  #lint button{padding:3px 9px}
+  #lint .groep[aria-label="Project"] button{padding:3px 6px}
+  #lint button.breed{width:100%; text-align:left; display:flex; align-items:baseline; justify-content:space-between; gap:12px}
+  #lint button .zacht{font-size:11px; color:var(--ink-dim)}
+  #lint button:disabled .zacht{color:inherit}
+  #lint .rek{flex:1}
+  #statusBalk #afsluitKnop{margin-left:auto; flex:none; padding:2px 10px; font-size:12.5px}
+  .sub{font-size:12.5px; color:var(--ink-soft)}
+  .sub.toonLaag{display:inline-flex; align-items:center; gap:3px; cursor:pointer}
+  .sub.toonLaag input{margin:0}
+  .sub.toonLaag:has(input:disabled){cursor:default}
+  /* smallere schermen: logo zonder titel, uitvoerknoppen zonder bijschrift */
+  @media (max-width:1480px){
+    #lint .merkBlok h1{display:none}
+    #lint button.breed .zacht{display:none}
+    #lint .groep{padding:0 7px}
+    #lint button{padding:3px 6px}
+    #lint .rij{gap:4px}
+    #lint .bestandNaam{max-width:90px}
+    #lint #puntDichtheid{max-width:122px}
+    #lint .dvChip{max-width:100px}
+    #lint label.veld{gap:4px}
+  }
+  .dvChip{max-width:120px; overflow:hidden; text-overflow:ellipsis}
+  .bestandNaam{font-size:12px; color:var(--ink-dim); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  #statusBalk{gap:12px; padding:3px 10px 3px 16px; min-height:28px; background:var(--surface); border-bottom:1px solid var(--line); display:flex; align-items:center}
+  #statusBalk #status{overflow:hidden; text-overflow:ellipsis}
+  .paneel .kop .paneelTitel{font-weight:700; color:var(--ink); font-size:12.5px; margin-right:4px}
+  .paneel .kop.tweede{background:#FAFBFC; padding-top:4px; padding-bottom:4px}
+  .paneel .kop .kopje{font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--teal)}
+  .paneel .kop .kopgroep{display:inline-flex; align-items:center; gap:6px 8px; white-space:nowrap; padding-right:10px; margin-right:2px; border-right:1px solid var(--line)}
+  .paneel .kop .kopgroep:last-of-type{border-right:none}
+  .paneel .kop .kopgroep .kopje{margin-right:2px}
+
+
+  /* ── doorvaart ── */
+  .lijn-onder{stroke:#1B2A38; stroke-width:1.6}
+  .lijn-dek{stroke:#1B2A38; stroke-width:1.1}
+  .dv-brugvlak{fill:#D5DADF; stroke:none}
+  .dv-profiel{fill:none; stroke:#1B2A38; stroke-width:1.3; stroke-dasharray:10 4 2 4}
+  .dv-profiel.diep{stroke-dasharray:4 4; stroke-width:1.1}
+  .dv-conflictvlak{stroke:#C6472B; stroke-width:1.4}
+  .dv-schip{fill:none; stroke:#6B7A8C; stroke-width:1.3; stroke-linejoin:round}
+  .dv-schip.dun{stroke-width:.8}
+  .dv-maatlijn{stroke:#1B2A38; stroke-width:.9; fill:none}
+  .dv-maatlijn.grijs{stroke:#6B7A8C}
+  .dv-maatlijn.rood{stroke:#C6472B; stroke-width:1.2}
+  .dv-maatlijn.groen{stroke:#16803D; stroke-width:1.2}
+  .dv-maatlijn-tekst{fill:#1B2A38; font:600 12.5px "Segoe UI",system-ui,sans-serif; stroke:#fff; stroke-width:3px; paint-order:stroke}
+  .dv-maatlijn-tekst.grijs{fill:#6B7A8C}
+  .dv-maatlijn-tekst.rood{fill:#C6472B}
+  .dv-maatlijn-tekst.groen{fill:#16803D}
+  .dv-peilteken{fill:none; stroke:#2F7FB5; stroke-width:1.2}
+  .dv-peiltekst{fill:#2F7FB5; font:600 12.5px "Segoe UI",system-ui,sans-serif; stroke:#fff; stroke-width:3px; paint-order:stroke}
+  .dv-box{fill:#16803D; fill-opacity:.09; stroke:#16803D; stroke-width:1.8}
+  .dv-box.nok{fill:#C6472B; fill-opacity:.10; stroke:#C6472B}
+  .dv-box.diep{fill-opacity:.05}
+  .dv-omtrek{fill:none; stroke:#16803D; stroke-width:1.2; stroke-dasharray:6 4}
+  .dv-romp{fill:#29235C; fill-opacity:.82; stroke:#29235C; stroke-width:1.2}
+  .dv-romp.nok{fill:#C6472B; stroke:#C6472B}
+  .dv-hut{fill:#E9EEF3; stroke:#29235C; stroke-width:1.4}
+  .dv-hut.nok{fill:#F8DED6; stroke:#C6472B}
+  .dv-dak{fill:#29235C; stroke:none}
+  .dv-mast{fill:#29235C; stroke:#29235C; stroke-width:1}
+  .dv-mast.nok{fill:#C6472B; stroke:#C6472B}
+  .dv-toetspeil{stroke:#7A3FAE; stroke-width:1.2; stroke-dasharray:5 3}
+  .dv-conflict{stroke:#C6472B; stroke-width:4.5; fill:none; stroke-linecap:round}
+  .dv-maat{stroke:#16803D; stroke-width:1.4; fill:none}
+  .dv-maat.nok{stroke:#C6472B}
+  .dv-maat-tekst{fill:#16803D; font:700 14px "Segoe UI",system-ui,sans-serif; stroke:#fff; stroke-width:3px; paint-order:stroke}
+  .dv-maat-tekst.nok{fill:#C6472B}
+  .dvChip{font-size:12px; color:var(--ink-dim); white-space:nowrap}
+  .dvChip.ok{color:#16803D; font-weight:700}
+  .dvChip.nok{color:var(--red); font-weight:700}
+  dialog.dvDialoog{border:none; border-radius:10px; padding:0; width:min(1120px, calc(100vw - 32px)); max-height:calc(100vh - 32px); box-shadow:0 20px 60px rgba(27,42,56,.35); color:var(--ink)}
+  dialog.dvDialoog::backdrop{background:rgba(27,42,56,.45)}
+  .dvLijf{display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.15fr); gap:14px 20px; padding:16px 20px; overflow:auto; max-height:calc(100vh - 170px)}
+  @media (max-width:900px){ .dvLijf{grid-template-columns:minmax(0, 1fr)} }
+  .dvKolom{display:flex; flex-direction:column; gap:14px; min-width:0}
+  .dvLijf fieldset{border:1px solid var(--line); border-radius:8px; padding:10px 12px 12px; margin:0; min-width:0}
+  .dvLijf legend{font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-dim); padding:0 4px}
+  .dvLijf .rij{display:flex; align-items:center; gap:7px; margin:6px 0; font-size:13px; flex-wrap:wrap}
+  .dvLijf .rij > span:first-child{width:122px; flex:none; color:var(--ink-soft)}
+  .dvLijf input[type=number]{width:78px}
+  .dvLijf .hint{font-size:11.5px; color:var(--ink-dim); margin:0 0 4px}
+  .dvLijf label.vink{display:flex; align-items:center; gap:7px; margin:8px 0 0; font-size:13px}
+  .dvTabel{width:100%; border-collapse:collapse; font-size:13px}
+  .dvTabel th{text-align:left; font-weight:500; color:var(--ink-soft); padding:4px 8px 4px 0; vertical-align:top; width:42%}
+  .dvTabel td{padding:4px 0; color:var(--ink)}
+  .dvTabel tr + tr th, .dvTabel tr + tr td{border-top:1px solid #EEF2F5}
+  .dvTabel tr.ok td{color:#16803D; font-weight:600}
+  .dvTabel tr.nok td{color:var(--red); font-weight:600}
+  .dvTabel tr.let td{color:#B26A00; font-weight:600}
+  .dvChip.let{color:#B26A00; font-weight:700}
+  .dvTabel tr.oordeel td{font-size:15px; font-weight:800}
+  .snPaal{font-size:11px; color:#1F4E79; font-weight:600}
+  .gaNaar{width:88px; font-size:12px; padding:2px 6px}
+  #stationeringKnop.aan{background:#1F4E79; color:#fff; border-color:#1F4E79}
+  .dvLijf fieldset.uit{opacity:.45}
+  .dvLijf input[type=text]{width:78px}
+  .snLijstVak{max-height:360px; overflow:auto; border:1px solid #EEF2F5; border-radius:6px}
+  .snTabel{width:100%; border-collapse:collapse; font-size:12.5px}
+  .snTabel th{position:sticky; top:0; background:#F3F6F8; text-align:left; font-weight:600; color:var(--ink-soft); padding:5px 6px; white-space:nowrap}
+  .snTabel td{padding:4px 6px; border-top:1px solid #EEF2F5; white-space:nowrap}
+  .snTabel td:last-child{white-space:normal}
+  .snTabel td.snPerc{color:#6B2F8A; font-weight:700}
+  .snTabel tr[data-nr]{cursor:pointer}
+  .snTabel tr[data-nr]:hover td{background:#F6F9FB}
+  .snTabel tr.gekozen td{background:#E7F2F7}
+  .snTabel tr.oranje td{color:#8A5A12}
+  .snNr{display:inline-block; min-width:20px; height:20px; line-height:20px; border-radius:10px; text-align:center; color:#fff; font-weight:700; font-size:11.5px; background:#C6472B}
+  .snNr.oranje{background:#E08A1E}
+  .hint.waarschuw{color:var(--red)}
+  .snPerPerceel{padding:10px 8px 6px; border-top:1px solid #EEF2F5; font-size:12.5px; display:flex; flex-direction:column; gap:5px}
+  .snPerPerceel > div{display:flex; gap:10px; align-items:center}
+  .snPerPerceel > div > span:first-child{min-width:190px; color:#6B2F8A; font-weight:600}
+  .snPerPerceel .snNr{margin-right:2px}
+
+  /* opstartscherm: zichtbaar tot viewer.js helemaal geladen is */
+  #opstartScherm{position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:var(--paper); color:var(--ink-soft); font-size:15px}
+  #opstartScherm img{height:46px}
+  #opstartScherm .draai{width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--teal); border-radius:50%; animation:draai 0.9s linear infinite}
+  #opstartScherm.fout .draai{display:none}
+  #opstartScherm.fout{color:var(--red)}
+  @keyframes draai{to{transform:rotate(360deg)}}
+
+  /* Het printblad wordt niet meer via de browser-printdialoog getoond —
+     PDF-export (zie viewer.js) bouwt het document rechtstreeks met jsPDF,
+     zodat er geen printer nodig is en het bovenaanzicht altijd op tijd
+     "klaar" is (geen afhankelijkheid meer van een <img>-laadmoment vlak
+     vóór het printen). */
+</style>
+</head>
+<body>
+<div id="opstartScherm">
+  <img src="merk-lutrea.png" alt="Lutrea">
+  <div class="draai"></div>
+  <div id="opstartTekst">Profielviewer wordt gestart…</div>
+</div>
+<script>
+  // Gaat er tijdens het opstarten iets mis, dan dat op het opstartscherm laten zien
+  // in plaats van een scherm dat lijkt vast te lopen.
+  // Blijft het opstarten hangen (bv. een script dat de eerste keer niet
+  // binnenkomt), dan één keer automatisch opnieuw laden.
+  function opnieuwProberen() {
+    try {
+      if (sessionStorage.getItem('ptsviewer-herstart')) return false;
+      sessionStorage.setItem('ptsviewer-herstart', '1');
+    } catch (x) { return false; }
+    location.reload();
+    return true;
+  }
+  window.addEventListener('error', function (e) {
+    var s = document.getElementById('opstartScherm');
+    if (!s) return;
+    if (e.target && e.target.src && opnieuwProberen()) return;
+    s.classList.add('fout');
+    document.getElementById('opstartTekst').textContent =
+      'Opstarten mislukt: ' + (e.message || (e.target && e.target.src) || 'onbekende fout') +
+      '. Sluit het venster en start de Profielviewer opnieuw.';
+  }, true);
+  setTimeout(function () {
+    var t = document.getElementById('opstartTekst');
+    if (t && !document.getElementById('opstartScherm').classList.contains('fout'))
+      t.textContent = 'Profielviewer wordt gestart… (de eerste keer kan dit even duren)';
+  }, 4000);
+  setTimeout(function () {
+    var s = document.getElementById('opstartScherm');
+    if (s && !s.classList.contains('fout')) opnieuwProberen();
+  }, 20000);
+  window.addEventListener('load', function () {
+    // goed opgestart: teller weer vrijgeven voor een volgende keer
+    setTimeout(function () { if (!document.getElementById('opstartScherm')) { try { sessionStorage.removeItem('ptsviewer-herstart'); } catch (x) {} } }, 3000);
+  });
+</script>
+
+<header id="lint">
+  <div class="merkBlok">
+    <span class="merk"><img src="merk-lutrea.png" alt="Lutrea"></span>
+    <h1>Profielviewer <span id="appVersie" title="Versie van de Profielviewer" style="font-size:11px;font-weight:500;color:var(--ink-dim);vertical-align:middle">2.9.5</span></h1>
+  </div>
+
+  <section class="groep" aria-label="Puntenwolk">
+    <h2>Puntenwolk</h2>
+    <div class="rij">
+      <input type="file" id="ptsBestand" accept=".pts,.txt,.las,.laz" hidden>
+      <button type="button" class="bestandOpen" data-voor="ptsBestand" title="Puntenwolk openen: .pts, .txt, .las of .laz (RD/NAP)">Openen…</button>
+      <span class="bestandNaam" id="wolkBestandNaam" title="Ingelezen puntenwolk">geen bestand</span>
+      <label class="veld" title="Bij grote LAS/LAZ-bestanden (>900.000 punten) wordt standaard een verspreide steekproef gelezen voor snelheid — vink dit aan om écht alle punten van schijf te lezen (kan bij honderden miljoenen punten enkele minuten duren, en wordt daarna alsnog uitgedund voor de weergave)">
+        <input type="checkbox" id="volledigInlezen"> alles inlezen
+      </label>
+      <label class="veld" title="Alleen maaiveld (klasse 2): bij een LAS/LAZ met classificatie (zoals AHN of een geclassificeerde dronemeting) alleen de grondpunten van A gebruiken. Begroeiing, gebouwen, hekwerk en paaltjes vallen dan weg uit de surface en de profielen (ook bij Alle punten en Detailstrook). Een .pts of een LAS zonder classificatie gebruikt vanzelf alle punten.">
+        <input type="checkbox" id="wolkAMaaiveld"> maaiveld
+      </label>
+    </div>
+    <div class="rij">
+      <label class="veld" title="Hoeveel punten de viewer maximaal gebruikt voor de surface. Meer punten = meer detail (kleinere puntafstand), maar trager inlezen en een groter projectbestand. Wijzigen leest het bestand opnieuw in; je as en BGT blijven staan.">punten
+        <select id="puntDichtheid">
+          <option value="150000">150.000 (snel)</option>
+          <option value="300000" selected>300.000 (standaard)</option>
+          <option value="600000">600.000</option>
+          <option value="1000000">1 miljoen</option>
+          <option value="2000000">2 miljoen</option>
+          <option value="5000000">5 miljoen (traag)</option>
+          <option value="10000000">10 miljoen (zwaar)</option>
+        </select>
+      </label>
+      <label class="veld" title="Liggen er op één plek punten boven elkaar (wegdek van een brug met de bodem eronder, boomkruin boven maaiveld), welke gebruikt de viewer dan? Bovenkant = het hoogste punt (zoals op de foto). Onderkant = het laagste punt (maaiveld onder bomen, bodem onder een brug). Wijzigen leest het bestand opnieuw in.">oppervlak
+        <select id="oppervlakModus">
+          <option value="boven" selected>bovenkant</option>
+          <option value="onder">onderkant</option>
+        </select>
+      </label>
+      <label class="veld" title="Hekwerk en randen strak (alleen bij bovenkant): een open hek of smalle muur wordt door een drone maar op losse plekken geraakt. De gaten daartussen worden gedicht (punten die minstens 25 cm lager liggen dan wat er aan beide kanten binnen 0,5 m ligt), zodat het hek een doorlopende lijn wordt in plaats van een kam van pieken. Een goot of kleine dip blijft staan. Wijzigen leest het bestand opnieuw in."><input type="checkbox" id="randenStrak" checked> randen strak</label>
+    </div>
+    <div class="rij">
+      <span class="sub" title="Tweede puntenwolk (B) om mee te vergelijken, bv. AHN naast een dronemeting of een tweede meetmoment. Verschijnt in de profielen als tweede lijn in een eigen kleur. Alleen het gebied van puntenwolk A wordt ingelezen.">vergelijk met B</span>
+      <input type="file" id="vergelijkBestand" accept=".pts,.txt,.las,.laz" disabled hidden>
+      <button type="button" class="bestandOpen" data-voor="vergelijkBestand" disabled title="Tweede puntenwolk (B) openen om mee te vergelijken (bv. AHN of een tweede meetmoment)">Openen…</button>
+      <label class="veld" title="Bij LAS/LAZ met classificatie (zoals AHN): alleen de maaiveldpunten (klasse 2) van B gebruiken. Heeft het bestand geen classificatie, dan worden vanzelf alle punten gebruikt."><input type="checkbox" id="vergelijkMaaiveld" checked> maaiveld</label>
+      <span class="veld" id="wolkKeuze" hidden>
+        <label><input type="checkbox" id="toonWolkA" checked><span class="wolkStreep"></span><span id="wolkANaam">A</span></label>
+        <label><input type="checkbox" id="toonWolkB" checked><span class="wolkStreep b"></span><span id="wolkBNaam">B</span></label>
+        <button id="wisWolkB" title="Vergelijkingswolk B weghalen">✕</button>
+      </span>
+    </div>
+  </section>
+
+  <section class="groep" aria-label="Project">
+    <h2>Project</h2>
+    <div class="rij">
+      <input type="file" id="projectLadenVeld" accept=".json" hidden>
+      <button type="button" id="projectNieuwKnop" title="Nieuw project: het huidige project sluiten en leeg beginnen (Ctrl+N)">Nieuw</button>
+      <button type="button" id="projectOpenKnop" title="Een projectmap openen (of een los projectbestand van vóór 2.9.0) (Ctrl+O)">Openen…</button>
+    </div>
+    <div class="rij">
+      <button id="projectOpslaanKnop" disabled title="Opslaan in de projectmap (de vorige versie gaat naar backup\); nog geen projectmap → je kiest er één (Ctrl+S)">Opslaan</button>
+      <button id="projectOpslaanAlsKnop" disabled title="Opslaan in een andere (nieuwe) projectmap; de puntenwolk gaat mee. Daarna slaat Opslaan daarin op (Ctrl+Shift+S)">Opslaan als…</button>
+    </div>
+    <div class="rij">
+      <label class="veld" title="De (uitgedunde) puntenwolk in het projectbestand meebewaren, zodat je bij het openen van het project geen .pts/.las/.laz meer los hoeft in te lezen. Het projectbestand wordt dan een paar MB groter.">
+        <input type="checkbox" id="projectMetPuntenwolk" checked> met puntenwolk
+      </label>
+    </div>
+    <div class="rij"><span class="bestandNaam" id="projectBestandNaam" title="Geopend project"></span></div>
+  </section>
+
+  <section class="groep" aria-label="As">
+    <h2>As</h2>
+    <div class="rij">
+      <span class="zoomgroep" title="Meerdere losse assen: kies de as waarvan je de profielen ziet. Andere assen staan grijs in het bovenaanzicht — klik erop om te wisselen.">
+        <select id="asKeuze" disabled><option>As 1</option></select>
+        <button id="nieuweAsKnop" disabled title="Nieuwe as tekenen — de huidige as blijft bewaard">+ As</button>
+        <button id="hernoemAsKnop" disabled title="Naam van deze as wijzigen">✎</button>
+      </span>
+      <button id="tekenAsKnop" disabled title="Punten klikken op de actieve as (verder tekenen op een bestaande as kan ook)">Teken as</button>
+      <button id="wisAsKnop" disabled>Wis as</button>
+    </div>
+    <div class="rij">
+      <input type="file" id="asBestand" accept=".gpkg,.geojson,.json,.shp,.dbf,.dxf" multiple hidden>
+      <button id="asInlezenKnop" disabled title="As inlezen uit QGIS / GIS / CAD: GeoPackage (.gpkg), GeoJSON, shapefile (.shp, met de .dbf erbij voor de namen) of DXF. Elke lijn wordt een as; de naam komt uit een veld als 'naam' of 'name'. Alleen het deel bij de puntenwolk wordt gebruikt. WGS84 wordt omgerekend naar RD.">As inlezen…</button>
+      <button id="omdraaiAsKnop" disabled title="Richting van de as omdraaien: station 0 aan de andere kant (L en R wisselen mee)">⇄ Omdraaien</button>
+      <button id="detailStrookKnop" disabled>Detailstrook</button>
+    </div>
+    <div class="rij">
+      <button id="nwbKnop" disabled title="As uit het Nationaal Wegenbestand (PDOK): hartlijnen van wegen, straten, fietspaden en vaarwegen in het gebied van de puntenwolk. Kies een straat en de wegvakken worden aan elkaar geregen tot één as.">NWB-as…</button>
+      <button id="stationeringKnop" disabled title="Stationering: dijkpalen (uit GeoPackage, GeoJSON, CSV of DXF) of hectometrering in plaats van meters vanaf het begin van de as — in de stationslabels, profieltitels, PDF, snoeilijst en exports">Stationering…</button>
+    </div>
+    <div class="rij">
+      <span class="sub">tonen</span>
+      <label class="veld" title="Alle dwarsprofiellijntjes met stationsnummer in het bovenaanzicht tonen — zo zie je meteen welke profielen er (in de PDF) komen"><input type="checkbox" id="toonDwarslijnen" checked> profiellijnen</label>
+      <label class="veld" title="Het lengteprofiel (over de as) rechtsboven tonen"><input type="checkbox" id="toonLangsprofiel" checked> lengteprofiel</label>
+    </div>
+  </section>
+
+  <section class="groep" aria-label="Toets">
+    <h2>Toets</h2>
+    <div class="toetsRaster">
+      <button id="doorvaartKnop" disabled class="breed" title="Doorvaarthoogte (en -diepte) onder een brug controleren: brugscans inlezen, doorvaartbox instellen en toetsen">Doorvaart…</button>
+      <button id="snoeiKnop" disabled class="breed" title="Snoeicheck: vrije doorloopruimte (breedte × hoogte) boven een pad toetsen op begroeiing uit de puntenwolk — snoeikaart en snoeilijst">Snoeien…</button>
+      <span id="dvChip" class="dvChip">geen brug ingelezen</span><span id="snChip" class="dvChip">geen begroeiing</span>
+    </div>
+  </section>
+
+  <section class="groep" aria-label="Uitvoer">
+    <h2>Uitvoer</h2>
+    <div class="rij"><button id="printKnop" disabled title="PDF maken — kies formaat, inhoud en titelblok" class="breed">PDF…</button></div>
+    <div class="rij"><button id="dxfKnop" disabled class="breed" title="DXF voor AutoCAD / Civil 3D: dezelfde bladen als de PDF als layouts met viewports (instellingen uit het PDF-venster); in model space de situatie in RD/NAP en de profielen op ware grootte, elk onderdeel op een eigen laag (PV_…)">DXF <span class="zacht">AutoCAD</span></button></div>
+    <div class="rij"><button id="gpkgKnop" disabled class="breed" title="GeoPackage voor QGIS (en ArcGIS, FME): as, dwarsprofiellijnen, 3D-profielen, profielpunten met hoogtes (en verschil A/B), lengteprofiel en BGT-snijpunten, in RD New met opmaak">GeoPackage <span class="zacht">QGIS</span></button></div>
+    <div class="rij"><button id="ifcKnop" disabled class="breed" title="IFC 4.3 (openBIM) voor Civil 3D, Solibri, Navisworks, BIMcollab, Revit: de as als alignment met de dijkpalen, het maaiveld langs de as, de dwarsprofielen, de doorvaartbox en het doorloopprofiel als vrije ruimte, en de snoeipunten, conflicten en niet-gemeten plekken met hun gegevens. Georefereerd in RD/NAP.">IFC 4.3 <span class="zacht">BIM</span></button></div>
+  </section>
+
+</header>
+<div id="statusBalk"><span id="status">geen bestand geladen</span><button id="afsluitKnop" title="Viewer en het programma op de achtergrond afsluiten">⏻ Afsluiten</button></div>
+
+<main>
+  <section class="paneel" id="vlak">
+    <div class="kop">
+      <span class="paneelTitel">Bovenaanzicht</span>
+      <span class="zoomgroep">
+        <button id="zoomVensterVlakKnop" title="Zoom venster: sleep een rechthoek om het gebied (Esc = annuleren)">⬚ Venster</button>
+        <button id="zoomAllesKnop" title="Zoom alles: de hele puntenwolk in beeld (losse uitschieters worden genegeerd). Dubbelklikken doet hetzelfde.">⤢ Alles</button>
+        <button id="zoomVorigeKnop" title="Zoom vorige: terug naar het vorige beeld" disabled>↶ Vorige</button>
+        <button id="zoomInVlakKnop" title="Inzoomen">+</button>
+        <button id="zoomUitVlakKnop" title="Uitzoomen">−</button>
+      </span>
+      <label class="veld" title="Kleur van de puntenwolk">kleur
+        <select id="kleurModus" disabled>
+          <option value="hoogte" selected>hoogte</option>
+          <option value="rgb">RGB (inmeting)</option>
+        </select>
+      </label>
+      <label class="veld" id="toonVakkenVak" hidden title="Het raster van vakken (50 × 50 m) licht tonen, met per vak het aantal punten. Vakken die nog laden hebben altijd een oranje stippelrand."><input type="checkbox" id="toonVakken"> vakken</label>
+      <span class="rek"></span>
+      <button id="drieDKnop" disabled>3D</button>
+      <span class="veld" id="drieDKnoppen" hidden>
+        <button id="drieDBoven">Boven</button>
+        <button id="drieDIso" title="Schuin aanzicht vanuit het noordwesten">Schuin</button>
+        <button id="drieDDraai" title="90° verder draaien">⟳ 90°</button>
+        <button id="drieDBrugKnop" title="Camera naar de doorvaart onder de brug">Naar brug</button>
+        <button id="drieDVlakKnop" title="Wissel tussen draadframe en een gevuld vlak">Vlak</button>
+        <button id="drieDFullscreenKnop" title="Volledig scherm">⛶</button>
+      </span>
+    </div>
+    <div class="kop tweede">
+      <span class="kopgroep"><span class="kopje">Ondergrond</span>
+      <button id="luchtfotoKnop" disabled title="Luchtfoto PDOK (actueel) aan/uit">Luchtfoto</button></span>
+      <span class="kopgroep"><label class="sub toonLaag" title="BGT tonen of verbergen in het bovenaanzicht (de gegevens blijven geladen; PDF en export volgen hun eigen vinkjes)"><input type="checkbox" id="toonBgt" checked disabled>BGT</label>
+      <span class="zoomgroep">
+        <button id="bgtOphalenKnop" disabled title="BGT van PDOK ophalen voor het gebied van de puntenwolk">Ophalen</button>
+        <input type="file" id="bgtBestand" title="Eigen BGT-bestand openen: DXF (bv. een BGT-tekening, uit DWG opgeslagen als DXF) of GeoJSON" accept=".dxf,.json,.geojson" disabled hidden>
+        <button type="button" class="bestandOpen" data-voor="bgtBestand" disabled title="Eigen BGT-bestand openen: DXF (bv. een BGT-tekening, uit DWG opgeslagen als DXF) of GeoJSON">Bestand…</button>
+        <button id="wisBgtKnop" disabled title="BGT weghalen">Wis</button>
+      </span>
+      <label class="veld" title="Alleen lijnen: alleen de omtrekken plus de BGT-lijnobjecten (kruinlijnen, scheidingen, spoor, kunstwerken). Lijnen + vlakken: zoals voorheen, met gekleurde vlakken.">
+        <select id="bgtWeergave">
+          <option value="lijnen" selected>alleen lijnen</option>
+          <option value="vlakken">lijnen + vlakken</option>
+        </select>
+      </label></span>
+      <span class="kopgroep"><label class="sub toonLaag" title="Bomen tonen of verbergen in het bovenaanzicht (de gegevens blijven geladen; PDF en export volgen hun eigen vinkjes)"><input type="checkbox" id="toonBomen" checked disabled>Bomen</label>
+      <span class="zoomgroep">
+        <button id="bomenOphalenKnop" disabled title="Bomen ophalen (PDOK) voor het gebied van de puntenwolk">Ophalen</button>
+        <input type="file" id="boomBestand" title="Eigen bomenbestand (GeoJSON) openen" accept=".json,.geojson" disabled hidden>
+        <button type="button" class="bestandOpen" data-voor="boomBestand" disabled title="Eigen bomenbestand (GeoJSON) openen">Bestand…</button>
+        <button id="wisBomenKnop" disabled title="Bomen weghalen">Wis</button>
+      </span></span>
+      <span class="kopgroep"><label class="sub toonLaag" title="Kadaster tonen of verbergen in het bovenaanzicht (de gegevens blijven geladen; PDF en export volgen hun eigen vinkjes)"><input type="checkbox" id="toonKadaster" checked disabled>Kadaster</label>
+      <span class="zoomgroep">
+        <button id="kadasterOphalenKnop" disabled title="Kadastrale percelen (BRK kadastrale kaart) van PDOK ophalen: perceelgrenzen met sectie en nummer, in het bovenaanzicht en het dwarsprofiel">Ophalen</button>
+        <input type="file" id="kadasterBestand" accept=".json,.geojson,.gpkg" disabled hidden>
+        <button type="button" class="bestandOpen" data-voor="kadasterBestand" disabled title="Eigen bestand met kadastrale percelen (GeoJSON of GeoPackage, RD)">Bestand…</button>
+        <button id="wisKadasterKnop" disabled title="Percelen weghalen">Wis</button>
+      </span></span>
+      </div>
+    <div class="inhoud"><canvas id="canvasVlak"></canvas>
+      <canvas id="canvas3D" hidden></canvas>
+      <div id="drieDLagen" hidden>
+        <div class="kopje">Lagen</div>
+        <label data-laag="bodem"><input type="checkbox" checked><i class="lg bodem"></i>Bodem</label>
+        <label data-laag="onder"><input type="checkbox" checked><i class="lg onder"></i>Brug onderzijde</label>
+        <label data-laag="boven"><input type="checkbox" checked><i class="lg boven"></i>Brug bovenzijde</label>
+        <label data-laag="water"><input type="checkbox" checked><i class="lg water"></i>Water</label>
+        <label data-laag="box"><input type="checkbox" checked><i class="lg box"></i>Doorvaartbox</label>
+        <label data-laag="conflict"><input type="checkbox" checked><i class="lg conflict"></i>Conflicten</label>
+        <label data-laag="schip"><input type="checkbox" checked><i class="lg schip"></i>Schip</label>
+        <label data-laag="maaiveld"><input type="checkbox" checked><i class="lg maaiveld"></i>Maaiveld (strook)</label>
+        <label data-laag="begroeiing"><input type="checkbox" checked><i class="lg begroeiing"></i>Begroeiing</label>
+        <label data-laag="snoei"><input type="checkbox" checked><i class="lg snoei"></i>Doorloopprofiel</label>
+        <label data-laag="as"><input type="checkbox" checked><i class="lg as"></i>As</label>
+      </div>
+      <div class="niets" id="vlakLeeg">Laad een .pts- of .las-bestand om te beginnen.<br>Klik daarna op "Teken as" en zet een paar punten neer langs het tracé.</div>
+    </div>
+  </section>
+
+  <div class="splitter" id="kolomSplitter"></div>
+
+  <section class="paneel" id="langsPaneel">
+    <div class="kop">
+      <span class="paneelTitel">Lengteprofiel</span><span class="zacht">over de as</span>
+      <span class="rek"></span>
+      <label class="veld">stap <input type="number" id="stapLangs" value="1" min="0.1" step="0.1"> m</label>
+      <label class="veld">maten elke <input type="number" id="maatLangs" value="1" min="0" step="0.5" title="0 = geen hoogtematen"> m</label>
+      <label class="veld" title="hoogteverschillen dit aantal keer uitvergroot t.o.v. de ware schaal">verh. 1 : <input type="number" id="langsOverdrijving" value="5" min="0.25" step="0.25"></label>
+      <span class="zoomgroep">
+        <button id="langsZoomUit" title="Uitzoomen">−</button>
+        <button id="langsZoomIn" title="Inzoomen">+</button>
+        <button id="langsZoomVenster" title="Zoom venster: sleep een rechthoek (Esc = annuleren)">⬚</button>
+        <button id="langsZoomReset" title="Zoom alles: het hele profiel in beeld">⤢</button>
+      </span>
+    </div>
+    <div class="inhoud"><svg id="svgLangs"></svg>
+      <div class="niets" id="langsLeeg">Nog geen as getekend.</div>
+    </div>
+  </section>
+
+  <div class="splitter" id="rijSplitter"></div>
+
+  <section class="paneel" id="dwarsPaneel">
+    <div class="kop">
+      <span class="paneelTitel" title="Kijkrichting: naar oplopend station (L = links, R = rechts van de as)">Dwarsprofiel</span>
+      <span class="zoomgroep">
+        <button id="vorigeStation" disabled title="Vorig profiel">◀</button>
+        <button id="volgendeStation" disabled title="Volgend profiel">▶</button>
+      </span>
+      <input type="text" id="paalGaNaar" class="gaNaar" placeholder="ga naar…" title="Typ een station in meters (bv. 125) of een dijkpaal / hectometer (bv. DP 12 +40, 12+40, hm 3.4 +20) en druk op Enter">
+      <span id="stationLabel" class="zacht"></span>
+      <span class="rek"></span>
+      <span class="zoomgroep">
+        <button id="dwarsZoomUit" title="Uitzoomen">−</button>
+        <button id="dwarsZoomIn" title="Inzoomen">+</button>
+        <button id="dwarsZoomVenster" title="Zoom venster: sleep een rechthoek (Esc = annuleren)">⬚</button>
+        <button id="dwarsZoomReset" title="Zoom alles: het hele profiel in beeld">⤢</button>
+      </span>
+      <button id="dwarsVolScherm" title="Dwarsprofiel schermvullend (ook: dubbelklik in het profiel, of op een profiellijn in het bovenaanzicht). Esc = terug.">⛶</button>
+      <button id="volleDichtheidKnop" disabled>Alle punten</button>
+    </div>
+    <div class="kop tweede">
+      <span class="kopgroep"><span class="kopje">Profiel</span>
+      <label class="veld" title="Breedte van het dwarsprofiel links van de as (gezien in de richting van oplopend station)">links <input type="number" id="dwarsLinks" value="10" min="0" step="0.5"></label>
+      <label class="veld" title="Breedte van het dwarsprofiel rechts van de as (gezien in de richting van oplopend station)">rechts <input type="number" id="dwarsRechts" value="10" min="0" step="0.5"> m</label>
+      <input type="number" id="dwarsBreedte" value="20" min="1" step="1" hidden>
+      <label class="veld">interval <input type="number" id="dwarsInterval" value="5" min="0.5" step="0.5"> m</label>
+      <label class="veld" title="Wat van de BGT wordt in het dwarsprofiel getoond (ook in de PDF). Grenzen zijn de exacte snijpunten van de profiellijn met de BGT.">BGT
+        <select id="bgtInProfiel">
+          <option value="uit">uit</option>
+          <option value="balk" title="alleen de gekleurde balk onder het profiel">balk</option>
+          <option value="hoogtes" selected title="balk + rode hoogtes op de exacte BGT-grenzen">+ hoogtes</option>
+          <option value="namen" title="balk + hoogtes + namen van BGT-lijnen (kruinlijn e.d.)">+ namen</option>
+        </select></label></span>
+      <span class="kopgroep"><span class="kopje">Water</span>
+      <label class="veld" title="Waterpeil in m NAP: een waterlijn in het dwarsprofiel (en in de PDF-dwarsprofielen), met lichtblauw water waar het profiel onder dit peil ligt. Leeg = uit. Wordt in het project bewaard.">peil <input type="number" id="waterpeil" step="0.05" placeholder="uit" style="width:72px"> m NAP</label>
+      <label class="veld" title="Aan welke kant van de as ligt het water? Bv. alleen L: rechts ligt een weg die lager ligt dan het peil, maar dat is geen water. Kijkrichting = oplopend station (L/R zoals in het profiel)."><select id="waterKant"><option value="beide" selected>L + R</option><option value="links">alleen L</option><option value="rechts">alleen R</option></select></label></span>
+      <span class="kopgroep"><span class="kopje">Weergave</span>
+      <label class="veld">maten elke <input type="number" id="maatDwars" value="0.5" min="0" step="0.5" title="0 = geen hoogtematen van de surface (alleen de rode BGT-hoogtes)"> m</label>
+      <label class="veld" title="hoogteverschillen dit aantal keer uitvergroot t.o.v. de ware schaal">verh. 1 : <input type="number" id="dwarsOverdrijving" value="1" min="0.25" step="0.25"></label></span>
+      </div>
+    <div class="inhoud"><svg id="svgDwars"></svg>
+      <div class="niets" id="dwarsLeeg">Nog geen as getekend.</div>
+    </div>
+  </section>
+</main>
+
+
+<dialog id="dvDialoog" class="dvDialoog">
+  <div class="pdf-kop"><img src="merk-lutrea.png" alt=""><h2>Doorvaartcontrole</h2><span class="zacht">doorvaartbox onder een brug toetsen</span></div>
+  <div class="dvLijf">
+    <div class="dvKolom">
+      <fieldset>
+        <legend>Brug</legend>
+        <p class="hint">De bodem is puntenwolk A (peiling). Lees de scans van de brug apart in; alleen de onderzijde rekent mee.</p>
+        <div class="rij"><span>Onderzijde</span>
+          <input type="file" id="dvOnderBestand" accept=".pts,.txt,.las,.laz" hidden>
+          <button type="button" class="bestandOpen" data-voor="dvOnderBestand">Openen…</button>
+          <span class="bestandNaam" id="dvOnderNaam">niet ingelezen</span><button type="button" id="dvWisOnder" hidden title="Onderzijde weghalen">✕</button></div>
+        <div class="rij"><span>Bovenzijde</span>
+          <input type="file" id="dvBovenBestand" accept=".pts,.txt,.las,.laz" hidden>
+          <button type="button" class="bestandOpen" data-voor="dvBovenBestand">Openen…</button>
+          <span class="bestandNaam" id="dvBovenNaam">niet ingelezen (optioneel)</span><button type="button" id="dvWisBoven" hidden title="Bovenzijde weghalen">✕</button></div>
+      </fieldset>
+      <fieldset>
+        <legend>Doorvaartbox</legend>
+        <div class="rij" title="Waterstand waartegen de doorvaarthoogte wordt getoetst, bv. maatgevend hoogwater. Leeg = het waterpeil van het dwarsprofiel."><span>Toetswaterstand</span><input type="number" id="dvToetspeil" step="0.01"> m NAP</div>
+        <div class="rij"><span>Hoogte H</span><input type="number" id="dvHoogte" step="0.05" min="0"> m boven de toetswaterstand</div>
+        <div class="rij"><span>Breedte B</span><input type="number" id="dvBreedte" step="0.5" min="0"> m</div>
+        <div class="rij" title="Midden van de box t.o.v. de as; positief = rechts (kijkrichting oplopend station)"><span>Verschuiving</span><input type="number" id="dvVerschuiving" step="0.5"> m (+ = rechts)</div>
+        <div class="rij" title="Leeg = geen dieptetoets. De bodem (puntenwolk A) mag binnen de box niet hoger liggen dan waterstand − diepte."><span>Vereiste diepte D</span><input type="number" id="dvDiepte" step="0.05" min="0"> m onder</div>
+        <div class="rij" title="Waterstand voor de dieptetoets, bv. een lage waterstand. Leeg = het waterpeil van het dwarsprofiel."><span>Waterstand diepte</span><input type="number" id="dvDieptePeil" step="0.01"> m NAP</div>
+        <div class="rij" title="Stations langs de as waar de box ligt. Leeg = automatisch: waar de brug boven de vaarweg ligt, plus de marge."><span>Lengte</span>st. <input type="number" id="dvVan" step="0.5"> tot <input type="number" id="dvTot" step="0.5"> <button type="button" id="dvAuto" title="Automatisch: de brug plus de marge">auto</button></div>
+        <div class="rij"><span>Marge</span><input type="number" id="dvMarge" step="1" min="0"> m voor en na de brug <span class="zacht" id="dvAutoTekst"></span></div>
+        <div class="rij" title="Losse punten (vogels, spatwater) tellen niet mee: een punt van de onderzijde telt alleen als er binnen 0,5 m minstens zoveel andere punten liggen."><span>Ruisfilter</span><input type="number" id="dvMinPunten" step="1" min="1"> punten binnen 0,5 m</div>
+        <div class="rij" title="Het maatgevende schip wordt als lijnwerk in het doorvaartprofiel getekend (van voren in het dwarsprofiel, van opzij in het lengteprofiel). De toets is altijd het doorvaartprofiel zelf."><span>Schip tekenen</span><select id="dvWeergave"><option value="schip">ja, als lijnwerk</option><option value="box">nee, alleen het profiel</option></select></div>
+        <div class="rij" title="Indicatieve afmetingen van het maatgevende schip (CEMT-klasse). Alleen voor de tekening; de toets gebruikt de breedte en hoogte van het doorvaartprofiel."><span>Maatgevend schip</span><select id="dvKlasse">
+          <option value="">eigen maten</option><option value="I">CEMT I · 38,5 × 5,05 m</option><option value="II">CEMT II · 55 × 6,6 m</option><option value="III">CEMT III · 80 × 8,2 m</option><option value="IV">CEMT IV · 85 × 9,5 m</option><option value="Va">CEMT Va · 110 × 11,4 m</option></select></div>
+        <div class="rij"><span>Scheepsmaten</span>lengte <input type="number" id="dvScheepslengte" step="1" min="5"> breedte <input type="number" id="dvScheepsbreedte" step="0.1" min="1"> m</div>
+        <label class="vink"><input type="checkbox" id="dvTonen" checked> tonen in profielen en bovenaanzicht</label>
+      </fieldset>
+    </div>
+    <div class="dvKolom">
+      <fieldset>
+        <legend>Resultaat</legend>
+        <div id="dvResultaat"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Maatgevende doorsnede over de boxlengte</legend>
+        <svg id="dvSvg" style="height:300px"></svg>
+      </fieldset>
+    </div>
+  </div>
+  <div class="pdf-voet"><span class="info">Na "Controleren" springt het dwarsprofiel naar het kritieke punt. De PDF krijgt de bladen "Doorvaartcontrole" en "Dekkingskaart" (waar is er wel en niet gemeten).</span>
+    <button id="dvSluit">Sluiten</button><button id="dvControleer" class="primair">Controleren</button></div>
+</dialog>
+
+<dialog id="snDialoog" class="dvDialoog">
+  <div class="pdf-kop"><img src="merk-lutrea.png" alt=""><h2>Snoeicheck</h2><span class="zacht">vrije doorloopruimte boven een pad toetsen op begroeiing</span></div>
+  <div class="dvLijf">
+    <div class="dvKolom">
+      <fieldset>
+        <legend>Begroeiing</legend>
+        <p class="hint">Alle punten in een strook langs de as worden in 3D gelezen (takken blijven staan). Het maaiveld bepaalt de viewer zelf uit de laagste punten — bij een LAS met klasse 2 uit de grondpunten.</p>
+        <div class="rij"><span>Puntenwolk</span>
+          <button type="button" id="snUitA">Uit puntenwolk A</button>
+          <input type="file" id="snBestand" accept=".pts,.txt,.las,.laz" hidden>
+          <button type="button" class="bestandOpen" data-voor="snBestand" id="snAnderKnop">Ander bestand…</button></div>
+        <div class="rij"><span></span><span class="bestandNaam" id="snNaam" style="max-width:300px">niet ingelezen</span><button type="button" id="snWis" hidden title="Begroeiing weghalen">✕</button></div>
+        <div class="rij" title="Met de kadastrale kaart zie je per snoeipunt op welk perceel de boom staat (sectie en perceelnummer). Eigenaren staan er niet in; die vraag je op bij het Kadaster."><span>Kadastrale percelen</span>
+          <button type="button" id="snKadOphalen">Ophalen (PDOK)</button>
+          <input type="file" id="snKadBestand" accept=".json,.geojson,.gpkg" hidden>
+          <button type="button" class="bestandOpen" data-voor="snKadBestand">Bestand…</button></div>
+        <div class="rij"><span></span><span class="bestandNaam" id="snKadNaam" style="max-width:300px">niet geladen</span><button type="button" id="snKadWis" hidden title="Percelen weghalen">✕</button></div>
+        <p class="hint waarschuw" id="snOndergrondHint" hidden>Puntenwolk A staat op <b>bovenkant</b>: het bovenaanzicht en de 3D-weergave tonen dan de kronen. Voor de toets maakt het niet uit. <button type="button" id="snOndergrondKnop">Zet op onderkant</button></p>
+      </fieldset>
+      <fieldset>
+        <legend>Doorloopprofiel</legend>
+        <div class="rij"><span>Breedte B</span><input type="number" id="snBreedte" step="0.1" min="0"> m (midden op de as)</div>
+        <div class="rij"><span>Vrije hoogte H</span><input type="number" id="snHoogte" step="0.1" min="0"> m boven het pad</div>
+        <div class="rij" title="Ruimer snoeien dan het profiel, i.v.m. aangroei. Begroeiing in deze marge wordt oranje: meenemen bij het snoeien, maar het pad is niet geblokkeerd."><span>Snoeimarge</span><input type="number" id="snMarge" step="0.1" min="0"> m rondom</div>
+        <div class="rij" title="Midden van het profiel t.o.v. de as; positief = rechts (kijkrichting oplopend station)"><span>Verschuiving</span><input type="number" id="snVerschuiving" step="0.1"> m (+ = rechts)</div>
+        <div class="rij" title="Stations langs de as die gecontroleerd worden. Leeg = de hele as."><span>Lengte</span>st. <input type="number" id="snVan" step="1"> tot <input type="number" id="snTot" step="1"> <button type="button" id="snAuto" title="De hele as">hele as</button> <span class="zacht" id="snAutoTekst"></span></div>
+        <div class="rij" title="Gras, strooisel en lage planten tellen niet mee: alleen begroeiing die hoger staat dan dit boven het eigen maaiveld."><span>Negeer lager dan</span><input type="number" id="snMinHoogte" step="0.05" min="0"> m boven maaiveld</div>
+        <div class="rij" title="Losse punten (vogel, vlieg, spinrag) tellen niet mee: een punt telt alleen als er binnen 0,5 m minstens zoveel andere begroeiingspunten liggen."><span>Ruisfilter</span><input type="number" id="snMinPunten" step="1" min="1"> punten binnen 0,5 m</div>
+        <div class="rij" title="Een doorlopende haag of bomenrij wordt in stukken van maximaal deze lengte genummerd."><span>Snoeipunt max.</span><input type="number" id="snMaxLengte" step="1" min="1"> m lang</div>
+        <label class="vink"><input type="checkbox" id="snTonen" checked> tonen in bovenaanzicht, profielen, 3D en PDF</label>
+        <label class="vink" title="De lijn in het lengte- en dwarsprofiel volgt dan het maaiveld uit de snoeicheck (laagste punten), niet het terreinmodel van A — dat loopt bij een niet-uitgedunde boswolk door de kronen."><input type="checkbox" id="snMaaiveld" checked> profiellijn = maaiveld uit de snoeicheck (binnen de strook)</label>
+      </fieldset>
+    </div>
+    <div class="dvKolom">
+      <fieldset>
+        <legend>Resultaat</legend>
+        <div id="snResultaat"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Snoeilijst <span class="zacht" style="text-transform:none;letter-spacing:0;font-weight:400">— klik op een regel om erheen te gaan</span></legend>
+        <div class="snLijstVak" id="snLijst"></div>
+      </fieldset>
+    </div>
+  </div>
+  <div class="pdf-voet"><span class="info">De PDF krijgt een blad "Snoeilijst"; het bovenaanzicht wordt de snoeikaart met de nummers.</span>
+    <button id="snCsv" disabled title="Snoeilijst als CSV (opent in Excel)">Snoeilijst (CSV)</button><button id="snSluit">Sluiten</button><button id="snControleer" class="primair">Controleren</button></div>
+</dialog>
+
+<dialog id="paalDialoog" class="dvDialoog" style="width:min(760px, calc(100vw - 32px))">
+  <div class="pdf-kop"><img src="merk-lutrea.png" alt=""><h2>Stationering</h2><span class="zacht">dijkpalen of hectometrering langs de as</span></div>
+  <div class="dvLijf" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+    <div class="dvKolom">
+      <fieldset>
+        <legend>Stations benoemen als</legend>
+        <label class="vink"><input type="radio" name="paalModus" value="m"> meters vanaf het begin van de as</label>
+        <label class="vink"><input type="radio" name="paalModus" value="palen"> dijkpalen uit een bestand (DP 12 +40)</label>
+        <label class="vink"><input type="radio" name="paalModus" value="hm"> hectometrering berekenen (hm 12.3 +40)</label>
+      </fieldset>
+      <fieldset id="paalBestandVak">
+        <legend>Dijkpalen</legend>
+        <p class="hint">Punten met een naam of nummer: GeoPackage, GeoJSON, CSV/TXT (x;y;naam) of DXF (teksten). Elke paal wordt loodrecht op de as gelegd; "+40" = 40 m verder langs de as.</p>
+        <div class="rij"><span>Bestand</span>
+          <input type="file" id="paalBestand" accept=".gpkg,.geojson,.json,.csv,.txt,.dxf" hidden>
+          <button type="button" class="bestandOpen" data-voor="paalBestand">Bestand…</button></div>
+        <div class="rij"><span></span><span class="bestandNaam" id="paalNaam" style="max-width:240px">niet ingelezen</span><button type="button" id="paalWis" hidden title="Palen weghalen">✕</button></div>
+        <div class="rij" title="Staat in het bestand alleen een nummer (12), dan wordt het bv. DP 12"><span>Voorvoegsel</span><input type="text" id="paalVoorvoegsel"> <span class="zacht">voor kale nummers</span></div>
+        <div class="rij" title="Palen verder van de as tellen niet mee (bv. palen van een andere dijk)"><span>Max. tot de as</span><input type="number" id="paalMaxAfstand" min="1" step="1"> m</div>
+      </fieldset>
+      <fieldset id="paalHmVak">
+        <legend>Hectometrering</legend>
+        <div class="rij" title="De kilometrering bij station 0 (het begin van de as)"><span>Bij station 0</span><input type="number" id="paalHmStart" step="0.001" placeholder="0,000"> km</div>
+        <div class="rij"><span>Richting</span><select id="paalHmRichting"><option value="1">oplopend met de as</option><option value="-1">aflopend</option></select></div>
+        <div class="rij"><span>Voorvoegsel</span><input type="text" id="paalHmVoorvoegsel"> <span class="zacht">bv. hm of km</span></div>
+      </fieldset>
+      <fieldset>
+        <legend>Gebruik</legend>
+        <label class="vink" title="Een dwarsprofiel op elke paal (of hele hectometer) en daartussen om de ingestelde interval — in plaats van om de interval vanaf station 0"><input type="checkbox" id="paalProfielen"> dwarsprofielen op de palen uitlijnen</label>
+        <label class="vink"><input type="checkbox" id="paalTonen" checked> palen tonen in bovenaanzicht, lengteprofiel, PDF en DXF</label>
+      </fieldset>
+    </div>
+    <div class="dvKolom">
+      <fieldset>
+        <legend>Op de actieve as <span class="zacht" style="text-transform:none;letter-spacing:0;font-weight:400">— klik op een paal om erheen te gaan</span></legend>
+        <div id="paalResultaat"></div>
+      </fieldset>
+    </div>
+  </div>
+  <div class="pdf-voet"><span class="info">De meters blijven de basis; de stationering komt erbij in labels, PDF, snoeilijst, CSV, GeoPackage en DXF.</span><button id="paalSluit" class="primair">Klaar</button></div>
+</dialog>
+
+<dialog id="projectMapDialoog" class="dvDialoog" style="width:min(620px, calc(100vw - 32px))">
+  <div class="pdf-kop"><img src="merk-lutrea.png" alt=""><h2>Projectmap</h2><span class="zacht" id="pmOndertitel">waar komt dit project?</span></div>
+  <div style="padding:16px 20px; display:grid; gap:10px; font-size:13.5px; line-height:1.5">
+    <p id="pmTekst" style="margin:0">De puntenwolk wordt één keer omgezet naar vakken met álle punten. Die komen in de projectmap, net als het project, de ondergrond (BGT, kadaster, bomen), de uitvoer en de backups.</p>
+    <pre id="pmIndeling" style="margin:0; padding:10px 12px; background:var(--paper); border:1px solid var(--line); border-radius:6px; font-size:12px; line-height:1.45; overflow:auto">&lt;projectmap&gt;\
+  &lt;naam&gt;.pvproj      het project (klein)
+  puntenwolk\        A - &lt;scan&gt;\ met de vakken
+  ondergrond\        BGT, kadaster, bomen
+  uitvoer\           PDF, DXF, IFC, GeoPackage, CSV
+  backup\            de laatste 10 versies</pre>
+    <p class="hint" style="margin:0">Tip: maak in de projectmap van de opdracht een map "Profielviewer" (of per onderdeel, bv. "Profielviewer dijkvak 3") en kies die.</p>
+  </div>
+  <div class="pdf-voet"><span class="info" id="pmInfo"></span><button id="pmZonder" title="Zoals vroeger: de puntenwolk direct inlezen en uitdunnen, zonder vakken en zonder projectmap">Zonder projectmap</button><button id="pmKies" class="primair">Projectmap kiezen…</button></div>
+</dialog>
+
+<dialog id="projectOpenDialoog" class="dvDialoog" style="width:min(620px, calc(100vw - 32px))">
+  <div class="pdf-kop"><img src="merk-lutrea.png" alt=""><h2>Project openen</h2><span class="zacht">projectmap of los projectbestand</span></div>
+  <div style="padding:16px 20px; display:grid; gap:10px; font-size:13.5px">
+    <div id="poRecent" style="display:grid; gap:6px"></div>
+    <p class="hint" id="poGeenRecent" style="margin:0">Nog geen recente projectmappen.</p>
+  </div>
+  <div class="pdf-voet"><span class="info" id="poInfo"></span>
+    <button id="poLos" title="Een los projectbestand (.json van vóór 2.9.0) openen">Los bestand (.json)…</button>
+    <button id="poAnnuleer">Annuleren</button>
+    <button id="poMap" class="primair" title="Een projectmap kiezen (de map met het .pvproj-bestand)">Projectmap openen…</button></div>
+</dialog>
+
+<dialog id="nwbDialoog" class="dvDialoog" style="width:min(430px, calc(100vw - 32px)); position:fixed; left:auto; right:16px; top:120px; margin:0; max-height:calc(100vh - 150px)">
+  <div class="pdf-kop"><img src="merk-lutrea.png" alt=""><h2>As uit het NWB</h2><span class="zacht">Nationaal Wegenbestand (PDOK)</span></div>
+  <div style="padding:12px 16px; display:grid; gap:8px; font-size:13px">
+    <div class="rij" style="gap:14px">
+      <label class="vink"><input type="radio" name="nwbSoort" value="wegen" checked> wegen, straten, fietspaden</label>
+      <label class="vink"><input type="radio" name="nwbSoort" value="vaarwegen"> vaarwegen</label>
+    </div>
+    <p class="hint" id="nwbInfo" style="margin:0">…</p>
+    <div id="nwbLijst" style="display:grid; gap:4px; max-height:min(46vh, 420px); overflow:auto"></div>
+    <p class="hint" style="margin:0">Het NWB geeft de hartlijn van de weg (± 1 m nauwkeurig). Daarna kun je de as nog aanpassen, omdraaien en bij Profiel links en rechts los instellen.</p>
+  </div>
+  <div class="pdf-voet"><span class="info"></span><button id="nwbSluit">Sluiten</button><button id="nwbMaak" class="primair" disabled>Maak as</button></div>
+</dialog>
+
+<dialog id="pdfDialoog">
+  <div class="pdf-kop">
+    <img src="merk-lutrea.png" alt="">
+    <h2>PDF maken</h2>
+  </div>
+  <div class="pdf-lijf">
+    <fieldset>
+      <legend>Blad</legend>
+      <div class="rij"><span>Papierformaat</span>
+        <select id="pdfFormaat">
+          <option>A4</option><option>A3</option><option>A2</option><option selected>A1</option><option>A0</option>
+        </select></div>
+      <div class="rij"><span>Oriëntatie</span>
+        <select id="pdfOrientatie"><option value="liggend" selected>liggend</option><option value="staand">staand</option></select></div>
+      <div class="rij" title="Kolom rechts: legenda, opmerkingen en stempel in een kolom over de hele hoogte, zoals op een bestektekening (vanaf A3 liggend). Balk onder: de smalle stempel over de hele breedte."><span>Bladindeling</span>
+        <select id="pdfBladindeling"><option value="kolom" selected>kolom rechts (legenda + stempel)</option><option value="balk">balk onder (compact)</option></select></div>
+      <div class="rij" title="Hoogte van een hoofdletter op papier (zoals de teksthoogte in CAD) voor de hoogtematen in de profielen. Stempel, legenda en opmerkingen schalen mee. Automatisch: 2,5 mm t/m A2, 3,5 mm op A1/A0."><span>Teksthoogte</span>
+        <select id="pdfTeksthoogte"><option value="auto" selected>automatisch (2,5 / 3,5 mm)</option><option value="1.8">1,8 mm</option><option value="2.5">2,5 mm</option><option value="3.5">3,5 mm</option><option value="5">5,0 mm</option></select></div>
+      <label class="vink" title="Aan: bij het opslaan (PDF en project) kies je zelf map en naam; de laatst gekozen map wordt onthouden. Uit: altijd naar de map Downloads."><input type="checkbox" id="opslaanVragen" checked> Vragen waar ik opsla (anders: Downloads)</label>
+      <div class="rij" title="Leeg = alle bladen. Of bv. 4, of 2-5, 8. De bladnummers zijn die van de hele reeks (zie het voorbeeld)."><span>Bladen</span><input type="text" id="pdfBladen" placeholder="alle (of bv. 4 of 2-5, 8)"></div>
+      <label class="vink" title="Elk blad als eigen PDF-bestand (naam_blad01.pdf, …). Met 'vragen waar ik opsla' kies je één map voor alle bladen."><input type="checkbox" id="pdfLosseBladen"> Elk blad als los PDF-bestand</label>
+      <div class="rij"><span>Resolutie kaart</span>
+        <select id="pdfDpi"><option value="100">100 dpi (klein bestand)</option><option value="150" selected>150 dpi</option><option value="200">200 dpi</option><option value="300">300 dpi (scherp, groot)</option></select></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Inhoud</legend>
+      <label class="vink"><input type="checkbox" id="pdfBovenaanzicht" checked> Bovenaanzicht (op schaal)</label>
+      <label class="vink" title="Een eigen blad met een groot 3D-beeld van de situatie (terrein, as, waterpeil), direct na het bovenaanzicht. Standpunt: zoals in de 3D-weergave, anders vanaf het water."><input type="checkbox" id="pdf3DBlad" checked> 3D-beeld (eigen blad)</label>
+      <label class="vink" title="Een eigen blad met de doorvaartcontrole: maatgevende doorsnede onder de brug met de doorvaartbox, de uitgangspunten en het oordeel. Alleen als er een onderzijde van een brug is ingelezen of een dieptetoets is ingesteld."><input type="checkbox" id="pdfDoorvaart" checked> Doorvaartcontrole (eigen blad)</label>
+      <label class="vink" title="Snoeilijst met alle genummerde snoeipunten (station, kant, hoogte, hoeveel terugsnoeien, RD-coördinaat). Het bovenaanzicht toont dan de snoeikaart. Alleen als er begroeiing is ingelezen."><input type="checkbox" id="pdfSnoei" checked> Snoeilijst (eigen blad)</label>
+      <label class="vink"><input type="checkbox" id="pdfLengteprofiel" checked> Lengteprofiel</label>
+      <label class="vink"><input type="checkbox" id="pdfDwarsprofielen" checked> Dwarsprofielen</label>
+      <p class="hint waarschuw" id="pdfGeenAs" hidden>Nog geen as getekend — alleen het bovenaanzicht kan mee.</p>
+      <div class="rij" title="Bij meerdere assen: alleen de actieve as, of alle assen achter elkaar (elk met eigen lengte- en dwarsprofielen)"><span>Assen</span>
+        <select id="pdfAssen"><option value="actief" selected>actieve as</option><option value="alle">alle assen</option></select></div>
+      <div class="rij" title="Leeg laten = vanaf het begin van de as"><span>Vanaf station</span>
+        <input type="number" id="pdfStationVan" step="0.5" min="0"> m</div>
+      <div class="rij" title="Leeg laten = tot het eind van de as"><span>Tot station</span>
+        <input type="number" id="pdfStationTot" step="0.5" min="0"> m</div>
+      <div class="rij" title="Horizontale schaal van de dwarsprofielen. Bij een vaste schaal komen er meerdere kolommen naast elkaar op het blad."><span>Schaal dwarsprof.</span>
+        <select id="pdfDwarsSchaal">
+          <option value="blad">bladbreed (1 kolom)</option>
+          <option value="50">1:50</option><option value="100" selected>1:100</option><option value="200">1:200</option><option value="250">1:250</option><option value="500">1:500</option>
+        </select></div>
+      <div class="rij"><span>Profielen per blad</span>
+        <select id="pdfPerPagina">
+          <option value="auto" selected>automatisch (zoveel als past)</option>
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="8">8</option>
+        </select></div>
+      <div class="rij" title="Eigen hoogte-overdrijving voor de dwarsprofielen in de PDF, los van de 'verh. 1:' op het scherm"><span>Verh. dwars 1 :</span>
+        <input type="number" id="printOverdrijving" value="1" min="0.25" step="0.25"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Bovenaanzicht</legend>
+      <label class="vink"><input type="checkbox" id="pdfPuntenwolk" checked> Puntenwolk (hoogtekleuren)</label>
+      <label class="vink"><input type="checkbox" id="pdfBgt" checked> BGT</label>
+      <label class="vink"><input type="checkbox" id="pdfBomen" checked> Bomen</label>
+      <label class="vink"><input type="checkbox" id="pdfLuchtfoto"> Luchtfoto PDOK als ondergrond</label>
+      <label class="vink"><input type="checkbox" id="pdfStationLabels" checked> Stationsnummers bij dwarsprofielen</label>
+      <label class="vink" title="Bij de bladindeling 'kolom rechts': een 3D-beeld van de situatie (terrein, as, waterpeil) in de vrije ruimte van de kolom, alleen op het blad met het bovenaanzicht. Standpunt: zoals in de 3D-weergave, anders schuin van boven."><input type="checkbox" id="pdf3D"> 3D-beeld klein in de kolom (zonder eigen 3D-blad)</label>
+      <p class="hint">Schaal (1:N), noordpijl, schaalstok en legenda worden automatisch toegevoegd.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Titelblok</legend>
+      <div class="rij"><span>Projectnaam</span><input type="text" id="pdfProjectnaam"></div>
+      <div class="rij"><span>Projectnummer</span><input type="text" id="pdfProjectnummer"></div>
+      <div class="rij" title="Eindigt het nummer op cijfers (bv. LUT-DO-DKT-0001), dan telt het per blad door."><span>Tekeningnummer</span><input type="text" id="pdfTekeningnummer" placeholder="bv. LUT-DO-DKT-0001 (telt per blad door)"></div>
+      <div class="rij"><span>Opdrachtgever</span><input type="text" id="pdfOpdrachtgever"></div>
+      <div class="rij"><span>Logo opdrachtgever</span>
+        <input type="file" id="pdfKlantLogoBestand" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+        <button type="button" id="pdfKlantLogoKies" title="Logo links in de stempel (PNG/JPG/SVG); wordt onthouden">Kies logo…</button>
+        <img id="pdfKlantLogoVoorbeeld" alt="" hidden style="max-height:26px; max-width:110px; border:1px solid var(--line); border-radius:3px; padding:2px; background:#fff">
+        <button type="button" id="pdfKlantLogoWis" title="Logo weghalen" hidden>×</button></div>
+      <div class="rij"><span>Logo opgesteld door</span>
+        <input type="file" id="pdfMakerLogoBestand" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+        <img id="pdfMakerLogoVoorbeeld" alt="" style="max-height:26px; max-width:110px; border:1px solid var(--line); border-radius:3px; padding:2px; background:#fff">
+        <button type="button" id="pdfMakerLogoKies" title="Eigen logo in het vak &quot;Opgesteld door&quot; (PNG/JPG/SVG); wordt onthouden. Standaard: het Lutrea-logo.">Ander logo…</button>
+        <button type="button" id="pdfMakerLogoWis" title="Terug naar het standaard Lutrea-logo" hidden>×</button></div>
+      <div class="rij"><span>Omschrijving</span><input type="text" id="pdfOmschrijving" placeholder="bv. inmeting greppel"></div>
+      <div class="rij"><span>Getekend</span><input type="text" id="pdfGetekend"></div>
+      <div class="rij"><span>Gecontroleerd</span><input type="text" id="pdfGecontroleerd"></div>
+      <div class="rij"><span>Status</span>
+        <select id="pdfStatusVeld"><option>Concept</option><option>Ter informatie</option><option>Ter goedkeuring</option><option>Definitief</option></select></div>
+      <div class="rij"><span>Revisie</span><input type="text" id="pdfRevisie" placeholder="A"></div>
+      <div class="rij"><span>Datum</span><input type="date" id="pdfDatum"></div>
+      <div class="rij" title="Komt onder 'Opmerkingen' in de kolom rechts, onder de vaste regels (maten in m, hoogtes t.o.v. NAP, RD)."><span>Opmerkingen</span><textarea id="pdfOpmerkingen" rows="2" placeholder="eigen opmerkingen (één per regel)"></textarea></div>
+    </fieldset>
+
+    <fieldset class="voorbeeldVak">
+      <legend>Voorbeeld</legend>
+      <div class="voorbeeldBalk">
+        <button type="button" id="pdfVoorbeeldVorige" title="Vorig blad">◀</button>
+        <span id="pdfVoorbeeldInfo">—</span>
+        <button type="button" id="pdfVoorbeeldVolgende" title="Volgend blad">▶</button>
+        <button type="button" id="pdfAlleenDitBlad" title="Alleen dit blad afdrukken (vult 'Bladen' in)">alleen dit blad</button>
+      </div>
+      <canvas id="pdfVoorbeeld"></canvas>
+      <p class="hint" id="pdfVoorbeeldStatus"></p>
+    </fieldset>
+  </div>
+  <div class="pdf-voet">
+    <div class="info"><span id="pdfSamenvatting"></span><span id="pdfStatus"></span></div>
+    <button id="pdfAnnuleer" title="Venster sluiten; je instellingen worden bewaard">Sluiten</button>
+    <button id="pdfDxf" title="Dezelfde bladen als DXF voor AutoCAD / Civil 3D: elk blad een layout met viewports, de profielen op ware grootte in model space (zonder luchtfoto en puntenwolkbeeld)">DXF maken</button>
+    <button id="pdfMaak" class="primair">PDF maken</button>
+  </div>
+</dialog>
+
+<script src="vendor/d3-delaunay/d3-delaunay.js"></script>
+<script src="vendor/laz-perf/laz-perf.js"></script>
+<script src="vendor/laz-perf/chunktable.js"></script>
+<script src="vendor/three/three.min.js"></script>
+<script src="vendor/three/OrbitControls.js"></script>
+<script src="vendor/jspdf/jspdf.umd.min.js"></script>
+<script src="viewer.js?v=69"></script>
+<script>
+  // App-modus: service worker registreren zodat Chrome/Edge "Installeren" aanbiedt.
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+  // Als de viewer via Lutrea-Profielviewer.exe draait: laten weten dat het venster nog
+  // open is (het programma stopt vanzelf zodra deze hartslag wegvalt).
+  // De hartslag loopt in een eigen worker: die blijft kloppen ook als de pagina even
+  // zwaar aan het rekenen is (miljoenen punten inlezen). Bij het sluiten van het venster
+  // (of verversen) meldt de pagina "dicht"; valt de pagina weg zónder dat bericht (crash),
+  // dan wacht het programma een poos, zodat Vernieuwen nog werkt.
+  if (location.protocol.startsWith('http')) {
+    const url = new URL('/__ptsviewer/hartslag', location.href).href;
+    let gestart = false;
+    try {
+      const code = `const u=${JSON.stringify(url)};const k=()=>fetch(u,{cache:'no-store'}).catch(()=>{});k();setInterval(k,10000);`;
+      new Worker(URL.createObjectURL(new Blob([code], { type: 'text/javascript' })));
+      gestart = true;
+    } catch (e) { /* geen worker: gewoon vanaf de pagina */ }
+    const hartslag = () => fetch('/__ptsviewer/hartslag', { cache: 'no-store' }).catch(() => {});
+    hartslag();
+    if (!gestart) setInterval(hartslag, 15000);
+    addEventListener('pagehide', () => { try { navigator.sendBeacon('/__ptsviewer/dicht'); } catch (e) { /* */ } });
+  }
+</script>
+</body>
+</html>

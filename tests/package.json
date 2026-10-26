@@ -1,0 +1,7 @@
+{
+  "name": "profielviewer-tests",
+  "private": true,
+  "description": "Automatische tests van de Lutrea Profielviewer (Playwright, draait in Microsoft Edge)",
+  "scripts": { "test": "node run_alle.js", "test:groot": "node run_alle.js groot" },
+  "devDependencies": { "playwright-core": "1.56.1" }
+}

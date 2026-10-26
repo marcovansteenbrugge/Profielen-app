@@ -1,0 +1,13 @@
+# bouwen
+bron-exe/app/
+dist/
+Lutrea-Profielviewer.exe
+
+# tests
+tests/node_modules/
+tests/uit/
+testdata/groot/dijk_16mln.las
+
+# overig
+*.log
+__pycache__/

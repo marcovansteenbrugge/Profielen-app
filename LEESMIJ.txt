@@ -1,0 +1,714 @@
+Lutrea Profielviewer 2.9.5 (voorheen PTS-viewer)
+================================================
+Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
+De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
+
+Makkelijkst: Lutrea-Profielviewer.exe
+-------------------------------------
+Dubbelklik Lutrea-Profielviewer.exe. Alles zit erin (geen Python, geen losse map nodig).
+De viewer opent in een eigen venster; venster dicht = programma stopt.
+Zet het bestand waar je wilt (bijv. bureaublad of C:\Tools) en maak er
+eventueel een snelkoppeling van / maak hem vast aan de taakbalk.
+Eerste keer: Windows kan "Windows heeft uw pc beschermd" tonen omdat het
+programma niet digitaal ondertekend is -> "Meer informatie" -> "Toch uitvoeren".
+
+Blijft het venster bij de eerste start leeg/donker?
+De exe start het venster na 30 seconden vanzelf opnieuw. Gebeurt het vaker, stuur
+dan het logbestand mee: %LOCALAPPDATA%\Lutrea\PTS-viewer\log.txt
+(plak dat pad in de adresbalk van de Verkenner).
+
+Mapversie (alternatief)
+-----------------------
+1. Pak deze zip uit in een lege map. De map "vendor" (bibliotheken) zit er
+   nu compleet in.
+2. Dubbelklik eenmalig op maak_snelkoppeling.vbs -> er komt een snelkoppeling
+   "Lutrea Profielviewer" met het Lutrea-icoon op je bureaublad.
+3. Starten: dubbelklik de snelkoppeling (of start_pts_viewer.bat).
+   De viewer opent in een eigen app-venster (Chrome of Edge), zonder adresbalk.
+   Nodig: Python 3 (zelfde als voorheen voor dev-server.py).
+
+Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
+adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.9.5 — Links en rechts los, as uit het NWB
+-----------------------------------------------------
+- Profiel: "links" en "rechts" in plaats van één breedte (m, gezien in de richting van
+  oplopend station). Werkt overal door: dwarsprofielen (ook uit alle punten), BGT-doorsnede,
+  bovenaanzicht, PDF (met "links … · rechts …" bij de schaal), DXF, IFC (BreedteLinks/
+  BreedteRechts) en GeoPackage. Oude projecten: de breedte wordt gelijk verdeeld.
+- AS > NWB-as…: haalt de hartlijnen uit het Nationaal Wegenbestand (PDOK) op in het gebied van
+  de puntenwolk: wegen, straten en fietspaden (met straatnaam en beheerder), of vaarwegen.
+  Kies een straat in de lijst of klik op een lijn in het bovenaanzicht, en "Maak as": de
+  aansluitende wegvakken worden aan elkaar geregen (bij een rotonde of splitsing de langste
+  doorgaande route) en alleen het deel bij de puntenwolk wordt de as. NWB ligt ± 1 m
+  nauwkeurig: daarna de as eventueel aanpassen en links/rechts instellen. Internet nodig.
+
+Nieuw in 2.9.4 — Vakkenraster
+-----------------------------
+- Vinkje "vakken" in de balk van het bovenaanzicht (bij een puntenwolk in vakken): licht raster
+  van de vakken van 50 x 50 m, met per vak het aantal punten (bij inzoomen). Laat zien waar de
+  scan dicht, dun of leeg is.
+- Vakken in beeld die nog geladen worden krijgen altijd een oranje stippelrand.
+
+Nieuw in 2.9.3 — Geen knipperende vakken meer
+--------------------------------------------
+- Bij een dichte scan (bv. 79 miljoen punten) bleef het bovenaanzicht vakken laden en weer
+  weggooien ("alle punten laden… 5 / 14"), omdat er meer punten in beeld waren dan het
+  geheugen voor het bovenaanzicht vasthield. Nu: volle vakken pas als er ten hoogste
+  10 miljoen punten in beeld zijn (anders: "… mln punten in beeld: zoom verder in"), en
+  vakken die in beeld zijn worden nooit weggegooid.
+
+Nieuw in 2.9.2 — Schaalbalk en dichtheid in het bovenaanzicht
+-------------------------------------------------------------
+- Rechtsonder: schaalbalk (1, 2 of 5 x 10^n m) met de schermschaal (± 1:N), en wat je ziet:
+  "overzicht" (uitgedund, zoom in voor alle punten), "alle punten laden… 3 / 7 vakken" of
+  "alle punten" (groen), steeds met de dichtheid: ± cm tussen de punten en punten per m².
+
+Nieuw in 2.9.1 — Opgelost: "Name is not allowed"
+------------------------------------------------
+- Een scan met een naam die op een punt eindigt (bv. "DIJK Halsteren..las") gaf bij het
+  omzetten "Failed to execute getDirectoryHandle … Name is not allowed": Windows staat geen
+  mapnaam toe die op een punt of spatie eindigt. Namen worden nu eerst veilig gemaakt
+  ("A - DIJK Halsteren"); ook voor bestanden in uitvoer\.
+
+Nieuw in 2.9.0 — Projectmap en vakken: alle punten, geen data meer kwijt
+------------------------------------------------------------------------
+Projectmap: alles van één project staat in één map die je zelf kiest, bv.
+  D:\Projecten\LUT-2026-042 Dijk Halsteren\Profielviewer\
+    Profielviewer.pvproj      het project (klein: as, instellingen, verwijzingen)
+    puntenwolk\A - <scan>\    de puntenwolk in vakken (info.json, overzicht, tegels\)
+    ondergrond\               bgt.json, bomen.json, kadaster.json
+    uitvoer\                  PDF, DXF, IFC, GeoPackage, CSV (bestaat de naam al: _2, _3, …)
+    backup\                   de vorige 10 versies van het .pvproj
+  Het .pvproj heet zoals de map.
+
+- Puntenwolk openen (.las/.laz/.pts): de eerste keer kies je de projectmap. De scan wordt dan
+  één keer helemaal gelezen en omgezet naar vakken van 50 x 50 m met ÁLLE punten (hoogte,
+  klasse, kleur; 16 bytes per punt, 16 miljoen punten = ± 250 MB). Duurt even (16 miljoen
+  punten ± 1 minuut), daarna niet meer: opnieuw openen gebruikt de vakken.
+- Profielen komen vanzelf uit alle punten: na elke wijziging van de as leest de viewer alleen
+  de vakken langs de as (een paar seconden). De knop "Alle punten" staat dan vanzelf aan.
+- Bovenaanzicht: ver weg een overzicht (± 2 miljoen punten), bij inzoomen (tot ± 16 vakken in
+  beeld) de volle vakken met alle punten.
+- Detailstrook, snoeicheck (begroeiing) en het maaiveldvinkje lezen ook uit de vakken.
+- Opslaan (Ctrl+S): <map>.pvproj; de vorige versie gaat eerst naar backup\. Opslaan als: een
+  andere map kiezen, de vakken gaan mee.
+- Openen (Ctrl+O): een projectmap kiezen, of één klik op een recent project. Oude .json-projecten
+  openen via "Los bestand (.json)…"; die blijven ook als los bestand opslaan.
+- Zonder projectmap kan ook nog ("Zonder projectmap"): dan werkt alles zoals in 2.8.
+- Let op: de vakken zijn het eigen formaat van de viewer (geen LAS). De originele scan blijft
+  waar hij stond; bewaar die zelf.
+
+Nieuw in 2.8.4 — Stabieler bij grote puntenwolken
+------------------------------------------------
+- Project opslaan en openen kost veel minder geheugen: de puntenwolk gaat in stukjes het
+  bestand in en eruit (geen tekst van honderden MB meer in één keer). 10 miljoen punten
+  opslaan: ± 7 s, ± 240 MB. Zelfde bestandsformaat; oude projecten openen gewoon.
+- Een kapot of leeg projectbestand geeft een duidelijke melding (met de grootte).
+- Vastgelopen (bv. "Out of Memory")? Bij de volgende start meldt de viewer waarbij het
+  misging en zet hij het aantal punten terug naar 2 miljoen.
+- De exe blijft na een vastgelopen pagina nog 10 minuten draaien, zodat "Vernieuwen" werkt.
+  Sluit je het venster, dan stopt hij binnen ± 20 seconden. De hartslag naar de exe loopt nu
+  ook door als de viewer lang aan het rekenen is.
+- Wolk B (vergelijken) hooguit 3 miljoen punten, en minder tussengeheugen bij 5/10 miljoen.
+- ± 15% minder geheugen per punt (hulptabellen van het driehoeksnet worden opgeruimd).
+
+Nieuw in 2.8.3 — Hoogtes zonder gaatjes, BGT/bomen/kadaster aan en uit
+----------------------------------------------------------------------
+- Opgelost: bij ± 2% van de hoogtebepalingen op de surface gaf de viewer géén hoogte.
+  Dat waren kleine gaatjes in de profielen en, in 3D, pieken in de as (verticale streepjes
+  naar het midden van de wolk). Nu wordt altijd de juiste driehoek gevonden; ook voor B.
+- BGT, Bomen en Kadaster hebben een vinkje voor hun naam (balk Ondergrond): na het laden
+  aan en uit te zetten in het bovenaanzicht. De gegevens blijven geladen (snoeilijst per
+  perceel e.d. blijft werken); PDF en exports volgen hun eigen vinkjes.
+
+Nieuw in 2.8.2 — Maaiveld voor A, 5 en 10 miljoen punten, veel sneller
+-----------------------------------------------------------------------
+- Vinkje "maaiveld" (groep Puntenwolk): bij een LAS/LAZ met classificatie alleen de
+  grondpunten (klasse 2) van A gebruiken. Begroeiing, gras, hekwerk en paaltjes vallen weg
+  uit de surface en de profielen, ook bij Alle punten en Detailstrook. Een .pts of een LAS
+  zonder classificatie gebruikt vanzelf alle punten. Heeft je bestand een maaiveldklasse
+  maar staat het vinkje uit, dan meldt de statusregel dat.
+  Tip bij een .pts met begroeiing: kies "onderkant" (houdt per vakje het laagste punt).
+- Punten: nieuwe standen 5 miljoen (traag) en 10 miljoen (zwaar). Meer punten = kleinere
+  details (greppels, randen, opsluitbanden) scherper. Reken bij 10 miljoen op ± 1 minuut
+  inlezen en 2,5 GB geheugen; een project met puntenwolk wordt ± 200 MB.
+- 3D: boven de 3 miljoen punten krijgt de 3D-weergave een eigen, lichter net (± 3 miljoen
+  punten). Profielen, bovenaanzicht en PDF/DXF gebruiken wel alle punten.
+- Sneller: inlezen en uitdunnen ± 4x sneller (16 miljoen punten: 83 → 25 s bij 2 miljoen),
+  het bovenaanzicht hertekent ± 50x sneller, en profielen en PDF ± 10x sneller
+  (hoogtes zoeken nu vanaf het vorige punt in het driehoeksnet).
+
+Nieuw in 2.8.1 — Project: Nieuw, Opslaan en Opslaan als
+-------------------------------------------------------
+- Nieuw (Ctrl+N): sluit het huidige project en begint leeg. Projectnaam, -nummer,
+  tekeningnummer, opdrachtgever, omschrijving en revisie in de stempel worden leeggemaakt;
+  je eigen naam, status, schalen en logo's blijven staan.
+- Openen (Ctrl+O) onthoudt het bestand. Opslaan (Ctrl+S) schrijft daarna gewoon in dat
+  bestand (overschrijven, zonder te vragen). Nog geen projectbestand? Dan vraagt Opslaan
+  er één, net als Opslaan als.
+- Opslaan als (Ctrl+Shift+S) vraagt altijd om een nieuw bestand; daarna is dat het
+  projectbestand waar Opslaan in schrijft.
+- Onder de knoppen staat in welk bestand Opslaan schrijft.
+- Overschrijven is veilig: Windows schrijft eerst naar een tijdelijk bestand en vervangt het
+  oude project pas als alles erin staat.
+- Staat "Vragen waar ik opsla" (PDF-venster) uit, dan gaat een nieuw projectbestand zoals
+  vroeger naar Downloads; een geopend project wordt nog steeds gewoon overschreven.
+
+Nieuw in 2.8.0 — DXF met dezelfde bladen als de PDF
+---------------------------------------------------
+Lint > Uitvoer > DXF maakt nu één tekening die je in AutoCAD / Civil 3D net zo kunt plotten
+als de PDF. Gebruikt de instellingen uit het PDF-venster (formaat, schalen, projectgegevens).
+- Elk PDF-blad is een layout (01 Bovenaanzicht, 02 Snoeilijst, 04 Lengteprofiel, ...), met
+  kader, stempel (projectgegevens, logo als tekst, QR-code), legenda en opmerkingen.
+- Model space: de situatie in RD/NAP (as, 3D-dwarsprofielen, BGT, kadaster, palen, snoeipunten)
+  en rechts daarvan de lengte- en dwarsprofielen op ware grootte (1 eenheid = 1 m,
+  hoogte x overdrijving), elk blad onder het vorige.
+- De bladen kijken via viewports op schaal naar model space (zelfde schaal als de PDF, viewport
+  vergrendeld, op laag PV_BLAD_VIEWPORT die niet plot). Wijzig je in model space iets, dan
+  zie je het meteen op het blad.
+- Alles op eigen lagen (PV_PROF_..., PV_KAART_..., PV_BLAD_...) met kleuren, lijndiktes,
+  stippellijnen en transparantie zoals in de PDF. Plotstijl: DWG To PDF.pc3, ISO-papier.
+- Geen beelden: luchtfoto, puntenwolkbeeld en 3D-blad worden overgeslagen. De luchtfoto hang je
+  in Civil 3D zelf achter het bovenaanzicht (de kaart ligt op RD-coördinaten).
+- Getest met ezdxf (controle 0 fouten); open de tekening de eerste keer met AUDIT als AutoCAD
+  iets meldt.
+
+Nieuw in 2.7.0 — IFC 4.3 (openBIM)
+----------------------------------
+Lint > Uitvoer > IFC 4.3: één IFC-bestand (schema IFC4X3_ADD2) voor Civil 3D, Solibri,
+Navisworks, BIMcollab, Revit, BlenderBIM en andere openBIM-software.
+- Georefereerd: RD New (EPSG:28992) en NAP (EPSG:5709). De coördinaten in het bestand zijn
+  lokaal t.o.v. een basispunt (afgerond op 100 m, staat in de statusregel en in de
+  eigenschappen van het project); de viewer rekent ze via de kaartconversie terug naar RD.
+- De actieve as als IfcAlignment: horizontaal (rechte stukken) en verticaal uit het
+  lengteprofiel (constante hellingen, vereenvoudigd tot 5 cm), met de 3D-aslijn.
+- Stationering: een referentiepunt bij station 0 en elke dijkpaal of hectometer als
+  IfcReferent (met de afstand langs en tot de as), zichtbaar als paaltje.
+- Maaiveld als terrein-driehoeksnet in een strook langs de as (laagste punt per vakje, pieken
+  zoals boomkronen eruit; max. ± 60.000 punten).
+- Dwarsprofielen als 3D-lijnen op de echte plek (met station en dijkpaal in de naam).
+- Doorvaartbox, doorloopprofiel en snoeimarge als vrij te houden ruimte (IfcSpatialZone):
+  een brug- of beplantingsontwerp kun je er in Solibri / Navisworks tegen laten botsen.
+- Bevindingen als objecten met hun gegevens: snoeipunten (blok om de takken, met nummer,
+  soort, terugsnoeien, perceel), conflictpunten en kritieke punten van de doorvaart,
+  niet-gemeten plekken uit de dekkingskaart. Alle uitkomsten als eigenschappen (Lutrea_...).
+- Gecontroleerd met IfcOpenShell (schema- en EXPRESS-regels: geen fouten) en web-ifc.
+  Nog niet getest in Civil 3D en Solibri zelf.
+
+Nieuw in 2.6.0 — Dijkpalen / hectometrering en dekkingskaart
+-------------------------------------------------------------
+Stationering (lint > As > Stationering…)
+- Dijkpalen uit een bestand: GeoPackage, GeoJSON, CSV/TXT (x;y;naam) of DXF (teksten).
+  Elke paal wordt loodrecht op de actieve as gelegd; een plek heet dan "DP 12 +40"
+  (40 m voorbij paal 12, gemeten langs de as). Voorvoegsel instelbaar voor kale nummers;
+  palen verder dan "max. tot de as" (standaard 50 m) tellen niet mee.
+- Of hectometrering berekenen: waarde (km) bij station 0, oplopend of aflopend -> "hm 12.3 +40".
+- Controle in het venster: palen op de as, gemiddelde afstand, waarschuwing als de nummers
+  tegen de richting van de as in lopen (dan "Omdraaien").
+- "Dwarsprofielen op de palen uitlijnen": een profiel op elke paal (of hele hectometer)
+  en daartussen om de ingestelde interval.
+- Overal erbij: stationslabel, "ga naar" (typ 125, DP 12 +40, 12+40 of hm 3.4 +20 + Enter),
+  palen in bovenaanzicht en lengteprofiel, PDF-titels van lengte- en dwarsprofielen,
+  doorvaartregels, snoeilijst (kolom dijkpaal), CSV, GeoPackage (laag stationering) en DXF.
+  De meters langs de as blijven de basis; wordt mee opgeslagen in het project.
+Dekkingskaart (automatisch bij doorvaart en snoeicheck)
+- Een toets zegt alleen iets waar gemeten is. Per vakje (0,5 - 2 m, afhankelijk van de
+  puntdichtheid) kijkt de viewer of er punten liggen:
+  * doorvaart: is de onderzijde van het dek boven de box overal gemeten (dek = bovenzijde,
+    of ingesloten tussen gemeten vakjes) en de bodem in de box (ruwe punten van A, niet het
+    terreinmodel dat over gaten heen trekt);
+  * snoeicheck: is er in profiel + marge overal iets gemeten (grond of begroeiing).
+- Resultaat: percentage gemeten, de plekken die niet gemeten zijn (station, offset,
+  oppervlak, rand-hoogte) en een oordeel "VOLDOET — 14 m² niet gemeten" in oranje.
+- Bovenaanzicht en PDF: niet-gemeten plekken gearceerd met gestreepte rand en label;
+  GeoPackage: laag niet_gemeten.
+
+Nieuw in 2.5.1 — Kadastrale percelen
+------------------------------------
+- Ondergrond > Kadaster: kadastrale kaart (BRK, PDOK) ophalen of een eigen bestand
+  (GeoJSON of GeoPackage, RD). Perceelgrenzen met sectie en nummer in het bovenaanzicht,
+  in het dwarsprofiel (verticale streeplijnen met het perceel per vak), in de PDF en de
+  GeoPackage (laag kadastrale_percelen).
+- Snoeicheck: per snoeipunt zoekt de viewer de stam van de boom (kolom begroeiing die
+  van laag naar hoog doorloopt) en het perceel waar die stam staat. Op de kaart een
+  stippellijn van het snoeipunt naar de stam.
+- Snoeilijst (venster, PDF, CSV, GeoPackage): kolom "boom op perceel"; nieuw PDF-blad
+  "Snoeilijst per perceel" met per perceel de snoeipunten en de lengte - handig voor de
+  brief aan de eigenaar. Eigenaren staan niet in de kadastrale kaart; die vraag je op
+  bij het Kadaster.
+
+Nieuw in 2.5.0 — Snoeicheck (doorloopprofiel over een pad)
+---------------------------------------------------------
+- TOETS > Snoeien…: vrije doorloopruimte boven een schouw- of wandelpad toetsen op
+  begroeiing uit de puntenwolk. Standaard 2,00 m breed × 2,50 m hoog boven het pad,
+  met 0,50 m snoeimarge; alles achteraf aan te passen (werkt direct door).
+- Begroeiing: "Uit puntenwolk A" (zelfde scan) of een ander bestand. Alle punten in
+  een strook langs de as worden in 3D gelezen, dus takken blijven staan.
+- Maaiveld: de viewer bepaalt het zelf uit de laagste punten (bij LAS met klasse 2 uit
+  de grondpunten). Het profiel volgt het pad, ook op een helling.
+- Rood = steekt in het profiel (snoeien), oranje = alleen in de snoeimarge (meenemen).
+  Gras/lage begroeiing (standaard < 0,30 m) en losse punten tellen niet mee.
+- Snoeipunten: aaneengesloten stukken, genummerd langs de as, met station, kant
+  (L, R of L+R = over het pad), hoogte boven het pad, afstand tot het hart, hoeveel
+  terugsnoeien en de soort (tak van opzij, kroon van boven, struik/stam vanaf de grond).
+- Snoeikaart: het bovenaanzicht toont het profiel, de marge, de begroeiing en de
+  genummerde snoeipunten. Klik in de snoeilijst op een regel om erheen te gaan.
+- Lengte- en dwarsprofiel: begroeiing als punten (groen/oranje/rood) met het profiel
+  en de snoeimarge; de profiellijn volgt het maaiveld uit de snoeicheck.
+- 3D: maaiveld van de strook, begroeiing, het profiel als tunnel, nummers; knop
+  "Naar snoeipunt" (klik nog eens voor het volgende).
+- Lint: klik op een kop (PUNTENWOLK, PROJECT, AS, TOETS, UITVOER) om die groep in of uit
+  te klappen; wordt onthouden. Het lint loopt niet meer door naar een tweede regel.
+- Uitvoer: PDF-blad "Snoeilijst", snoeilijst als CSV (Excel), GeoPackage-lagen
+  snoeipunten / snoeiprofiel / begroeiing_in_profiel; alles gaat mee in het project.
+
+Nieuw in 2.4.3
+--------------
+- 3D-weergave toont nu de hele doorvaartsituatie: de brug (onder- en bovenzijde als
+  puntenwolk), het water op het waterpeil, de doorvaartbox (groen = voldoet, rood =
+  voldoet niet) met de diepgang eronder, de conflictpunten in rood, de kritieke plek
+  met de vrije hoogte / diepte, de as en het maatgevende schip als lijnmodel.
+- Paneel "Lagen" linksboven in 3D: elke laag los aan/uit (wordt onthouden).
+- Knop "Naar brug": camera op de vaarweg, schuin op de doorvaart.
+- Box aanpassen in het doorvaartvenster werkt direct door in 3D.
+- Het 3D-blad in de PDF toont de brug, de box, de conflicten en het schip ook,
+  met de bijbehorende legenda.
+
+Nieuw in 2.4.2
+--------------
+- Doorvaart in tekeningstijl: doorvaartprofiel als streep-stippellijn (diepgang
+  gestippeld), maatgevend schip als dun grijs lijnwerk (romp, luikhoofden,
+  stuurhuis met ramen, mast tot de doorvaarthoogte), maatvoering met schuine
+  maatstreepjes (B, H, diepgang, scheepsbreedte), peilteken bij de
+  toetswaterstand, brug als grijze doorsnede, conflicten rood gearceerd en
+  de vrije hoogte als rode/groene maat. Geen gekleurde vlakken meer.
+- Maatgevend schip: CEMT-klasse kiezen (I t/m Va) of eigen lengte/breedte.
+  In het lengteprofiel staat het stuurhuis recht onder de brug.
+- PDF-blad Doorvaartcontrole: uitsnede rond het doorvaartprofiel op een
+  grotere schaal (testset: 1:150 i.p.v. 1:300).
+
+Nieuw in 2.4.1
+--------------
+- Doorvaart: de box wordt standaard getekend als SCHIP: in het dwarsprofiel
+  van voren, in het lengteprofiel van opzij (boeg in de vaarrichting =
+  oplopend station). Romp tot de diepgang, stuurhut en mast tot de
+  doorvaarthoogte; rood waar het botst. De box zelf staat er als groene
+  stippellijn omheen en blijft de toets. Keuze "Tekenen als: schip / box"
+  in het Doorvaart-venster.
+
+Nieuw in 2.4.0 - Doorvaartcontrole
+----------------------------------
+Toets > Doorvaart... controleert of een doorvaartbox onder een brug past.
+- Puntenwolk A = de bodem (peiling/multibeam). In het venster lees je de scan
+  van de ONDERZIJDE van de brug in (rekent mee) en eventueel de BOVENZIJDE
+  (alleen voor beeld en tekening). PTS, LAS of LAZ, in RD/NAP.
+- As: midden over de vaarweg, onder de brug door (tekenen of As inlezen...).
+- Box: toetswaterstand (bv. maatgevend hoogwater; leeg = waterpeil), hoogte H
+  daarboven, breedte B, verschuiving t.o.v. de as (+ = rechts), optioneel een
+  vereiste diepte D onder een (lage) waterstand. Lengte: automatisch waar de
+  brug boven de vaarweg ligt plus een marge (standaard 10 m), of zelf st. van/tot.
+- Controleren: toets op de ruwe meetpunten van de onderzijde (geen
+  driehoeksnet, dus liggers en leidingen blijven zichtbaar). Losse punten
+  (vogels, spatwater) tellen niet mee: een punt telt als er binnen +-0,5 m (ook
+  in hoogte) minstens 5 andere punten liggen (instelbaar).
+- Uitkomst: voldoet / voldoet niet, kleinste vrije hoogte met plek, tekort,
+  vrije breedte bij hoogte H, kleinste waterdiepte met plek, en de
+  maatgevende doorsnede (hoogste bodem en laagste onderzijde over de
+  boxlengte). Het dwarsprofiel springt naar het kritieke punt.
+- Alles achteraf aan te passen: wijzig een maat in het venster en de toets en
+  de tekeningen werken direct bij. Instellingen en brugscans gaan mee in het
+  project (met puntenwolk aangevinkt).
+- Overal zichtbaar: onderzijde (bruin) en bovenzijde (grijs) in dwars- en
+  lengteprofiel, de box groen of rood, rode stukken waar het botst, de maat
+  "vrij x,xx m"; in het bovenaanzicht de brug, de box en de conflictpunten.
+- PDF: blad "Doorvaartcontrole" (na het bovenaanzicht) met de maatgevende
+  doorsnede, de tabel met uitgangspunten en resultaat, en het dwarsprofiel
+  bij het kritieke punt; box ook op het bovenaanzicht en in de profielen.
+- GeoPackage: lagen doorvaart_box (3D-ribben) en doorvaart_conflicten.
+- Smalle schermen: bovenbalk iets compacter, zodat alles op een regel past.
+
+Nieuw in 2.3.1
+--------------
+- GeoPackage: de lagen krijgen ook een 3D-opmaak mee voor het 3D-kaartvenster
+  van QGIS (Beeld > 3D-kaartweergaven > Nieuwe 3D-kaartweergave). As en
+  dwarsprofiel_3d als 3D-lijnen op hun echte hoogte (Z per hoekpunt, absoluut),
+  profielpunten, lengteprofiel en BGT-snijpunten als bolletjes. Tip: zet in de
+  3D-instellingen het terrein op "Plat" en de verticale schaal op 3 tot 5.
+
+Nieuw in 2.3.0
+--------------
+- Nieuwe bovenbalk met groepen: PUNTENWOLK, PROJECT, AS en UITVOER. Alle
+  "Bestand kiezen"-velden zijn knoppen "Openen..." met de bestandsnaam ernaast.
+  Bij het bovenaanzicht een regel ONDERGROND (luchtfoto, BGT, bomen), bij het
+  dwarsprofiel PROFIEL / WATER / WEERGAVE. Afsluiten staat rechts in de
+  statusregel.
+- Uitvoer > GeoPackage (QGIS): een .gpkg in RD New (EPSG:28992) met de lagen
+  as_lijn (3D), dwarsprofiel_lijnen (met station), dwarsprofiel_3d,
+  profielpunten (station, offset, kant L/R, hoogte A, hoogte B en verschil
+  B - A), lengteprofiel, bgt_grenzen (als er BGT is) en een tabel project
+  (puntenwolk, waterpeil, breedte, interval ...). De lagen openen in QGIS
+  direct met opmaak en labels (stationnummers). Werkt ook in ArcGIS en FME.
+- As > As inlezen...: een as uit QGIS/GIS/CAD halen in plaats van tekenen.
+  GeoPackage, GeoJSON, shapefile (kies .shp en .dbf samen voor de namen) of
+  DXF. Elke lijn wordt een as; de naam komt uit een veld als naam/name.
+  Alleen het deel bij de puntenwolk wordt gebruikt (een lange legger wordt
+  geknipt). WGS84 (graden) wordt omgerekend naar RD (+-0,3 m). Een eigen
+  GeoPackage- of DXF-export leest alleen de as terug.
+- As > Omdraaien: de richting van de as omkeren (station 0 aan de andere
+  kant; L en R wisselen mee). Handig na het inlezen.
+
+Nieuw in 2.2.2
+--------------
+- Stempel: het logo bij "Opgesteld door" staat links uitgelijnd, op dezelfde
+  lijn als het logo van de opdrachtgever en de teksten eronder.
+
+Nieuw in 2.2.1
+--------------
+- PDF-venster: de knop "Annuleren" heet nu "Sluiten" (je instellingen worden
+  bewaard). Na "PDF maken" gaat het venster altijd vanzelf dicht, ook als er
+  een opmerking is (bv. een andere schaal gekozen omdat de profielen anders
+  niet passen); die opmerking staat dan in de statusregel.
+
+Nieuw in 2.2.0
+--------------
+- PDF-venster, Titelblok: "Logo opgesteld door" kiesbaar, net als het logo van
+  de opdrachtgever. Klik "Ander logo..." en kies een PNG/JPG/SVG (bv.
+  ...\01 input\Logo Lutrea.png); het wordt onthouden. Met x ga je terug naar
+  het standaard Lutrea-logo. Witte randen worden automatisch weggesneden.
+
+Nieuw in 2.1.9
+--------------
+- Stempel (kolom rechts), vak "Opgesteld door": naast het Lutrea-logo nu het
+  bezoekadres (Ceresstraat 13, 4811 CA Breda), telefoon, e-mail en website met
+  oranje pictogrammen, en rechts een QR-code naar https://www.lutrea.nl
+  (vector, scherp op elk formaat). Het stempelvak is daarvoor 12 mm hoger.
+- Lutrea-logo in hoge resolutie (scherper in de PDF en in de app).
+
+Nieuw in 2.1.8
+--------------
+- Dwarsprofiel precies op een knikpunt van de as: staat nu op de bissectrice
+  (de halve hoek tussen beide rechte stukken) in plaats van haaks op het
+  vorige stuk. Geldt voor het scherm, de PDF en de DXF.
+- Voorbeeld-DXF opnieuw gemaakt met een rechte as op het hart van de brug.
+
+Nieuw in 2.1.7
+--------------
+- DXF-export in meters en in het RD-stelsel. De 2.1.6-DXF was R12; dat formaat
+  kent geen eenheden, waardoor AutoCAD/Civil 3D hem als feet/inch opende.
+  Nu (AutoCAD 2010-DXF):
+  * eenheden meter: INSUNITS = 6 (meters), MEASUREMENT = 1 (metrisch),
+    decimale lengtes;
+  * geolocatie met coordinatenstelsel Amersfoort / RD New (EPSG 28992),
+    tekening = RD-coordinaten (x = RD-x, y = RD-y), hoogtes in m NAP.
+    Controle in Civil 3D: Drawing Settings > Units and Zone, of CGEOCS.
+    Staat de zone er niet (goed) in: kies daar categorie Netherlands >
+    "Amersfoort RD New" (EPSG 28992); de coordinaten zelf kloppen al.
+  * teksten in UTF-8, dus ook letters als é, ë en ö komen goed over.
+
+Nieuw in 2.1.6
+--------------
+- Knop "DXF" (naast PDF…): de as en de profielen naar AutoCAD / Civil 3D.
+  Eén DXF-bestand (AutoCAD 2010-formaat, opent in AutoCAD/Civil 3D 2010 en
+  nieuwer, ook als xref):
+  * Situatie in RD/NAP: de as als 3D-polylijn over het maaiveld, de dwars-
+    profiellijnen met stationnummer, en elk dwarsprofiel als 3D-polylijn op
+    de echte plek (bruikbaar als breakline / feature line in Civil 3D).
+  * Rechts naast de situatie, op ware grootte (1 eenheid = 1 m): het lengte-
+    profiel en alle dwarsprofielen (4 per rij) met kader, raster, hoogte- en
+    afstandsgetallen, NAP-lijn, as, waterpeil (aan de gekozen kant), BGT-
+    grenzen met rode hoogte en naam, en hoogtematen volgens "maten elke".
+    De verhoging (verh. 1:x) van het scherm wordt toegepast op de hoogte.
+  * Elk onderdeel op een eigen laag: PV_AS, PV_DWARSLIJN, PV_STATION_TEKST,
+    PV_DWARS_3D, PV_PROF_MAAIVELD (_B = wolk B), PV_PROF_RASTER, PV_PROF_KADER,
+    PV_PROF_TEKST, PV_PROF_HOOGTE, PV_PROF_AS, PV_PROF_NAP, PV_PROF_WATER,
+    PV_PROF_BGT, PV_PROF_BGT_TEKST. Met LAYMRG/laagvertaler (LAYTRANS) zet je
+    ze in een keer naar je eigen lagen.
+  Bestandsnaam: <puntenwolk>-<asnaam>.dxf.
+
+Nieuw in 2.1.5
+--------------
+- Waterpeil: keuze "water L + R / alleen L / alleen R" naast het waterpeil. Bv.
+  alleen L als rechts een weg ligt die lager is dan het peil (geen water).
+  Werkt in het dwarsprofiel, de PDF (ook de opmerking), het 3D-beeld (diepte-
+  kleur en watervlak alleen aan die kant) en wordt in het project bewaard.
+  L/R zoals in het dwarsprofiel: kijkrichting = oplopend station.
+
+Nieuw in 2.1.4
+--------------
+- PDF: het 3D-beeld op een eigen blad, direct na het bovenaanzicht (vóór lengte-
+  en dwarsprofielen). Aan/uit met "3D-beeld (eigen blad)" bij Inhoud. De hele
+  puntenwolk in beeld, met een eigen legenda (terrein, diepte onder waterpeil,
+  waterpeil, as) en stempel "3D-beeld van de situatie".
+- Het kleine 3D-beeld in de kolom bij het bovenaanzicht is nu een aparte keuze
+  ("3D-beeld klein in de kolom"), standaard uit; met een eigen 3D-blad vervalt het.
+
+Nieuw in 2.1.3
+--------------
+- Bovenaanzicht: klik op een dwarsprofiellijn of een stationsnummer = dat
+  dwarsprofiel openen (muis erboven: handje + "station … m").
+- Dubbelklik op een dwarsprofiellijn = dat profiel schermvullend. In het
+  dwarsprofiel: dubbelklik of de knop ⛶ = schermvullend aan/uit; Esc = terug.
+- Het programmavenster opent nu gemaximaliseerd (schermvullend met titelbalk).
+  F11 = echt volledig scherm, nog een keer F11 = terug.
+
+Nieuw in 2.1.2
+--------------
+- Bovenaanzicht: de kijkrichtingpijl bij het huidige dwarsprofiel is groter en
+  heeft een witte rand (goed zichtbaar op luchtfoto en hoogtekleuren); L en R
+  staan bij de uiteinden van het profiel, zoals in het dwarsprofiel.
+
+Nieuw in 2.1.1
+--------------
+- Dwarsprofiel: waterkleur liep schuin als het profiel een gat had (geen punten,
+  bv. onder een brug of langs de rand van de wolk). Nu recht naar het waterpeil.
+
+Nieuw in 2.1.0
+--------------
+- 3D-beeld alleen nog op het blad met het bovenaanzicht (overzicht), niet meer
+  op de bladen met dwarsprofielen en het lengteprofiel.
+
+Nieuw in 2.0.9
+--------------
+- Project opslaan: na het wegschrijven wordt gecontroleerd of het bestand
+  compleet is (grootte). Mislukt het, dan een duidelijke melding (en het lege
+  bestand wordt weggehaald) in plaats van stil een leeg .json achterlaten.
+  De statusregel toont de grootte, bv. "Opgeslagen: … (38.2 MB)".
+
+Nieuw in 2.0.8
+--------------
+- 3D-beeld in de PDF: standpunt vanaf het water (de kant van de as waar het
+  terrein onder het waterpeil ligt; zonder waterpeil de laagste kant), kijkend
+  naar de kade. Dwarsprofiellijnen niet meer in het 3D-beeld, alleen de as.
+- Onder het waterpeil kleurt het terrein naar diepte (licht- naar donkerblauw,
+  0-4 m), met een licht watervlak erover.
+- Is de 3D-weergave in de viewer open geweest, dan gebruikt de PDF dat standpunt.
+
+Nieuw in 2.0.7
+--------------
+- PDF: instelling "Teksthoogte" (hoogte van een hoofdletter, zoals in CAD):
+  automatisch 2,5 mm t/m A2 en 3,5 mm op A1/A0, of zelf 1,8 / 2,5 / 3,5 / 5,0 mm.
+  De hoogtematen in de profielen krijgen precies die hoogte; stempel, legenda,
+  opmerkingen en kopjes schalen mee (op A0 dus niet meer piepklein).
+- PDF (kolom rechts): 3D-beeld van de situatie in de vrije ruimte van de kolom:
+  terrein in de kleuren van de puntenwolk, de as, de dwarsprofiellijnen en het
+  waterpeil. Standpunt zoals in de 3D-weergave (als die open is geweest), anders
+  schuin van boven op het gebied rond de as. Aan/uit bij "3D-beeld in de kolom".
+
+Nieuw in 2.0.6
+--------------
+- PDF: nieuwe bladindeling "kolom rechts" (standaard vanaf A3 liggend), zoals op
+  bestektekeningen: kader met vakverdeling (1, 2, 3 / A, B, C), rechts een kolom
+  met legenda, opmerkingen en onderin de stempel. De tekening krijgt de rest.
+- Stempel (van boven naar onder): versietabel, opdrachtgever met groot logo,
+  "opgesteld door" met het Lutrea-logo, project, onderdeel, en de gegevens
+  (projectnummer, tekeningnummer, blad/aantal, versie, datum, getekend,
+  gecontroleerd, schaal, formaat, status).
+- Nieuwe velden: Tekeningnummer (telt per blad door als het op cijfers eindigt)
+  en Opmerkingen (komen onder de vaste opmerkingen: maten in m, NAP, RD, bron).
+- Dwarsprofielen: in de kolomindeling één legenda per blad in de kolom (meer
+  ruimte voor de profielen).
+- Balk onder (A4, A3 staand of zelf gekozen): Lutrea-logo nu rechts met
+  "opgesteld door", opdrachtgever-logo links.
+
+Nieuw in 2.0.5
+--------------
+- PDF-stempel: logo van de opdrachtgever helemaal links (vóór het Lutrea-logo).
+  Kies het in het PDF-venster bij "Logo opdrachtgever" (PNG/JPG/SVG); witte
+  randen worden weggesneden. Het logo wordt onthouden; met × haal je het weg.
+
+Nieuw in 2.0.4
+--------------
+- Maatketting en BGT-band staan lager (verder onder het profiel), met de maten
+  en namen erboven in plaats van eronder.
+- Alle teksten in lengte- en dwarsprofiel (scherm en PDF) ongeveer 15% groter;
+  hoogte-as en legenda iets breder zodat alles past.
+
+Nieuw in 2.0.3
+--------------
+- Dwarsprofiel: BGT/DXF met alleen lijnen (kademuur, kant verharding, insteek…,
+  geen vlakken) krijgt op de plek van de BGT-band een maatketting met de
+  afstanden tussen de lijnen en tot de randen van het profiel. Ook in de PDF.
+- Legenda: symbool "BGT-grens" beter zichtbaar.
+
+Nieuw in 2.0.2
+--------------
+- Dwarsprofiel (scherm en PDF): legenda rechts met alleen wat er in het profiel
+  staat (gemeten profiel, hoogtes, BGT-grens, as, NAP, waterpeil, water met
+  breedte, BGT-vlakken met kleur, bomen) en onderaan de profielbreedte.
+  Op het scherm verschijnt de legenda als het paneel breed genoeg is.
+- Afstandsschaal onderlangs (offset/station in mooie stappen, past zich aan bij
+  zoomen) met lichte verticale rasterlijnen.
+- NAP 0,00 als duidelijke streep-stippellijn met label; 0.00 op de as vetgedrukt,
+  "m NAP" boven de hoogte-as.
+- BGT-band onder het profiel toont nu ook de breedte per strook (maatketting).
+- PDF: horizontale schaal nu exact (marge van de hoogte-as klopte net niet).
+
+Nieuw in 2.0.1
+--------------
+- Bovenaanzicht: alle dwarsprofiellijntjes met stationsnummer (zoals in de PDF)
+  en linksonder "20 dwarsprofielen · elke 5 m · 20 m breed". Aan/uit met het
+  vinkje "dwarsprofielen" bij de knoppen. Interval en breedte werken direct door.
+
+Nieuw in 2.0.0
+--------------
+- PDF: alleen bepaalde bladen maken. Vul bij "Bladen" bv. 4 of 2-5, 8 in (leeg =
+  alle bladen), of klik in het voorbeeld op "alleen dit blad". Bladen die niet
+  meegaan worden in het voorbeeld vaag getoond en ook niet getekend (sneller).
+  De bladnummering in de stempel blijft die van de hele reeks (bv. 4/21).
+- PDF: "Elk blad als los PDF-bestand": elk blad een eigen bestand
+  (naam_blad01.pdf, …). Met "vragen waar ik opsla" kies je één map; anders
+  gaan ze naar Downloads (de browser kan één keer vragen of meerdere downloads
+  mogen).
+- Opgelost: de rand van de stempel kreeg op de profielbladen soms een lichtgrijze
+  in plaats van donkere kleur.
+
+Nieuw in 1.9.9
+--------------
+- As aanpassen tijdens het tekenen (tot "Klaar met tekenen"): sleep een punt,
+  ook het begin- of eindpunt, naar een andere plek; rechtermuisknop op een punt
+  = verwijderen; Backspace = laatste punt weg. Begin (groen) en eind (rood) zijn
+  tijdens het tekenen gemarkeerd. Ook een bestaande as kun je zo aanpassen:
+  kies hem, druk op "Teken as", versleep, en "Klaar met tekenen".
+
+Nieuw in 1.9.8
+--------------
+- PDF-bovenaanzicht: stationsnummers bij de dwarsprofielen zijn groter en vet,
+  in een wit vakje met rode rand net voorbij het eind van het profiellijntje,
+  zodat ze ook op een luchtfoto of puntenwolk goed leesbaar zijn.
+
+Nieuw in 1.9.7
+--------------
+- PDF-venster: voorbeeld van de print rechtsonder. Het voorbeeld wordt met
+  dezelfde PDF-code opgebouwd (zelfde indeling en aantal bladen), alleen grover;
+  blader met de pijltjes door alle bladen. Werkt zichzelf bij bij elke wijziging.
+  De luchtfoto staat niet in het voorbeeld (wel in de PDF).
+- PDF-venster breder; de invulvelden van het titelblok zijn ruim twee keer zo breed.
+
+Nieuw in 1.9.6
+--------------
+- Waterpeil in het dwarsprofiel: vul bij het dwarsprofiel een hoogte in m NAP in
+  (leeg = uit). Je krijgt een blauwe waterlijn met lichtblauw water waar het
+  profiel onder het peil ligt, een dunne stippellijn over de hele breedte en het
+  waterpeilteken met de hoogte. Ook in de PDF-dwarsprofielen (met legenda) en
+  bewaard in het projectbestand.
+- Teksten in de profielen groter; de asnaam (bv. "As 1") groter, zwart en naast
+  de stippellijn in plaats van erdoorheen.
+
+Nieuw in 1.9.5
+--------------
+- "randen strak" (naast oppervlak, standaard aan, alleen bij bovenkant): een open
+  hekwerk of smalle rand wordt door een drone maar op losse plekken geraakt; de
+  gaten daartussen worden nu gedicht, zodat het hek een doorlopende lijn op
+  leuninghoogte wordt in plaats van een kam van pieken. Ook gaatjes in een
+  wegdek waar de bodem eronder doorkwam (brug + bodempeiling) worden gevuld.
+  Regel: een punt dat minstens 25 cm lager ligt dan wat er in dezelfde richting
+  aan beide kanten binnen 0,5 m ligt, wordt opgetrokken (met de kleur van dat
+  punt). Een hek wordt er niet breder van; een goot of kleine dip blijft staan.
+  De statusbalk meldt hoeveel punten zijn strakgetrokken.
+
+Nieuw in 1.9.4
+--------------
+- Nieuwe keuze "oppervlak: bovenkant / onderkant" (naast "punten"). Liggen er op
+  één plek punten boven elkaar - wegdek van een brug met de bodempeiling eronder,
+  een kademuur, boomkruin boven maaiveld - dan neemt de viewer per vakje het
+  hoogste punt (bovenkant, standaard: zoals op de foto) of het laagste
+  (onderkant: maaiveld onder bomen, bodem onder een brug). Voorheen het eerste
+  punt uit het bestand, wat op bruggen en langs randen pieken gaf in de
+  doorsnede en in 3D. Geldt ook voor "Alle punten" (per vakje de bovenste of
+  onderste laag in plaats van de mediaan van alles).
+- Dwarsprofiel bij vaste verhouding (1:1): past het hoogteverschil niet in het
+  paneel, dan wordt gecentreerd op het profiel rond de as in plaats van op het
+  midden van alle hoogtes.
+
+Nieuw in 1.9.3
+--------------
+- Lijnen uit een eigen DXF (insteek, teen, rand verharding, erfgrens …) worden
+  nu in het dwarsprofiel getoond: rode hoogte op het snijpunt, en bij
+  BGT "+ namen" de laagnaam. Voorheen alleen als de DXF ook vlakken of
+  vlaknamen had; een DXF met alleen losse lijnen werd genegeerd. Werkt ook
+  samen met de opgehaalde PDOK-BGT, en in de PDF.
+
+Nieuw in 1.9.2
+--------------
+- Draait er nog een oudere versie van de viewer op de achtergrond, dan sluit
+  de nieuwe exe die nu zelf af en neemt het over. Voorheen opende de nieuwe exe
+  dan een venster naar de oude versie, waardoor een update leek niet te werken.
+- Het versienummer staat naast de titel (en in de venstertitel).
+
+Nieuw in 1.9.1
+--------------
+- RGB-kleur wordt nu ook herkend in PTS-bestanden uit Autodesk ReCap
+  (kolommen x y z r g b nx ny nz, dus kleur + normalen zonder intensiteit).
+  Herkende indelingen: x y z r g b | x y z i r g b | x y z r g b nx ny nz |
+  x y z i r g b nx ny nz. Geldt ook voor de vergelijkingswolk (B).
+
+Nieuw in 1.8.0 en 1.9.0
+-----------------------
+- Twee puntenwolken vergelijken: open eerst puntenwolk A, kies dan bij
+  "+ vergelijk met" een tweede bestand (B), bv. AHN naast een dronemeting of een
+  tweede meetmoment. B verschijnt in lengte- en dwarsprofiel als paarse lijn
+  met eigen maten; A blijft blauw. Met de vinkjes A en B zet je elke lijn aan
+  of uit, met ✕ haal je B weg. Van B wordt alleen het gebied van A ingelezen,
+  zodat ook een grote AHN-tegel bruikbaar is. "maaiveld" (standaard aan) neemt
+  uit LAS/LAZ met classificatie alleen de maaiveldpunten (klasse 2); zonder
+  classificatie worden vanzelf alle punten gebruikt. Beide wolken liggen in RD.
+  B gaat mee in de PDF en in het projectbestand.
+- BGT uit een DXF: kies bij BGT "of …" een DXF (bv. een BGT-tekening die als DWG
+  binnenkwam: in Civil 3D Opslaan als → DXF). Je kiest welke lagen meedoen;
+  KLIC, teksten en lagen boven/onder maaiveld staan standaard uit. Lijnen worden
+  de grenzen in het dwarsprofiel; de vlaknamen (teksten in de vlakken) bepalen wat
+  er tussen twee grenzen ligt; bomen (blokken op de laag Boom) komen als bomen mee.
+- BGT-namen in het dwarsprofiel ("+ namen") staan nu zwart, iets groter en
+  vlak boven het profiel.
+
+Nieuw in 1.7.0
+-----------------------
+- Meerdere losse assen: "+ As" tekent een nieuwe as, de vorige blijft bewaard.
+  Kies de as in de keuzelijst of klik op een grijze as in het bovenaanzicht.
+  ✎ = naam wijzigen, "Verwijder as" haalt de actieve as weg. Assen worden in het
+  projectbestand bewaard. PDF: "alleen de actieve as" of "alle assen".
+  Detailstrook en "Alle punten" werken per as (al berekende profielen blijven bewaard).
+- BGT in het dwarsprofiel: grenzen zijn nu de exacte snijpunten van de profiellijn
+  met de BGT (vlakken en lijnen), de rode hoogtes staan precies op die grens.
+  Keuze "BGT" in de kop van het dwarsprofiel: uit / balk / + hoogtes / + namen.
+  Geldt ook voor de PDF. Bij "+ namen" staat op elke grens een stippellijn met
+  bovenaan de naam; bovenaan de aslijn staat de naam van de actieve as.
+- "maten elke 0" = geen hoogtematen van de surface (alleen de BGT-hoogtes).
+- Maten en teksten in de profielen overlappen niet meer (scherm en PDF); bij
+  te weinig ruimte valt een tekst weg in plaats van door een andere heen.
+- Opstarten: blijft het startscherm hangen, dan laadt de viewer zichzelf één keer opnieuw.
+
+Eerder
+------
+- BGT: keuze "alleen lijnen" (standaard) of "lijnen + vlakken". Bij "alleen
+  lijnen" worden ook de BGT-lijnobjecten opgehaald: kruinlijnen (talud),
+  scheidingen, spoor, kunstwerken, inrichtingselementen. Meer dan 1000 objecten
+  per laag wordt nu ook volledig opgehaald.
+- PDF...: venster met papierformaat A4-A0, staand/liggend, keuze van
+  onderdelen, stationsbereik, schaal dwarsprofielen (meerdere kolommen per blad),
+  profielen per blad, overdrijving, luchtfoto als ondergrond, titelblok met
+  Lutrea-logo en bladnummering, legenda, noordpijl en schaalstok.
+  Instellingen worden onthouden en in het projectbestand opgeslagen.
+- Project opslaan "met puntenwolk" (standaard aan): de uitgedunde puntenwolk
+  zit dan in het projectbestand (enkele MB). Project openen = direct verder,
+  zonder het .pts/.las/.laz los in te lezen.
+- Kleur van de puntenwolk: "hoogte" of "RGB (inmeting)". Bestanden met kleur
+  (.pts met r g b-kolommen, LAS/LAZ formaat 2/3/5/7/8/10) openen standaard in RGB.
+  Werkt door in bovenaanzicht, 3D, PDF en projectbestand.
+- Steekproef bij grote LAS/LAZ nu gelijkmatig over het hele bestand (er viel soms een strook weg).
+- Instelling "punten" (150.000 t/m 2 miljoen): puntdichtheid van de surface; de
+  statusregel toont de gemiddelde puntafstand. Wijzigen leest opnieuw in, as/BGT blijven.
+- Hoogteschaal in de profielen ligt vast in beeld en past zich aan bij in-/uitzoomen.
+- BGT-band in het dwarsprofiel direct onder het profiel.
+- Knop "Alle punten" (dwarsprofiel): profielen uit ALLE punten van het bestand, zonder
+  uitdunnen (meetpunten binnen enkele cm van de profiellijn). Ook in de PDF.
+  Tijd: ±10 s per 40 mln punten (LAS), ±30 s (LAZ). Te stoppen met "■ Stop".
+- Knop "Detailstrook" (bovenaanzicht): alleen een strook rond de as laden, op hoge dichtheid.
+- Zoomen zoals in CAD: ⬚ Venster (rechthoek slepen, ook in beide profielen), ⤢ Alles
+  (of dubbelklik), ↶ Vorige, + en −. Muiswiel zoomt ±35% per klik. Esc = annuleren.
+- Opslaan (PDF en project) met een "Opslaan als"-venster: zelf map en naam kiezen;
+  de laatste map wordt onthouden. Uit te zetten in het PDF-venster (dan: Downloads).
+- Knop "Afsluiten": sluit het venster en stopt het programma op de achtergrond.
+- Grote bestanden: punten worden tijdens het inlezen uitgedund, zodat het
+  geheugen niet meer volloopt.
