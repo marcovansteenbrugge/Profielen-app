@@ -1,0 +1,36 @@
+# Memory Index: {{Projectnaam}}
+
+> Eén regel per memory (hook + pointer). Detail (incidenten, data, besluiten)
+> staat in het topic-bestand, niet hier. Houd dit bestand onder ~15-20KB: als
+> het groeit, is dat een signaal om te consolideren (samenvoegen/verwijderen),
+> niet om te blijven aanvullen.
+
+<!--
+  DOEL VAN DIT BESTAND (laag 2 van de methode)
+  Dit is de index, niet het geheugen zelf. Elke memory leeft in een eigen
+  bestand naast dit bestand (memory/<naam>.md of, zoals hier, gewoon in deze map),
+  met frontmatter (name/description/type) en een vaste structuur:
+  regel -> Why -> How to apply, plus [[wikilinks]] naar verwante memories.
+
+  Drie types:
+  - feedback  = correctie of bevestiging over HOE te werken (proces, niet product)
+  - project   = feit/besluit over het product zelf (architectuur, scope, status)
+  - reference = pointer naar iets buiten dit archief (extern systeem, recept, credentials-locatie)
+
+  Wat NIET hier hoort: code-patronen die uit de code zelf blijken, git-historie
+  (git log is de bron van waarheid), routinewerk, meningen zonder besluit.
+-->
+
+## Werkafspraken & voorkeuren (feedback)
+- _(nog leeg: wordt gevuld door de `brbnt-memory`-skill zodra er een eerste correctie of incident is)_
+
+## Referentie
+- _(nog leeg)_
+
+## Architectuur-besluiten & valkuilen (project)
+- _(nog leeg)_
+
+## Gebouwd / afgerond
+<!-- Verplaats memories hierheen zodra een stuk werk klaar is: status is zichtbaar
+     zonder het topic-bestand te hoeven openen. -->
+- _(nog leeg)_

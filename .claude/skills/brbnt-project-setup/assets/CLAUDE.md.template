@@ -1,0 +1,100 @@
+# {{Projectnaam}}: Project Root
+
+<!--
+  DOEL VAN DIT BESTAND
+  Dit is laag 1 van de methode: statische werkregels die bij ELKE sessie
+  automatisch meekomen. Houd het kort en stabiel. Alles wat vaak verandert,
+  incidenteel is, of een "waarom" nodig heeft, hoort in MEMORY.md (laag 2),
+  niet hier.
+
+  Vuistregel: als je een regel voor de derde keer aan het uitleggen bent,
+  hoort hij hier, of is hij te specifiek en hoort hij als feedback-memory
+  in memory/ (met het incident erbij, zie memory-feedback.md.template).
+-->
+
+## Project Overview
+{{Eén tot twee zinnen: wat is dit product, voor wie, welk domein.}}
+
+## Repository Structure
+<!--
+  Toon de daadwerkelijke top-level indeling van dit project, niet per se dit
+  voorbeeld. Veel projecten nesten tests/docs onder een applicatiemap (bijv.
+  app/test/, app/docs/) in plaats van op root: neem dat dan zo over. Laat een
+  map weg als hij niet bestaat, verzin er geen bij omdat dit voorbeeld hem noemt.
+-->
+```
+/
+├── {{laag-1}}/          # {{korte beschrijving}}
+├── {{laag-2}}/          # {{korte beschrijving}}
+├── {{tests-locatie}}/   # {{testlagen: unit/integration/e2e}}
+├── {{docs-locatie}}/    # Plannen en beslisdocumenten (zie "Plan en besluit")
+└── CLAUDE.md            # Dit bestand
+```
+
+## Tech Stack
+| Laag | Technologie |
+|---|---|
+| {{Frontend}} | {{...}} |
+| {{Backend}} | {{...}} |
+| {{Data}} | {{...}} |
+| {{Database}} | {{...}} |
+| {{CI/CD}} | {{...}} |
+| {{Hosting}} | {{...}} |
+
+## Architectuur
+{{2-4 bullets: de architectuurkeuzes die niet uit de code zelf blijken en die je
+niet steeds opnieuw wilt uitleggen: gelaagde scheiding, multitenancy-model,
+welke laag welke verantwoordelijkheid heeft.}}
+
+---
+
+## Git-regels
+- {{Taal van commit messages, branch-strategie, wanneer direct op main mag.}}
+- Nooit `--force` zonder expliciete toestemming.
+- {{Eventuele tijdelijke versoepeling met einddatum, zoals "tot nader order direct
+  op main": benoem de einddatum expliciet zodat hij niet stilzwijgend permanent wordt.}}
+
+## Testing Strategy
+{{De testpiramide: welke laag welk type test, in welke volgorde draait de
+CI-pijplijn (build → unit → integration → deploy → e2e).}}
+
+## Database-regels (indien van toepassing)
+- Nooit bestaande migraties wijzigen; altijd een nieuwe toevoegen.
+- Destructieve schemawijzigingen altijd expliciete bevestiging vereisen.
+
+---
+
+## Gedragsregels
+- Vraag door bij twijfel; nooit aannames doen over intentie of scope.
+- Leg na elke wijziging kort uit wat en waarom.
+- Werk in stappen: één logische eenheid per keer, niet alles ineens.
+- Vraag altijd bevestiging vóór destructieve acties.
+
+## Plan en besluit
+<!-- brbnt-plan-regel: v1 -->
+- Bij een nieuwe functie, een wijziging die uit meer dan één fase bestaat, een schema- of architectuurwijziging, of wanneer de gebruiker erom vraagt: stel eerst een plan en een beslisdocument op met de skill `brbnt-plan`, ook wanneer je in plan mode werkt. Bij een kleine, afgebakende fix is dat niet nodig.
+- Bouw nooit voordat de beslisser akkoord heeft gegeven voor die fase in het beslisdocument. Ontbreekt het akkoord, of is het niet expliciet genoeg, dan stel je voor om het eerst op te halen in plaats van te beginnen.
+- Plannen en beslisdocumenten staan in `{{docs-locatie}}/` als `<naam>.plan.md` en `<naam>.beslis.md`. Zoek eerst in `plan-beslis-index.md`, lees dan het beslisdocument, en open het plan alleen als je techniek nodig hebt.
+- Commit-berichten voor planwerk beginnen met de fase-prefix uit het plan, bijvoorbeeld `F2:`.
+
+## Scope-grenzen
+{{Welke map hoort bij welke verantwoordelijkheid; verwijs naar eventuele
+sub-CLAUDE.md's (bijv. frontend/CLAUDE.md) voor laagspecifieke conventies.}}
+
+## Conventies die worden afgedwongen (niet alleen gedocumenteerd)
+<!--
+  Dit is de brug naar laag 3. Twee lijsten, en het verschil is de kern:
+  - Afgedwongen: er is een test, linter-regel of hook die faalt bij afwijking.
+    Noteer het pad ernaar.
+  - Nog niet afgedwongen, wel afgesproken: een afspraak die (nog) van geheugen
+    afhangt. Eerlijk labelen, niet weglaten: een lijst met afgedwongen
+    conventies waar stilletjes beloftes tussen staan, is erger dan geen lijst.
+  Bij de start van een project is "Afgedwongen" meestal leeg. Dat is prima: een
+  afspraak mag eerst onder "nog niet afgedwongen" staan, en krijgt pas een test
+  als dat werk in het plan aan de beurt is.
+-->
+Afgedwongen:
+- {{Regel}}: afgedwongen door `{{pad naar test/lint-regel}}`
+
+Nog niet afgedwongen, wel afgesproken:
+- {{Regel}}: alleen een afspraak, nog niet getest.
