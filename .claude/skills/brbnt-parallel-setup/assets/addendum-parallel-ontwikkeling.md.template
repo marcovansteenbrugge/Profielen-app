@@ -1,0 +1,56 @@
+# Addendum: parallel ontwikkelen (laag 5 van de methode)
+
+<!--
+  DOEL: dit los je op ZODRA je vaker dan één taak tegelijk laat lopen (jijzelf
+  met meerdere sessies, of meerdere mensen/agents op hetzelfde project). Zonder
+  dit addendum vertrappen sessies elkaars staging, poorten en dev-server.
+-->
+
+## Bij elke implementatietaak
+Vraag/bepaal expliciet: draait dit **direct op de hoofdbranch**, of in een
+**aparte worktree-branch**? Vuistregel: als de taak > {{X}} uur duurt of parallel
+aan ander werk loopt, altijd een worktree.
+
+## Worktree-lifecycle
+1. Maak branch `worktree-<naam>`.
+2. Claim een poort-slot uit de registry (zie hieronder); nooit een poort hergebruiken
+   die een andere lopende worktree al claimt.
+3. Zet omgevingsvariabelen die van het slotnummer afhangen (bijv. API-URL, DB-naam).
+4. Werk, build, test.
+5. Bij groene build + tests + conflictvrije merge, én ongewijzigde runtime-data
+   ({{paden die de app zelf schrijft, bijv. `data/`}}): automatisch mergen naar de
+   hoofdbranch{{, en pushen als er een remote is}}. Bij conflicten of gewijzigde
+   runtime-data: niet automatisch, mens erbij halen.
+6. `git worktree remove` en poort-slot vrijgeven.
+
+## Poort-registry
+<!--
+  Vul dit alleen in als parallelle worktrees hier daadwerkelijk gelijktijdig
+  losse lokale poorten claimen. Is dat niet het geval (geen dev-server, of één
+  gecombineerd proces zoals bij @cloudflare/vite-plugin), markeer dat dan
+  expliciet ("n.v.t. voor dit project") in plaats van een tabel te verzinnen.
+  Houd dit bestand (bijv. .claude/worktrees/ports.json of vergelijkbaar) als
+  bron van waarheid; niet in het hoofd onthouden welke slots bezet zijn.
+  Het registry staat in de hoofdcheckout en BUITEN git (.gitignore): een bestand
+  in git heeft in elke worktree een eigen kopie, en dan ziet de ene worktree niet
+  welk slot de andere claimt. Worktrees lezen het via het volledige pad.
+-->
+```json
+{
+  "{{worktree-naam}}": {{slotnummer}}
+}
+```
+
+| Component | Poortformule | Voorbeeld (slot 1) |
+|---|---|---|
+| {{Frontend dev-server}} | {{basis}} + N, of "geen eigen poort" als gecombineerd met backend | {{...}} |
+| {{Backend API}} | {{basis}} + N, of "geen eigen poort" als gecombineerd met frontend | {{...}} |
+| {{Gedeelde services, remote (db/mail/storage/etc.)}} | vast, NIET per worktree starten | {{...}} |
+| {{Gedeelde services, lokale state (bijv. lokale DB-migraties)}} | {{per worktree, of gedeeld — expliciet uitvragen, niet aannemen}} | {{...}} |
+| {{Runtime-data die de app zelf schrijft en die in git staat}} | per worktree; nooit ongemerkt mee-mergen | {{...}} |
+
+## Frictie wegnemen (permissies)
+Zet veelgebruikte, ongevaarlijke commando's (build, test, lint, git status/diff/log)
+op een allowlist in de tool-settings, zodat niet elke sessie opnieuw om toestemming
+vraagt. Destructieve commando's (force-push, reset --hard, migraties verwijderen)
+NOOIT op de allowlist; die blijven altijd een expliciete bevestiging vereisen.

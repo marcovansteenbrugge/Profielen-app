@@ -1,0 +1,19 @@
+---
+name: {{reference_korte_naam}}
+description: {{Eén regel: waar dit naar verwijst en waarvoor je het nodig hebt}}
+metadata:
+  type: reference
+---
+
+{{De pointer zelf: waar de informatie leeft (extern systeem, tool, recept,
+locatie), niet de informatie zelf; die veroudert, de pointer niet.}}
+
+**Wanneer gebruiken:** {{In welke situatie je dit moet raadplegen. Bijvoorbeeld:
+"vóór het starten van een E2E-run" of "als de gebruiker naar {{onderwerp}} vraagt".}}
+
+<!-- Referenties zijn het meest kwetsbaar voor veroudering (URL's verhuizen,
+     poorten wijzigen, tools worden vervangen). Zet er daarom geen exacte
+     waarden in die je niet ook makkelijk opnieuw kunt verifiëren, of markeer
+     expliciet met een datum wanneer dit voor het laatst geverifieerd is. -->
+
+Laatst geverifieerd: {{datum}}.

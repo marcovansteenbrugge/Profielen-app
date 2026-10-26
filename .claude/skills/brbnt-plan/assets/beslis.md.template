@@ -1,0 +1,56 @@
+---
+beslis: {{naam, gelijk aan de plannaam}}
+titel: {{titel}}
+plan: {{naam}}.plan.md
+beslisser: {{naam, rol}}
+voorgelegd: -          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
+status: concept        # berekend door de skill, nooit met de hand gezet
+---
+
+> Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
+
+# Beslisdocument: {{titel}}
+
+> **Nu van jou gevraagd:** {{wat er nu van de beslisser nodig is, of niets}}
+> **Later nodig:** {{besluiten die later nodig zijn, met de fase waarvoor}}
+
+{{Twee zinnen in gewone taal: waar gaat dit over. Geen techniek. Noem het werk in "fasen", nooit in "stappen": een fase is de eenheid waarop akkoord wordt gegeven.}}
+
+## Vrijgave per fase
+Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fase op leunt zijn genomen. Een vrijgave blijft geldig zolang het plan voor die fase en die besluiten niet is gewijzigd; het plan houdt dat bij in het wijzigingslog.
+
+| Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
+|---|---|---|---|---|---|
+| F0 | {{in gewone taal}} | ○ nog niet | - | {{besluiten}} | - |
+
+## Overzicht besluiten
+| | # | Onderwerp | Besluit | Nodig vóór |
+|---|---|---|---|---|
+| ⏳ | B1 | {{onderwerp}} | **Nog niet beoordeeld** | F0 |
+
+## Besluiten
+
+### ⏳ B1 · {{onderwerp}}
+**Je beslist:** {{een zin in gewone taal.}}
+
+| | Ons voorstel | Alternatief |
+|---|---|---|
+| **Wat** | {{kort}} | {{kort}} |
+| **Voordeel** | {{kort}} | {{kort}} |
+| **Nadeel** | {{kort}} | {{kort}} |
+
+**Jouw keuze**
+- [ ] Akkoord met ons voorstel
+- [ ] Anders:
+- [ ] Vervalt
+
+**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** {{beslisser}} · **voorgelegd op** {{YYYY-MM-DD HH:MM}} · **nodig vóór** F0
+
+Meer uitleg: plan, punt 6, B1
+
+## Historie
+Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in het plan, punt 11.
+
+| Datum en tijd | Wat | Door |
+|---|---|---|
+| {{YYYY-MM-DD HH:MM}} | Plan opgesteld | {{wie}} |

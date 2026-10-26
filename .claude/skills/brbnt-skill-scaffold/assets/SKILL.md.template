@@ -1,0 +1,58 @@
+---
+name: {{skill-naam-in-kebab-case}}
+description: {{Wanneer moet dit triggeren? Wees specifiek: dit veld bepaalt of de skill gevonden wordt. Noem het werk, niet de implementatie.}}
+---
+
+<!--
+  DOEL VAN DIT SCAFFOLD (laag 4 van de methode)
+  Een skill is geen herbruikbare prompt-tekst: het is terugkerend werk met een
+  HARD CONTRACT eromheen, zodat automatisering niet stilletjes drift. Vul eerst
+  het contract in (hieronder), pas daarna het stappenplan. Als je het contract
+  niet kunt invullen, is dit werk nog niet rijp voor een skill; automatiseer
+  het dan nog niet.
+-->
+
+# {{Skill-titel}}
+
+## Wat dit doet
+{{1-3 zinnen: welk terugkerend werk dit overneemt en van wie.}}
+
+## Contract (hard, niet onderhandelbaar binnen deze skill)
+- **Status/afgeleide velden zijn altijd BEREKEND, nooit handmatig gezet.**
+  {{Bijvoorbeeld: status = functie van veld A + veld B; nooit direct overschrijven.}}
+- **Logs/historie: {{append-only OF idempotente in-place-update}}.**
+  {{Append-only: elke wijziging krijgt een regel met tijdstip + wat er veranderde,
+  niets wordt overschreven of gewist. In-place: hetzelfde record (bijv. één
+  bericht/bestand) wordt bijgewerkt, nooit als los nieuw record toegevoegd. Kies
+  het patroon dat past bij dit werk, neem er geen van beide zomaar aan.}}
+- **Scope-grens:** {{wat deze skill wel/niet mag aanraken, bijv. "raakt alleen
+  de eigen koppeling/module, nooit gedeelde state".}}
+- **Read-only tenzij expliciet anders:** {{wanneer mag deze skill schrijven, en
+  wanneer moet hij alleen signaleren en de mens laten beslissen?}}
+
+## Wat deze skill niet kan
+<!-- Verplicht. Elke skill heeft grenzen; zonder deze sectie lijkt hij
+     betrouwbaarder dan hij is. -->
+{{Welke gevallen deze skill niet ziet, niet kan toetsen of niet kan afdwingen, en
+wat een schone run daarom wél en níét betekent. Bijvoorbeeld: "een afspraak die
+alleen in een sessie heeft geleefd, heeft geen bron en is niet te toetsen. Een
+schone run betekent dus: de samenvattingen kloppen met wat er vastligt. Niet: er
+ligt niets meer onvastgelegd."}}
+
+## Modus: delta vs. full
+<!-- Herbruikbaar patroon: een snelle default-modus die alleen kijkt naar wat
+     veranderd is sinds de vorige run (watermerk), en een expliciete full-modus
+     voor een volledige hertoetsing. Voorkomt dat elke run alles opnieuw doet. -->
+- **Delta (default):** {{wat het watermerk is (bijv. laatste sha/timestamp) en
+  waar het wordt opgeslagen (bijv. `state/last-run.txt`).}}
+- **Full (expliciet argument):** {{wanneer je dit gebruikt en wat het kost.}}
+
+## Stappenplan
+1. {{Stap 1}}
+2. {{Stap 2}}
+3. Valideer tegen het contract hierboven vóórdat je wegschrijft.
+4. {{Commit/publiceer-stap, indien van toepassing.}}
+
+## State-bestanden
+{{Welke bestanden dit bijhoudt tussen runs (watermerken, snapshots) en waarom
+elk bestand nodig is.}}

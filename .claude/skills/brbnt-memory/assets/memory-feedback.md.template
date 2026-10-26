@@ -1,0 +1,26 @@
+---
+name: {{feedback_korte_naam}}
+description: {{Eén regel: wat deze regel voorschrijft en wanneer hij van toepassing is}}
+metadata:
+  type: feedback
+---
+
+<!--
+  VUL IN DE VOLGORDE: Regel -> Why -> How to apply.
+  Zonder het incident (datum, wat er misging, eventueel een commit-hash) is
+  de regel niet meer dan "let voortaan op", en die vergeet iedereen, mens of AI.
+-->
+
+{{De regel zelf, in één of twee zinnen. Concreet en toetsbaar, geen vage intentie.}}
+
+**Why:** {{Het incident of de bevestiging die tot deze regel leidde. Datum erbij
+(YYYY-MM-DD), en indien van toepassing een commit-hash of bestandsnaam. Bijvoorbeeld:
+"Op {{datum}} gebeurde {{X}}, met als gevolg {{Y}}." Voor een bevestiging (iets wat
+al goed ging en je wilt vasthouden): "Op {{datum}} koos ik voor {{aanpak}}; {{gebruiker}}
+bevestigde dat dit de juiste keuze was, om reden {{Z}}."}}
+
+**How to apply:** {{Concreet gedrag: wanneer dit wel/niet van toepassing is, en wat
+er dan moet gebeuren. Vermijd absolute taal als de regel uitzonderingen kent: benoem
+de uitzondering expliciet in plaats van de regel af te zwakken.}}
+
+Zie ook [[{{gerelateerde_memory_1}}]], [[{{gerelateerde_memory_2}}]].

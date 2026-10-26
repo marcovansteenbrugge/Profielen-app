@@ -1,0 +1,93 @@
+---
+plan: {{naam: korte kebab-case-naam, zonder datum of nummer}}
+titel: {{titel}}
+versie: 1
+status: concept        # berekend door de skill, nooit met de hand gezet
+voortgang: -           # berekend door de skill
+opgesteld: {{YYYY-MM-DD}}
+opgesteld_door: {{mens, of agent + model}}
+beslisser: {{naam, rol}}
+beslisdocument: {{naam}}.beslis.md
+basis_commit: {{git-sha van de code waartegen dit plan is getoetst}}
+vervangt: -
+samenvatting: {{een zin voor de index}}
+trefwoorden: [{{trefwoord}}, {{trefwoord}}]
+---
+
+# Plan: {{titel}}
+
+## 1. In het kort
+1. {{Kern in gewone taal, maximaal vijf punten.}}
+
+## 2. Aanleiding en doel
+{{Wat is er nu, wat is het probleem, wanneer is dit geslaagd. Gemeten of gelezen in de code, niet aangenomen.}}
+
+## 3. Onderzoek en bevindingen
+{{Bevindingen die het ontwerp bepalen, met bestand of bron. Getoetst tegen basis_commit.}}
+
+## 4. Niet in scope
+- {{Wat bewust niet in dit plan zit, met reden.}}
+
+## 5. Uitgangspunten
+| Uitgangspunt | Herkomst |
+|---|---|
+| {{uitgangspunt}} | {{waar komt het vandaan}} |
+
+## 6. Ontwerp en besluiten (technisch)
+{{Het technische ontwerp: stroom, onderdelen, gegevens. De leesbare versie van elk besluit staat in het beslisdocument.}}
+
+**Verdieping per besluit:**
+
+- **B1 {{onderwerp}}** (nodig vóór F{{n}}). {{Technische achtergrond, opties en afweging.}}
+
+## 7. Fasering
+Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar de fase op leunt zijn genomen. Een planwijziging raakt alleen de fasen en besluiten die in het wijzigingslog staan; de vrijgave van de overige fasen blijft geldig.
+
+| Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
+|---|---|---|---|---|---|---|---|
+| F0 | ○ niet vrijgegeven | {{scope}} | {{toetsbare acceptatiecriteria}} | {{fasen en besluiten, bijvoorbeeld F0, B1}} | S | {{model, effort}} | `F0:` |
+
+Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
+
+## 8. Gevolgen en bronnen voor afgeleide documenten
+**Gegevens en privacy.** {{Welke persoonsgegevens, doel, bewaartermijn, externe verwerkers. Of n.v.t. met reden.}}
+**Beveiliging.** {{Wat verandert er aan beveiliging. Of n.v.t.}}
+**Gebruikers en handleiding.** {{Wat merkt de gebruiker of beheerder. Of n.v.t.}}
+**Beheer en configuratie.** {{Nieuwe instellingen, mappen, taken. Of n.v.t.}}
+**Releasenotes (kernpunten).** {{Nieuw en gewijzigd, in gewone taal.}}
+
+## 9. Risico's en terugweg
+- {{Risico, en hoe draai je het terug.}}
+
+## 10. Open vragen
+| Vraag | Default als er geen antwoord komt |
+|---|---|
+| {{vraag}} | {{default}} |
+
+## 11. Uitvoering
+Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocument toont alleen dát een fase is uitgevoerd.
+
+| Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
+|---|---|---|---|---|---|---|---|---|
+
+Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
+
+### Toetsing per fase
+Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit punt 7 afzonderlijk getoetst met bewijs: een uitgevoerd commando met zijn uitvoer, of een aanwijsbare plek in een bestand. Alleen aanvullen: een nieuwe toetsing voegt rijen met een nieuw tijdstip toe, en alleen de laatste toetsing van een fase telt. Oordeel: gehaald, niet gehaald of niet toetsbaar.
+
+| Fase | Tijdstip | Criterium | Controle en uitkomst | Oordeel |
+|---|---|---|---|---|
+
+## 12. Afwijkingen
+Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
+
+| Fase | Wat week af van het plan | Waarom |
+|---|---|---|
+
+## 13. Wijzigingslog
+| Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
+|---|---|---|---|---|
+| 1 | {{YYYY-MM-DD HH:MM}} | Eerste versie | - | Nog geen vrijgave |
+
+## 14. Bronnen
+- {{bestand of document, met stand}}

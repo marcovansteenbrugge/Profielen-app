@@ -1,0 +1,26 @@
+---
+name: {{project_korte_naam}}
+description: {{Eén regel: welk feit/besluit dit vastlegt}}
+metadata:
+  type: project
+---
+
+{{Het feit of besluit zelf, kort en concreet. Bijvoorbeeld: "Tenancy is
+subdomein-only; alle tenant-scoping op databaseniveau is bewust verwijderd."}}
+
+**Why:** {{De motivatie, vaak een afweging tussen twee dingen, met de datum en
+eventueel het commit-hash van het moment waarop dit werd doorgevoerd. Bijvoorbeeld:
+"commit {{hash}}, {{datum}}. Why: {{voordeel}} > {{kosten die je ervoor accepteert}}."}}
+
+**How to apply:** {{Wat dit betekent voor toekomstige suggesties/code: welke aanpak
+dit uitsluit, waar dit besluit tegen aan kan lopen, wanneer het heroverwogen mag
+worden (bijv. "alleen heroverwegen bij {{harde trigger}}").}}
+
+<!-- Voor werk-in-uitvoering: gebruik statusmarkeringen die je later makkelijk
+     kunt terugvinden en bijwerken, bijv. CONCEPT / IN UITVOERING / AFGEROND.
+     Verplaats de memory-hook in MEMORY.md naar "Gebouwd / afgerond" zodra de
+     status verandert, zodat de index de waarheid blijft weerspiegelen. -->
+
+Restant: {{wat nog open staat, indien van toepassing}}.
+
+Zie ook [[{{gerelateerde_memory}}]].
