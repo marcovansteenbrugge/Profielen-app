@@ -49,7 +49,7 @@ stationering (dijkpalen/hectometrering). Gebruikers: Marco en collega's; klanten
 
 ## Git-regels
 - Commit met `X.Y.Z: <wat>` en tag `vX.Y.Z` bij een oplevering.
-- Alles gaat direct op `main`; geen aparte branches of pull requests nodig.
+- Alles gaat direct op main; geen aparte branches of pull requests nodig.
 - Nooit `--force` zonder expliciete toestemming.
 
 ## Testing Strategy
