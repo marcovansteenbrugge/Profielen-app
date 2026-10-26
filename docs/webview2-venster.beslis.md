@@ -11,7 +11,7 @@ status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen programmavenster met WebView2 (versie 2.10.0)
 
-> **Nu van jou gevraagd:** besluiten **B1** en **B2** (vóór F0), en daarna de vrijgave voor F0.
+> **Nu van jou gevraagd:** de vrijgave voor F0 (planversie 1), met een expliciete zin.
 > **Later nodig:** besluit **B3**, vóór F2 kan starten.
 
 De Profielviewer opent straks in een eigen Windows-venster in plaats van in een kaal Chrome- of Edge-venster, zonder welkomstschermen of een apart browserprofiel. De viewer zelf blijft hetzelfde; het werk gaat in vier fasen, en elke fase start pas na jouw akkoord.
@@ -29,13 +29,13 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 ## Overzicht besluiten
 | | # | Onderwerp | Besluit | Nodig vóór |
 |---|---|---|---|---|
-| ⏳ | B1 | Welke bouwsteen voor het venster | **Nog niet beoordeeld** | F0 |
-| ⏳ | B2 | Hoe kom je terug in het oude venster | **Nog niet beoordeeld** | F0 |
+| ✅ | B1 | Welke bouwsteen voor het venster | Ons voorstel | F0 |
+| ✅ | B2 | Hoe kom je terug in het oude venster | Ons voorstel | F0 |
 | ⏳ | B3 | Hoe gaan je instellingen mee | **Nog niet beoordeeld** | F2 |
 
 ## Besluiten
 
-### ⏳ B1 · Welke bouwsteen voor het venster
+### ✅ B1 · Welke bouwsteen voor het venster
 **Je beslist:** met welk kant-en-klaar onderdeel we het nieuwe venster in de exe bouwen.
 
 | | Ons voorstel | Alternatief |
@@ -45,15 +45,15 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | **Nadeel** | Kleinere bron zonder officiële versienummers (we zetten de versie vast) | Meer eigen code voor het venster, meer kans op venstergedoe |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-10-26 22:06 · **nodig vóór** F0
+**Besloten door** Marco van Steenbrugge · **op** 2026-10-26 22:09 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B1
 
-### ⏳ B2 · Hoe kom je terug in het oude venster
+### ✅ B2 · Hoe kom je terug in het oude venster
 **Je beslist:** wanneer de viewer nog in het oude Chrome/Edge-venster opent.
 
 | | Ons voorstel | Alternatief |
@@ -63,11 +63,11 @@ Meer uitleg: plan, punt 6, B1
 | **Nadeel** | Een extra optie om uit te leggen in de LEESMIJ | Gaat het nieuwe venster op een andere manier mis, dan heb je de oude exe nodig |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-10-26 22:06 · **nodig vóór** F0
+**Besloten door** Marco van Steenbrugge · **op** 2026-10-26 22:09 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B2
 
@@ -97,3 +97,4 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 |---|---|---|
 | 2026-10-26 22:06 | Marco van Steenbrugge bevestigd als beslisser ("Ja ik ben Marco"), via chat | Marco van Steenbrugge, via chat |
 | 2026-10-26 22:06 | Plan opgesteld en voorgelegd | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-26 22:09 | B1 en B2 akkoord met voorstel ("B1 en B2 akkoord") | Marco van Steenbrugge, via chat |
