@@ -2,8 +2,8 @@
 plan: webview2-venster
 titel: Eigen programmavenster met WebView2 (versie 2.10.0)
 versie: 1
-status: deels-vrijgegeven        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ▶ · F1 ▶ · F2 ⏳ · F3 ○           # berekend door de skill
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ✅ · F1 ▶ · F2 ⏳ · F3 ○           # berekend door de skill
 opgesteld: 2026-10-26
 opgesteld_door: Claude Code, in opdracht van Marco van Steenbrugge
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
@@ -76,8 +76,8 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ▶ vrijgegeven | Eigen WebView2-venster: binding in `go.mod`, venster naar de bestaande server, titel met versie, icoon, gemaximaliseerd, gegevensmap, venster dicht = proces stopt, Afsluiten-knop sluit het venster, terugval op Chrome/Edge (automatisch en handmatig), DevTools alleen met `PV_DEVTOOLS=1` | `GOOS=windows CGO_ENABLED=0 go build` slaagt en `go vet` is schoon. Marco bevestigt op zijn laptop: venster opent binnen 3 s zonder Chrome-profiel; sluiten (kruisje en Afsluiten-knop) stopt het proces (Taakbeheer); met `--browservenster` opent het oude venster; F12 doet niets zonder `PV_DEVTOOLS=1` | B1, B2 | M | Claude Code, high | `F0:` |
-| F1 | ▶ vrijgegeven, na F0 | Eén exemplaar (`/__ptsviewer/voorgrond`) en venster onthouden (`venster.json`) | Build slaagt. Marco bevestigt: tweede start opent geen tweede venster en brengt het bestaande naar voren; positie en grootte zijn na herstart hetzelfde; buiten beeld → gemaximaliseerd | F0 | S | Claude Code, medium | `F1:` |
+| F0 | ✅ gebouwd | Eigen WebView2-venster: binding in `go.mod`, venster naar de bestaande server, titel met versie, icoon, gemaximaliseerd, gegevensmap, venster dicht = proces stopt, Afsluiten-knop sluit het venster, terugval op Chrome/Edge (automatisch en handmatig), DevTools alleen met `PV_DEVTOOLS=1` | `GOOS=windows CGO_ENABLED=0 go build` slaagt en `go vet` is schoon. Marco bevestigt op zijn laptop: venster opent binnen 3 s zonder Chrome-profiel; sluiten (kruisje en Afsluiten-knop) stopt het proces (Taakbeheer); met `--browservenster` opent het oude venster; F12 doet niets zonder `PV_DEVTOOLS=1` | B1, B2 | M | Claude Code, high | `F0:` |
+| F1 | ▶ vrijgegeven | Eén exemplaar (`/__ptsviewer/voorgrond`) en venster onthouden (`venster.json`) | Build slaagt. Marco bevestigt: tweede start opent geen tweede venster en brengt het bestaande naar voren; positie en grootte zijn na herstart hetzelfde; buiten beeld → gemaximaliseerd | F0 | S | Claude Code, medium | `F1:` |
 | F2 | ⏳ wacht op B3 | Instellingen overnemen volgens B3 | Volgens B3. Bij het voorstel: nieuwe test in `tests/` die exporteren en importeren van `ptsviewer-*`/`pv.*` toetst en `fouten: geen` geeft; Marco bevestigt dat zijn PDF-stempel na import in het nieuwe venster staat | F0, B3 | S | Claude Code, medium | `F2:` |
 | F3 | ○ niet vrijgegeven | Oplevering 2.10.0: `zet_versie.py 2.10.0`, `.syso` opnieuw, LEESMIJ-blok "Nieuw in 2.10.0", handleiding, `tools/bouw.ps1`, tag `v2.10.0` | `node run_alle.js` helemaal groen (Marco's laptop of hier met Chromium); `dist\Lutrea-Profielviewer-2.10.0.exe` en de zip bestaan; Marco bevestigt de handmatige lijst: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT (PDOK) | F0, F1, F2 | S | Claude Code, medium | `F3:` en `2.10.0:` |
 
@@ -109,6 +109,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
+| F0 | 2026-10-26 23:09 | 2026-10-26 23:28 | Marco van Steenbrugge | Bouw: Claude Code, sessie session_01CGaZKrr6zGoWaXP63so657, model onbekend (commit-trailer noemt Claude Opus 5.5). Toetsing: claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | bouw onbekend; toetsing medium | bouw onbekend; toetsing 70 / 9.386 | b313806 | git (bouw); transcript Claude Code 2.1.308 (toetsing) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -117,12 +118,24 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 
 | Fase | Tijdstip | Criterium | Controle en uitkomst | Oordeel |
 |---|---|---|---|---|
+| F0 | 2026-10-26 23:28 | `GOOS=windows CGO_ENABLED=0 go build` slaagt | `.\tools\bouw.ps1` (Go 1.27.0, zet GOOS=windows, GOARCH=amd64, CGO_ENABLED=0): "Klaar: dist\Lutrea-Profielviewer-2.9.5.exe en dist\Lutrea-Profielviewer_compleet_2.9.5.zip", exe 11.012.608 bytes | gehaald |
+| F0 | 2026-10-26 23:28 | `go vet` is schoon | `go vet .` in `bron-exe` met GOOS=windows, CGO_ENABLED=0 en de embed-map `app` gevuld zoals in bouw.ps1: geen uitvoer, exit 0 | gehaald |
+| F0 | 2026-10-26 23:28 | Venster opent binnen 3 s | Start gemeten met PowerShell Stopwatch tot `MainWindowTitle` er is: "venster na 0.72 s, titel: 'Lutrea Profielviewer 2.9.5'"; log: start 23:24:40, "eerste hartslag van de pagina: viewer is volledig geladen" 23:24:41.54. Marco van Steenbrugge, 23:25, via chat: "ja ziet er goed uit" | gehaald |
+| F0 | 2026-10-26 23:28 | Zonder Chrome-profiel | `%LOCALAPPDATA%\Lutrea\PTS-viewer\browserprofiel` laatst gewijzigd 22:53:13, vóór en na de start gelijk; alleen `%LOCALAPPDATA%\Lutrea\Profielviewer\WebView2` gebruikt; draaiende processen `msedgewebview2`, geen `chrome`/`msedge --app` van de exe | gehaald |
+| F0 | 2026-10-26 23:28 | Sluiten met het kruisje stopt het proces | Marco sloot pid 13212 met het kruisje ("kruisje is gelijk weg"); log 23:27:26 "venster gesloten, programma stopt"; `Get-Process -Id 13212`: niet meer actief, geen `Lutrea*`-proces | gehaald |
+| F0 | 2026-10-26 23:28 | Sluiten met de Afsluiten-knop stopt het proces | Marco sloot pid 43904 met de knop; log 23:24:56 "afsluiten via de knop", 23:24:56 "venster gesloten, programma stopt"; `Get-Process -Id 43904`: niet meer actief | gehaald |
+| F0 | 2026-10-26 23:28 | Met `--browservenster` opent het oude venster | Start met `--browservenster`: log 23:27:56 "oude venster gevraagd (--browservenster of PV_VENSTER=browser)"; exe zonder eigen venster; proces `msedge.exe --app=http://127.0.0.1:8017/...` (pid 45648); na sluiten door Marco ("hij is dicht") exe en Edge gestopt, log 23:28:21 "venster gesloten, programma stopt" | gehaald |
+| F0 | 2026-10-26 23:28 | F12 doet niets zonder `PV_DEVTOOLS=1` | Gestart zonder `PV_DEVTOOLS`; Marco van Steenbrugge, via chat: "bij f12 gebeurt er niets" | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
 
 | Fase | Wat week af van het plan | Waarom |
 |---|---|---|
+| F0 | Gepland effort high; de toetsing liep op effort medium (de bouw zelf: onbekend) | reden onbekend |
+| F0 | Bouw en toetsing in twee sessies: bouw in een cloudsessie (commit b313806), toetsing op Marco's laptop in een lokale sessie; Go 1.27.0 daarvoor via winget geïnstalleerd | Go ontbrak op de laptop; Marco koos installatie via winget |
+| F0 | Tijden van de eerdere sessie (vrijgave 22:09, commits) staan in UTC; tijden vanaf de toetsing in lokale tijd (UTC+1). Start F0 in punt 11 is omgerekend naar lokale tijd (22:09 UTC = 23:09) | de cloudsessie draaide in UTC |
+| F0 | Open vraag projectmap/service worker: alleen deels getoetst. Marco, via chat: "hij is halsteren aan het inlezen.. dus ja"; de service worker (`/sw.js`) wordt opgevraagd (log) | geen F0-criterium; de projectmap-toestemmingen blijven een aandachtspunt voor fase C |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
@@ -134,3 +147,5 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 - `tools/bouw.ps1`, `tools/zet_versie.py`, `index.html` (regels 957-976), `viewer.js` (regels 1488-1500, 4315-4319) (stand 71b0103)
 - `docs/PLAN-2.10-windows-programma.md` (fase A, risico's, beslissingen), `docs/ARCHITECTUUR.md` (stand 71b0103)
 - Proefbouw `github.com/jchv/go-webview2` met `CGO_ENABLED=0`, 26-10-2026 (buiten de repo)
+
+*Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
