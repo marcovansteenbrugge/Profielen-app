@@ -7,6 +7,7 @@ import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { maakGithub, haalCi } from './github.mjs';
+import { tellendeRuns } from './criteria.mjs';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const MAANDEN = 'januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december';
@@ -140,10 +141,13 @@ export async function verzamel(root, o = {}) {
         const titel = /^\*\*(.+?)\*\*/.exec(t)?.[1]?.replace(/[:.]$/, '') || t.replace(/[*`]/g, '').split(/[.:]\s/)[0].slice(0, 110);
         const refs = [...t.matchAll(/`([^`\s]+)`/g)].map((m) => m[1].replace(/[),.:;]+$/, '')).filter((p) => !p.includes('*') && !/^\.[a-z.]+$/.test(p) && (afdwingRe.test(p) || afdwingRe.test(p.split('/').pop())));
         for (const m of t.matchAll(/`[^`]*?((?:\.\.\/)+[^`\s]*check-[\w-]+\.m?js)[^`]*`/g)) refs.push(m[1]);
-        const uniek = [...new Map(refs.sort((a, b) => a.length - b.length).map((p) => [p.split('/').pop(), p])).values()];
+        // Een map (zoals `.githooks/`) bestaat als er een bestand in staat; een map heeft geen laatste naamdeel om op te ontdubbelen.
+        const uniek = [...new Map(refs.sort((a, b) => a.length - b.length).map((p) => [p.endsWith('/') ? p : p.split('/').pop(), p])).values()];
         const afdwinging = uniek.map((p) => p.startsWith('../')
           ? { pad: p, gevonden: [HOOFD, ...tracked.filter((f) => f.endsWith('/package.json')).map((f) => path.join(HOOFD, path.dirname(f)))].some((b) => fs.existsSync(path.resolve(b, p))) ? '(buiten de repo) ' + p : null, buitenRepo: true }
-          : { pad: p, gevonden: tracked.find((f) => f === p || f.endsWith('/' + p) || f.endsWith('/' + p.split('/').pop())) || null });
+          : p.endsWith('/')
+            ? { pad: p, gevonden: tracked.find((f) => f.startsWith(p) || f.includes('/' + p)) || null }
+            : { pad: p, gevonden: tracked.find((f) => f === p || f.endsWith('/' + p) || f.endsWith('/' + p.split('/').pop())) || null });
         const datums = [...t.matchAll(new RegExp(`\\b(\\d{1,2} (?:${MAANDEN}) \\d{4})`, 'g'))].map((m) => m[1]);
         return { titel, tekst: t, afdwinging, sinds: datums[0] || null };
       });
@@ -326,8 +330,9 @@ export async function verzamel(root, o = {}) {
   if (ci.beschikbaar) {
     const main = ci.laatsteRun?.run;
     if (main && main.conclusion !== 'success') signaal('rood', 'laag4', `Laatste CI-run op ${hoofdtak}: ${main.conclusion}`, 'laag4', { soort: 'ci-laatste' });
-    const rood = ci.runs.filter((r) => r.conclusion === 'failure').length;
-    if (rood) signaal('info', 'laag4', `${rood} van de laatste ${ci.runs.length} CI-runs faalden`, 'laag4', { soort: 'ci-gefaald' });
+    const tel = tellendeRuns(ci, hoofdtak);
+    const rood = tel.filter((r) => r.conclusion === 'failure').length;
+    if (rood) signaal('info', 'laag4', `${rood} van de laatste ${tel.length} runs na een push op ${hoofdtak} faalden`, 'laag4', { soort: 'ci-gefaald' });
   }
   // Per testbestand de laag: uit de CI-log als die er is (projectlabel), anders uit pad en naam.
   const inLog = (f) => (ci.laatsteRun?.perBestand || []).find((b) => f === b.bestand || f.endsWith('/' + b.bestand));

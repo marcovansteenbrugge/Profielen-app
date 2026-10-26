@@ -8,11 +8,38 @@
 // 4 criterium 3.8 telt ook de prefix uit de kolom Commit-prefix van een plan (zoals CMS-F2:, naast F2:); testklassen van
 //   .NET (*Tests.cs in een testproject) tellen als testbestand bij 4.1, 4.4 en 4.5; tests in .claude/ (van een skill) niet meer.
 // 5 criterium 5.2 is ook gehaald als CLAUDE.md vastlegt dat werk direct op de hoofdtak mag (was alleen via pull requests).
+// 6 criteria 4.2 en 4.3 tellen alleen runs na een push op de hoofdtak (geen Dependabot, handmatige of geplande runs, andere
+//   takken), en 4.3 telt de eerste poging: een run die pas na een herhaling slaagt, telt als niet geslaagd.
+// 7 nieuw criterium 4.9: elke rode periode op de hoofdtak duurt korter dan 24 uur, ook een die nog loopt.
 // Geen nieuwe versie nodig als alleen verandert WAT te meten is (zoals 1.4 en 5.3 die in CI "niet te
 // meten" werden): vergelijken gebeurt toch alleen over criteria die in beide scans gemeten zijn.
 
-export const CRITERIA_VERSIE = 5;
-export const DREMPELS = { ciRuns: 30, ciMinPct: 90, wachtDagen: 7, worktreeDagen: 14, geheugenDagen: 30, prCommits: 50 };
+import { teltMee } from './github.mjs';
+
+export const CRITERIA_VERSIE = 7;
+
+/** De runs van 4.3 en de CI-kaart: afgerond, na een push op de hoofdtak, de laatste 30, nieuwste eerst. */
+export const tellendeRuns = (ci, hoofdtak) => (ci?.runs || []).filter((x) => x.status === 'completed' && teltMee(x, hoofdtak)).slice(0, DREMPELS.ciRuns);
+/** De uitkomst van de eerste poging die niet geannuleerd is; zonder herhaling gelijk aan de conclusie. */
+export const eerste = (r) => r.eersteConclusie ?? r.conclusion;
+/**
+ * Rode periodes op de hoofdtak (4.9), oud naar nieuw: van de start van de eerste gefaalde run tot het einde van de eerste
+ * geslaagde run daarna. Een periode zonder geslaagde run loopt nog, tot `nu`. Telt de stand van de hoofdtak, dus de
+ * laatste poging; begint het venster van 30 runs midden in een rode periode, dan telt die vanaf de eerste run in het venster.
+ */
+export function rodePerioden(ci, hoofdtak, nu) {
+  const runs = tellendeRuns(ci, hoofdtak).filter((r) => r.conclusion === 'success' || r.conclusion === 'failure').reverse();
+  const uit = [];
+  let van = null;
+  for (const r of runs) {
+    if (r.conclusion === 'failure' && van == null) van = r.createdAt;
+    else if (r.conclusion === 'success' && van != null) { uit.push({ van, tot: r.updatedAt, minuten: Math.round((Date.parse(r.updatedAt) - Date.parse(van)) / 60000), loopt: false }); van = null; }
+  }
+  if (van != null) uit.push({ van, tot: null, minuten: Math.round((+nu - Date.parse(van)) / 60000), loopt: true });
+  return uit;
+}
+const uren = (m) => (m < 60 ? `${m}m` : `${Math.floor(m / 60)}u ${String(m % 60).padStart(2, '0')}m`);
+export const DREMPELS = { ciRuns: 30, ciMinPct: 90, groenUren: 24, wachtDagen: 7, worktreeDagen: 14, geheugenDagen: 30, prCommits: 50 };
 
 const ok = (bewijs, items) => ({ oordeel: 'gehaald', bewijs, items });
 const niet = (bewijs, items) => ({ oordeel: 'niet', bewijs, items });
@@ -106,10 +133,10 @@ export const CRITERIA = [
   // ---------- Laag 4: afdwinging ----------
   { id: '4.1', criterium: 'Er is een testsuite en die draait in CI', skill: 'brbnt-skill-scaffold',
     meet: ({ d }) => { const t = Object.values(d.laag4.tests.lagen).reduce((a, x) => a + x.bestanden, 0); const wf = d.laag4.workflows.filter((w) => !w.eigen); if (!t) return niet('Geen testbestanden'); if (!wf.length) return niet(`${t} testbestanden, maar geen CI-workflow`); return ok(`${t} testbestanden, workflow ${wf.map((w) => w.pad).join(', ')}`); } },
-  { id: '4.2', criterium: 'De laatste run op de hoofdtak is geslaagd', skill: 'brbnt-skill-scaffold',
-    meet: ({ d }) => { const c = d.laag4.ci; if (!c.beschikbaar) return onbekend(c.reden); const r = c.laatsteRun?.run; if (!r) return onbekend(`Geen afgeronde run op ${d.bron.hoofdtak}`); return r.conclusion === 'success' ? ok(`Run #${r.number} geslaagd`) : niet(`Run #${r.number}: ${r.conclusion}`); } },
-  { id: '4.3', criterium: 'Minstens 90% van de laatste 30 runs is geslaagd (geannuleerd telt niet)', skill: 'brbnt-skill-scaffold',
-    meet: ({ d }) => { const c = d.laag4.ci; if (!c.beschikbaar) return onbekend(c.reden); const r = c.runs.filter((x) => x.status === 'completed').slice(0, DREMPELS.ciRuns).filter((x) => x.conclusion !== 'cancelled' && x.conclusion !== 'skipped'); if (!r.length) return onbekend('Geen afgeronde runs'); const g = r.filter((x) => x.conclusion === 'success').length; const pct = Math.round((g / r.length) * 100); return pct >= DREMPELS.ciMinPct ? ok(`${g} van ${r.length} geslaagd (${pct}%)`) : niet(`${g} van ${r.length} geslaagd (${pct}%)`); } },
+  { id: '4.2', criterium: 'De laatste run na een push op de hoofdtak is geslaagd', skill: 'brbnt-skill-scaffold',
+    meet: ({ d }) => { const c = d.laag4.ci; if (!c.beschikbaar) return onbekend(c.reden); const r = c.laatsteRun?.run; if (!r || !teltMee(r, d.bron.hoofdtak)) return onbekend(`Geen afgeronde run na een push op ${d.bron.hoofdtak}`); return r.conclusion === 'success' ? ok(`Run #${r.number} geslaagd`) : niet(`Run #${r.number}: ${r.conclusion}`); } },
+  { id: '4.3', criterium: 'Minstens 90% van de laatste 30 runs na een push op de hoofdtak slaagt bij de eerste poging (geannuleerd telt niet)', skill: 'brbnt-skill-scaffold',
+    meet: ({ d }) => { const c = d.laag4.ci; if (!c.beschikbaar) return onbekend(c.reden); const r = tellendeRuns(c, d.bron.hoofdtak).filter((x) => !['cancelled', 'skipped'].includes(eerste(x))); if (!r.length) return onbekend(`Geen afgeronde runs na een push op ${d.bron.hoofdtak}`); const g = r.filter((x) => eerste(x) === 'success').length; const h = r.filter((x) => eerste(x) !== 'success' && x.conclusion === 'success').length; const pct = Math.round((g / r.length) * 100); const t = `${g} van ${r.length} geslaagd bij de eerste poging (${pct}%)${h ? `; ${h} pas na een herhaling` : ''}`; return pct >= DREMPELS.ciMinPct ? ok(t) : niet(t); } },
   { id: '4.4', criterium: 'Elk testbestand in de repo draait in CI', skill: 'brbnt-skill-scaffold',
     meet: ({ d }) => { const t = Object.values(d.laag4.tests.lagen).reduce((a, x) => a + x.bestanden, 0); if (!t) return nvt('Geen testbestanden'); const mis = d.laag4.tests.nietInCi; if (mis == null) return onbekend('Geen CI-log met testbestanden om mee te vergelijken'); if (!mis.length) return ok(`Alle ${t} testbestanden staan in de log van de laatste run`); const perMap = Object.entries(mis.reduce((a, f) => { const k = f.includes('/') ? f.slice(0, f.lastIndexOf('/')) : '.'; a[k] = (a[k] || 0) + 1; return a; }, {})); return niet(`${mis.length} van ${t} testbestanden draaien niet in CI`, perMap.map(([k, n]) => `${k}/: ${n} bestand(en)`)); } },
   { id: '4.5', criterium: 'Minstens één bewakingstest (architectuur of drift)', skill: 'brbnt-skill-scaffold',
@@ -120,6 +147,8 @@ export const CRITERIA = [
     meet: ({ d }) => { const dep = d.laag4.workflows.filter((w) => !w.eigen).flatMap((w) => w.jobs).filter((j) => /deploy|uitrol|release/i.test(j.id + ' ' + j.naam)); if (!dep.length) return nvt('Geen uitroljob in CI'); const mis = dep.filter((j) => !j.needs); return mis.length ? niet('Uitroljob zonder needs op de test', mis.map((j) => j.id)) : ok(dep.map((j) => `${j.naam} na ${j.needs}`).join(', ')); } },
   { id: '4.8', criterium: 'Alle skills die CLAUDE.md noemt, zijn beschikbaar', skill: 'brbnt-skill-scaffold',
     meet: ({ d }) => { const s = d.laag4.skills; if (!s.length) return nvt('CLAUDE.md noemt geen skills'); if (d.modus === 'ci') return onbekend('In CI zijn de skills van de ontwikkelaar niet te zien'); const mis = s.filter((x) => !x.beschikbaar); return mis.length ? niet(`${mis.length} niet gevonden`, mis.map((x) => x.naam)) : ok(`${s.length} van ${s.length} beschikbaar`, s.map((x) => x.naam)); } },
+  { id: '4.9', criterium: `Elke rode periode op de hoofdtak duurt korter dan ${DREMPELS.groenUren} uur, ook een die nog loopt`, skill: 'brbnt-skill-scaffold',
+    meet: ({ d, nu }) => { const c = d.laag4.ci; if (!c.beschikbaar) return onbekend(c.reden); const n = tellendeRuns(c, d.bron.hoofdtak).length; if (!n) return onbekend(`Geen afgeronde runs na een push op ${d.bron.hoofdtak}`); const p = rodePerioden(c, d.bron.hoofdtak, nu); if (!p.length) return ok(`Geen rode periode in de laatste ${n} runs na een push`); const grens = DREMPELS.groenUren * 60; const te = p.filter((x) => x.minuten >= grens); const langste = Math.max(...p.map((x) => x.minuten)); const t = `${p.length} rode periode${p.length === 1 ? '' : 's'}${te.length ? `, ${te.length} langer dan ${DREMPELS.groenUren} uur` : ''}, de langste ${uren(langste)}${p.at(-1).loopt ? ` (de laatste loopt nog, ${uren(p.at(-1).minuten)})` : ''}`; return te.length ? niet(t, te.map((x) => `vanaf ${x.van}: ${uren(x.minuten)}${x.loopt ? ', loopt nog' : ''}`)) : ok(t); } },
 
   // ---------- Laag 5: parallel werken ----------
   { id: '5.1', criterium: 'Er is een poortafspraak (addendum-parallel-ontwikkeling.md)', skill: 'brbnt-parallel-setup',

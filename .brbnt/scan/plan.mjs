@@ -19,6 +19,12 @@ export const EXIT_FOUT = 1;
 export const EXIT_GEBLOKKEERD = 2;
 export const EXIT_PREFLIGHT = 3;
 
+// Skillversie vX.Y: dezelfde X werkt altijd samen, een andere X is een conversie. Moet gelijk zijn aan metadata.version in SKILL.md.
+export const SKILL_VERSIE = '1.2';
+export const STEMPEL_RE = /Powered by BRBNT.*? (brbnt-[a-z-]+) v([0-9]+)[.]([0-9]+)/;
+export const stempelRegel = (skill = 'brbnt-plan', versie = SKILL_VERSIE) =>
+  `*Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · ${skill} v${versie}*`;
+
 // ---------------------------------------------------------------------------
 // Tekst-hulpjes
 // ---------------------------------------------------------------------------
@@ -177,8 +183,12 @@ export function parsePlan(text) {
     for (const row of faseTab.rows) {
       const id = upper(cell(row, cFase));
       if (!/^F\d+$/.test(id)) continue;
-      const hangt = cell(row, cHangt);
-      fases.push({ id, regel: row.line, statusKolom: cStatus, statusTekst: cell(row, cStatus), deps: { b: ids(hangt, 'B'), f: ids(hangt, 'F').filter((f) => f !== id) } });
+      // "voorwaarde: <tekst>" aan het eind van Hangt af van: de fase wacht op iets buiten het plan (zoals het einde van
+      // een blok), niet op de beslisser. De tekst erna levert geen F- of B-afhankelijkheid op.
+      const kolom = cell(row, cHangt);
+      const vw = /\bvoorwaarde:\s*(.*)$/i.exec(kolom);
+      const hangt = vw ? kolom.slice(0, vw.index) : kolom;
+      fases.push({ id, regel: row.line, statusKolom: cStatus, statusTekst: cell(row, cStatus), deps: { b: ids(hangt, 'B'), f: ids(hangt, 'F').filter((f) => f !== id) }, voorwaarde: vw?.[1].trim() || null });
     }
   }
   const log = [];
@@ -310,13 +320,22 @@ function bepaalPlanStatus(plan, beslis, fases) {
   return 'concept';
 }
 
+/** Een fase met een voorwaarde die nog niet is vrijgegeven, gebouwd of lopend: ze vraagt nog niets van de beslisser. */
+const opVoorwaarde = (pf, f) => Boolean(pf.voorwaarde) && !f.vrijgave.geldig && f.soort !== 'gebouwd' && f.soort !== 'lopend';
+
+/** "F0 (na blok 1)": de fasen die op een voorwaarde wachten in plaats van op de beslisser. */
+function naVoorwaarde(plan, fases) {
+  const r = plan.fases.filter((pf, i) => opVoorwaarde(pf, fases[i])).map((pf) => `${pf.id} (${pf.voorwaarde})`);
+  return r.length ? r.join(', ') : '-';
+}
+
 /** "B4 (vóór F3)": open besluiten die een nog niet gebouwde fase blokkeren, plus "vrijgave F3" als alleen de vrijgave nog ontbreekt. */
 function wachtOpJou(plan, fases) {
   const perFase = new Map();
   const gezien = new Set();
   const vrijgaveNodig = [];
-  for (const f of fases) {
-    if (f.soort === 'gebouwd') continue;
+  for (const [i, f] of fases.entries()) {
+    if (f.soort === 'gebouwd' || opVoorwaarde(plan.fases[i], f)) continue;
     const nieuw = f.openB.filter((b) => !gezien.has(b));
     nieuw.forEach((b) => gezien.add(b));
     if (nieuw.length) perFase.set(f.id, nieuw);
@@ -360,6 +379,7 @@ export function evaluate(planText, beslisText) {
     status: bepaalPlanStatus(plan, beslis, fases),
     voortgang: fases.length ? fases.map((f) => `${f.id} ${GLYPH_VAN[f.soort]}`).join(' · ') : '-',
     wacht: beslis ? wachtOpJou(plan, fases) : '-',
+    naVoorwaarde: beslis ? naVoorwaarde(plan, fases) : '-',
     laatst: laatstVrijgegeven(fases),
   };
 }
@@ -663,6 +683,23 @@ function eolVan(text) {
   return text.includes('\r\n') ? '\r\n' : '\n';
 }
 
+/**
+ * Zorgt dat een document de stempel draagt. Staat er al een stempel met dezelfde X, dan blijft die staan (ook bij een lagere Y:
+ * hij zegt in welke versie het bestand is gebouwd). Een andere X wordt niet aangeraakt maar gemeld.
+ */
+export function metStempel(tekst, skill = 'brbnt-plan') {
+  const m = STEMPEL_RE.exec(tekst);
+  if (m) {
+    const xNu = Number(SKILL_VERSIE.split('.')[0]);
+    const xBestand = Number(m[2]);
+    if (xBestand < xNu) return { tekst, notitie: `stempel ${m[1]} v${m[2]}.${m[3]} is ouder dan v${SKILL_VERSIE} (andere X): conversie nodig, zie SKILL.md` };
+    if (xBestand > xNu) return { tekst, notitie: `stempel ${m[1]} v${m[2]}.${m[3]} is nieuwer dan deze skill (v${SKILL_VERSIE}): werk de skill bij` };
+    return { tekst, notitie: null };
+  }
+  const eol = eolVan(tekst);
+  return { tekst: tekst.replace(/\s+$/, '') + eol + eol + stempelRegel(skill) + eol, notitie: null };
+}
+
 /** Herschrijf alleen status, voortgang en de Status-kolom van de fasering. */
 export function updatePlanText(planText, ev) {
   const lines = splitLines(planText);
@@ -703,6 +740,8 @@ export function bouwIndex(rijen, eol = '\n') {
     'Een plan is **deels-vrijgegeven** zodra minstens één fase mag starten terwijl andere fasen nog op een besluit wachten. Dat is een normale toestand, geen tussenstop: de vrijgegeven fasen kunnen al gebouwd worden.',
     '',
     '**Naamgeving:** `docs/<naam>.plan.md` en `docs/<naam>.beslis.md` (sorteren samen), index: `docs/plan-beslis-index.md`.',
+    '',
+    stempelRegel(),
     '',
   ];
   return regels.join(eol);
@@ -748,12 +787,16 @@ export function syncDocs(docsDir, { dryRun = false } = {}) {
 
     const ev = evaluate(planTekst, beslisTekst);
     const plan = updatePlanText(planTekst, ev);
-    schrijfAlsAnders(planPad, planTekst, plan.tekst);
+    const planMet = metStempel(plan.tekst);
+    schrijfAlsAnders(planPad, planTekst, planMet.tekst);
     plan.notities.forEach((n) => notities.push(`${bestand}: ${n}`));
+    if (planMet.notitie) notities.push(`${bestand}: ${planMet.notitie}`);
     if (beslisTekst != null) {
       const beslis = updateBeslisText(beslisTekst, ev.status);
-      schrijfAlsAnders(beslisPad, beslisTekst, beslis.tekst);
+      const beslisMet = metStempel(beslis.tekst);
+      schrijfAlsAnders(beslisPad, beslisTekst, beslisMet.tekst);
       beslis.notities.forEach((n) => notities.push(`${naam}.beslis.md: ${n}`));
+      if (beslisMet.notitie) notities.push(`${naam}.beslis.md: ${beslisMet.notitie}`);
     }
     rijen.push(indexRij(naam, ev));
   }

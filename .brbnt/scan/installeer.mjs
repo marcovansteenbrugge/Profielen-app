@@ -7,10 +7,11 @@ import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { leesData, samenvatting, projectSlug, scansMap } from './uitvoer.mjs';
+import { STEMPEL_MD } from './versie.mjs';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const ASSETS = path.resolve(HIER, '../assets');
-export const SCRIPTS = ['scan.mjs', 'verzamel.mjs', 'criteria.mjs', 'github.mjs', 'uitvoer.mjs', 'dashboard.mjs', 'installeer.mjs'];
+export const SCRIPTS = ['scan.mjs', 'verzamel.mjs', 'criteria.mjs', 'github.mjs', 'uitvoer.mjs', 'dashboard.mjs', 'installeer.mjs', 'versie.mjs'];
 // Wat een eerdere versie van de skill in .brbnt/scan/ zette en nu niet meer nodig is: bij bijwerken weg.
 export const VERVALLEN = ['template.html'];
 const START = '<!-- brbnt-scan:start';
@@ -76,7 +77,7 @@ export function installeer(root, { droog = false } = {}) {
   const planScript = zoekPlanScript();
   if (planScript) zet('.brbnt/scan/plan.mjs', leesLf(planScript));
   else meldingen.push('plan.mjs van brbnt-plan is niet gevonden: in CI zijn de statussen van plannen dan niet te berekenen.');
-  zet('.brbnt/scan/README.md', '# .brbnt/scan\n\nDeze map is van de skill `brbnt-scan`: de scripts waarmee de workflow `brbnt-scan` de BRBNT-scan van dit project bijwerkt, met een kopie van `plan.mjs` van `brbnt-plan`. Wijzig niets met de hand; de skill werkt deze map bij.\n');
+  zet('.brbnt/scan/README.md', '# .brbnt/scan\n\nDeze map is van de skill `brbnt-scan`: de scripts waarmee de workflow `brbnt-scan` de BRBNT-scan van dit project bijwerkt, met een kopie van `plan.mjs` van `brbnt-plan`. Wijzig niets met de hand; de skill werkt deze map bij.\n\n' + STEMPEL_MD + '\n');
 
   // 2. De workflow; een eigen bestand met dezelfde naam laten we staan.
   const wfRel = '.github/workflows/brbnt-scan.yml';

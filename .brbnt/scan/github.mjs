@@ -28,17 +28,32 @@ export function maakGithub({ repo, token, sh }) {
 
 const sec = (a, b) => (a && b ? Math.round((new Date(b) - new Date(a)) / 1000) : null);
 
+/**
+ * Een run telt mee voor 4.2 en 4.3 als hij start na een push op de hoofdtak: dat is wat er op de hoofdtak terechtkomt.
+ * Pakketupdates (Dependabot, event "dynamic"), runs met de hand, geplande runs en andere takken tellen niet.
+ */
+export const teltMee = (r, hoofdtak) => r.event === 'push' && r.headBranch === hoofdtak;
+
 /** Runs, de laatste afgeronde run op de hoofdtak (met stappen en testaantallen uit de log), variabelen en PR's. */
-export async function haalCi(gh, { repo, hoofdtak, eigenWorkflow = 'brbnt-scan' }) {
+export async function haalCi(gh, { repo, hoofdtak, eigenWorkflow = 'brbnt-scan', venster = 30 }) {
   if (!gh.beschikbaar) return { beschikbaar: false, reden: repo ? 'geen GitHub-toegang (geen token en geen gh)' : 'geen GitHub-remote' };
   const lijst = await gh.api(`repos/${repo}/actions/runs?per_page=60`);
   if (!lijst?.workflow_runs) return { beschikbaar: false, reden: 'CI-runs niet op te halen' };
   const runs = lijst.workflow_runs.filter((r) => r.name !== eigenWorkflow).map((r) => ({
     databaseId: r.id, number: r.run_number, displayTitle: r.display_title, conclusion: r.conclusion, status: r.status,
     createdAt: r.created_at, startedAt: r.run_started_at, updatedAt: r.updated_at, headBranch: r.head_branch, event: r.event,
-    workflowName: r.name, headSha: r.head_sha, url: r.html_url, duurSec: sec(r.run_started_at, r.updated_at),
+    workflowName: r.name, headSha: r.head_sha, url: r.html_url, duurSec: sec(r.run_started_at, r.updated_at), runAttempt: r.run_attempt || 1,
   }));
-  const main = runs.find((r) => r.headBranch === hoofdtak && r.status === 'completed');
+  // De lijst geeft de uitkomst van de laatste poging. Bij een herhaling telt de eerste poging die niet geannuleerd is;
+  // alleen voor die runs zijn extra aanroepen nodig.
+  for (const r of runs.filter((x) => teltMee(x, hoofdtak) && x.status === 'completed').slice(0, venster)) {
+    r.eersteConclusie = r.conclusion;
+    for (let n = 1; n < r.runAttempt; n++) {
+      const c = (await gh.api(`repos/${repo}/actions/runs/${r.databaseId}/attempts/${n}`))?.conclusion;
+      if (c && c !== 'cancelled') { r.eersteConclusie = c; break; }
+    }
+  }
+  const main = runs.find((r) => teltMee(r, hoofdtak) && r.status === 'completed');
   let laatsteRun = null;
   if (main) {
     const jobsJson = await gh.api(`repos/${repo}/actions/runs/${main.databaseId}/jobs`);

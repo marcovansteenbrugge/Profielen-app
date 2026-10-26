@@ -10,7 +10,9 @@ import { scan, vergelijk } from './criteria.mjs';
 import { schrijfHtml, scanMd, scanSvg, leesData, samenvatting, projectSlug, scansMap } from './uitvoer.mjs';
 import { installeer } from './installeer.mjs';
 
-export const SCAN_VERSIE = '1.4.2';
+import { SKILL_VERSIE } from './versie.mjs';
+
+export const SCAN_VERSIE = SKILL_VERSIE;
 const LABEL = { groen: 'op orde', amber: 'bijna', rood: 'aandacht nodig', nvt: 'n.v.t.' };
 
 const HELP = `brbnt-scan ${SCAN_VERSIE}

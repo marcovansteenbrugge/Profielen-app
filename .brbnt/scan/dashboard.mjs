@@ -3,6 +3,10 @@
 // pagina ook in een voorbeeldvenster dat geen JavaScript uitvoert. De volledige plannen en documenten staan er niet in;
 // alleen een kleine samenvatting als gegevensblok, als vergelijkingsbasis voor de volgende scan.
 
+import { tellendeRuns, eerste, rodePerioden, DREMPELS } from './criteria.mjs';
+import { STEMPEL_TEKST } from './versie.mjs';
+import { teltMee } from './github.mjs';
+
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const n = (x) => (x == null ? 'onbekend' : Math.round(x).toLocaleString('nl-NL'));
 const kort = (x) => (x >= 1e6 ? `${(x / 1e6).toLocaleString('nl-NL', { maximumFractionDigits: 2 })} mln` : x >= 1e4 ? `${Math.round(x / 1e3)}k` : x >= 1e3 ? `${(x / 1e3).toLocaleString('nl-NL', { maximumFractionDigits: 1 })}k` : String(x));
@@ -88,21 +92,33 @@ export function bereken(D) {
         gepland: gm ? `${gm.naam} · ${ge}` : schoon(gp).replace(/\s*\(.*$/, ''), geplandBekend: !!gm, toetsing, afwijking,
       };
     });
+    // Per fase het geplande model en effort, en waarmee de bouw is uitgevoerd (een toetsing is geen bouw).
+    for (const f of fasen) {
+      const gp = (fasering.find((x) => x.Fase === f.id) || {})['Gepland model en effort'] || '';
+      const gm = model(gp), vrij = schoon(gp).replace(/\s*\(.*$/, '');
+      f.gepland = gm ? `${gm.naam} · ${effortUit(gp)}` : vrij && vrij !== '-' ? vrij : null;
+      f.uitgevoerd = [...new Map(delen.filter((d) => d.fase === f.id && !d.toetsing).map((d) => [`${d.model} · ${EFFORTNAAM(d.effort)}`, d.afwijking]))].map(([tekst, afwijking]) => ({ tekst, afwijking }));
+    }
     const laatst = fasen.map((f) => f.gebouwdOp).filter(Boolean).sort().pop() || null;
     return { naam: p.naam, titel: p.titel || p.naam, status: String(p.status || ''), fasen, open, vrijgaven, delen, laatst,
       planUrl: blob && p.planPad ? blob + p.planPad : null, beslisUrl: blob && p.beslisPad ? blob + p.beslisPad : null };
   });
 
-  // Dezelfde runs als criterium 4.3: de laatste afgeronde, geannuleerd en overgeslagen tellen niet mee in het percentage.
+  // Dezelfde runs als criterium 4.3: de laatste afgeronde runs na een push op de hoofdtak, met de uitkomst van de eerste
+  // poging; geannuleerd en overgeslagen tellen niet mee in het percentage.
   const ci = D.laag4?.ci || {};
-  const afgerond = (ci.runs || []).filter((r) => r.status === 'completed').slice(0, D.scan?.drempels?.ciRuns || 30);
-  const telt = afgerond.filter((r) => r.conclusion !== 'cancelled' && r.conclusion !== 'skipped');
+  const hoofdtak = D.bron?.hoofdtak;
+  const afgerond = tellendeRuns(ci, hoofdtak);
+  const telt = afgerond.filter((r) => !['cancelled', 'skipped'].includes(eerste(r)));
   const duren = afgerond.map((r) => r.duurSec).filter((x) => x != null).sort((a, b) => a - b);
   const CI = ci.beschikbaar ? {
-    runs: afgerond.slice().reverse(), geslaagd: telt.filter((r) => r.conclusion === 'success').length, telt: telt.length,
+    runs: afgerond.slice().reverse(), geslaagd: telt.filter((r) => eerste(r) === 'success').length, telt: telt.length,
+    herhaald: afgerond.filter((r) => r.conclusion === 'success' && eerste(r) !== 'success').length,
     gefaald: afgerond.filter((r) => r.conclusion === 'failure').length, anders: afgerond.filter((r) => r.conclusion !== 'success' && r.conclusion !== 'failure').length,
     mediaan: duren.length ? duren[Math.floor(duren.length / 2)] : null, gemiddeld: duren.length ? Math.round(duren.reduce((a, x) => a + x, 0) / duren.length) : null,
-    norm: D.scan?.drempels?.ciMinPct ?? 90, laatste: ci.laatsteRun?.run || null, bezig: (ci.runs || []).filter((r) => r.status !== 'completed'), url: gh ? `${gh}/actions` : null,
+    norm: D.scan?.drempels?.ciMinPct ?? 90, laatste: ci.laatsteRun?.run && teltMee(ci.laatsteRun.run, hoofdtak) ? ci.laatsteRun.run : null,
+    bezig: (ci.runs || []).filter((r) => r.status !== 'completed' && teltMee(r, hoofdtak)), url: gh ? `${gh}/actions` : null, hoofdtak,
+    rood: rodePerioden(ci, hoofdtak, Date.parse(D.gegenereerd)), groenUren: DREMPELS.groenUren,
   } : null;
 
   return { plannen, CI, lokaal, tijdzone: !!m0, gh };
@@ -174,7 +190,7 @@ export function dashboardHtml(D, { font = '', gegevens = null } = {}) {
   const lagen = SC.lagen.map((l) => `<details class="laag s-${l.kleur}"><summary><span class="nr">${l.nr}</span><span class="nm">${esc(l.naam)}${l.nvt || l.onbekend ? `<small>${[l.nvt && `${l.nvt} n.v.t.`, l.onbekend && `${l.onbekend} niet te meten`].filter(Boolean).join(' · ')}</small>` : ''}</span><span class="sbar"><span style="width:${pct(l.gehaald, l.totaal)}%"></span></span><span class="fr">${l.totaal ? `${l.gehaald}/${l.totaal}` : '–'}</span>${badge(l.kleur)}<span class="pijl" aria-hidden="true"></span></summary><div class="criteria">${SC.criteria.filter((c) => c.laag === l.nr).map((c) => critRij(c)).join('')}</div></details>`).join('');
   const nietLijst = sectie('niet-lijst', 'Niet gehaald', teller(fail.length, fail.length ? 'rood' : 'groen'), fail.length ? fail.map((c) => critRij(c, true)).join('') : '<p class="leeg">Niets: alle meetbare criteria zijn gehaald.</p>');
   let ciKaart = `<div class="card"><h3>CI</h3><p class="leeg">${esc(D.laag4?.ci?.reden || 'De CI-gegevens waren niet beschikbaar bij deze scan.')}</p></div>`;
-  if (CI && !CI.runs.length) ciKaart = '<div class="card"><h3>CI</h3><p class="leeg">Nog geen afgeronde runs.</p></div>';
+  if (CI && !CI.runs.length) ciKaart = `<div class="card"><h3>CI</h3><p class="leeg">Nog geen afgeronde runs na een push op ${esc(CI.hoofdtak || 'de hoofdtak')}.</p></div>`;
   else if (CI) {
     const max = Math.max(1, ...CI.runs.map((r) => r.duurSec || 0));
     const stap = [60, 120, 300, 600, 900, 1800, 3600, 7200].find((s) => max / s <= 4) || 7200;
@@ -182,21 +198,26 @@ export function dashboardHtml(D, { font = '', gegevens = null } = {}) {
     const tijdLab = (s) => (s >= 3600 ? `${s / 3600}u` : `${s / 60}m`);
     const lijnen = Array.from({ length: top / stap + 1 }, (_, i) => i * stap).map((t) => `<span class="lijn${t ? '' : ' nul'}" style="bottom:${((t / top) * 100).toFixed(2)}%"></span><span class="lab" style="bottom:${((t / top) * 100).toFixed(2)}%">${tijdLab(t)}</span>`).join('');
     const staven = CI.runs.map((r, i) => {
-      const s = r.conclusion === 'success' ? ['ok', '✓ geslaagd'] : r.conclusion === 'failure' ? ['fout', '✕ gefaald'] : ['anders', `○ ${r.conclusion || r.status}`];
+      const s = r.conclusion === 'success' ? (eerste(r) === 'success' ? ['ok', '✓ geslaagd'] : ['herhaald', '↻ geslaagd na herhaling']) : r.conclusion === 'failure' ? ['fout', '✕ gefaald'] : ['anders', `○ ${r.conclusion || r.status}`];
       return `<span class="staaf ${s[0]} ${i < CI.runs.length / 2 ? 'links' : 'rechts'}" tabindex="0" style="height:${Math.max(1.5, ((r.duurSec || 0) / top) * 100).toFixed(1)}%"><span class="tip"><b>#${esc(r.number)} ${s[1]}</b> · ${sec(r.duurSec)}<br>${esc(r.displayTitle)}<br><span class="muted">${kortDatum(r.createdAt)} · ${esc(r.headBranch || '')}</span></span></span>`;
     }).join('');
     const ok = pct(CI.geslaagd, CI.telt) >= CI.norm;
     const L = CI.laatste;
-    ciKaart = `<div class="card ci"><div class="kaartkop"><h3>CI: de laatste ${CI.runs.length} afgeronde runs</h3>${CI.url ? link(CI.url, 'Actions op GitHub →') : ''}</div>
+    const rm = CI.rood.map((p) => p.minuten).sort((a, b) => a - b);
+    const roodBlok = rm.length
+      ? `<div><span class="groot ${rm.at(-1) < CI.groenUren * 60 ? 'goed' : 'slecht'}">${duur(rm.at(-1))}</span><span class="sub">langste rode periode op ${esc(CI.hoofdtak)}; mediaan ${duur(rm[Math.floor(rm.length / 2)])}; de grens is ${CI.groenUren} uur (4.9)</span></div>`
+      : `<div><span class="groot goed">–</span><span class="sub">geen rode periode op ${esc(CI.hoofdtak)} (4.9)</span></div>`;
+    ciKaart = `<div class="card ci"><div class="kaartkop"><h3>CI: de laatste ${CI.runs.length} afgeronde runs na een push op ${esc(CI.hoofdtak)}</h3>${CI.url ? link(CI.url, 'Actions op GitHub →') : ''}</div>
       <div class="cijfers">
-        <div><span class="groot ${ok ? 'goed' : 'slecht'}">${CI.geslaagd}<small>/${CI.telt}</small></span><span class="sub">geslaagd (${pct(CI.geslaagd, CI.telt)}%); de norm is ${CI.norm}% (4.3)</span></div>
+        <div><span class="groot ${ok ? 'goed' : 'slecht'}">${CI.geslaagd}<small>/${CI.telt}</small></span><span class="sub">geslaagd bij de eerste poging (${pct(CI.geslaagd, CI.telt)}%); de norm is ${CI.norm}% (4.3)</span></div>
         <div><span class="groot">${sec(CI.mediaan)}</span><span class="sub">mediaan per run: de middelste van de ${CI.runs.length}</span></div>
         <div><span class="groot">${sec(CI.gemiddeld)}</span><span class="sub">gemiddeld per run: alles opgeteld, gedeeld door ${CI.runs.length}</span></div>
+        ${roodBlok}
         ${L ? `<div><span class="groot ${L.conclusion === 'success' ? 'goed' : 'slecht'}">${L.conclusion === 'success' ? '✓' : '✕'} #${esc(L.number)}</span><span class="sub">laatste run op de hoofdtak, ${kortDatum(L.createdAt)} (4.2)</span></div>` : ''}
       </div>
       <div class="grafiek">${lijnen}<div class="staven">${staven}</div></div>
       <div class="as"><span>${lokaal(CI.runs[0].createdAt, { day: 'numeric', month: 'short' })}</span><span>oud → nieuw · hoogte = duur</span><span>${lokaal(CI.runs.at(-1).createdAt, { day: 'numeric', month: 'short' })}</span></div>
-      <div class="legenda"><span><i class="dot ok"></i>✓ geslaagd ${CI.runs.filter((r) => r.conclusion === 'success').length}</span><span><i class="dot fout"></i>✕ gefaald ${CI.gefaald}</span>${CI.anders ? `<span><i class="dot anders"></i>○ geannuleerd of anders ${CI.anders}</span>` : ''}</div>
+      <div class="legenda"><span><i class="dot ok"></i>✓ geslaagd bij de eerste poging ${CI.runs.filter((r) => r.conclusion === 'success' && eerste(r) === 'success').length}</span>${CI.herhaald ? `<span><i class="dot herhaald"></i>↻ geslaagd na herhaling ${CI.herhaald}</span>` : ''}<span><i class="dot fout"></i>✕ gefaald ${CI.gefaald}</span>${CI.anders ? `<span><i class="dot anders"></i>○ geannuleerd of anders ${CI.anders}</span>` : ''}</div>
       ${CI.bezig.length ? `<p class="klein">Nog bezig tijdens de scan: ${CI.bezig.map((r) => `#${esc(r.number)}`).join(', ')}. Die telt mee in de volgende scan.</p>` : ''}</div>`;
   }
   // Signalen tellen niet mee in de score. Wat het dashboard elders al laat zien, valt hier weg: als criterium (CLAUDE.md
@@ -233,11 +254,12 @@ export function dashboardHtml(D, { font = '', gegevens = null } = {}) {
     if (f.soort === 'vrijgegeven-na') return `▶ vrijgegeven, bouwen na ${esc(f.naFasen)}`;
     return SOORT[f.soort]?.[1] || esc(f.tekst);
   };
+  const modelTekst = (f) => `<br>Gepland: ${esc(f.gepland || 'niet ingevuld')}${f.uitgevoerd?.length ? `<br>Uitgevoerd: ${f.uitgevoerd.map((u) => `${esc(u.tekst)}${u.afwijking && u.afwijking !== 'onbekend' ? `, ${AFW[u.afwijking][1]}` : ''}`).join('; ')}` : ''}`;
   const soorten = Object.entries(tel).filter(([, x]) => x);
   const verdeling = `<div class="verdeling" role="img" aria-label="${soorten.map(([k, x]) => `${x} ${SOORT[k][0]}`).join(', ')}">${soorten.map(([k, x]) => `<span class="v-${k}" style="flex:${x}"></span>`).join('')}</div>
     <div class="legenda">${soorten.map(([k, x]) => `<span><i class="f ${k}" aria-hidden="true"></i>${SOORT[k][0]} <b>${x}</b></span>`).join('')}</div>`;
   const planRijen = PS.map((p) => { const g = p.fasen.filter((f) => f.soort === 'gebouwd').length; return `<div class="plan"><div class="t">${link(p.planUrl, esc(p.titel))}<small>${esc(p.status.replace(/-/g, ' '))}${p.laatst ? ` · laatst gebouwd ${p.laatst.slice(8, 10)}-${p.laatst.slice(5, 7)}` : ''}</small></div>
-    <div class="strip">${p.fasen.map((f) => `<span class="f ${f.soort}" tabindex="0" aria-label="${esc(f.id)}: ${esc(SOORT[f.soort]?.[0] || f.tekst)}">${esc(f.id.replace(/^F/, ''))}<span class="tip"><b>${esc(f.id)}</b> ${esc(titelKort(f.titel, 160))}<br>${statusTekst(p, f)}</span></span>`).join('')}</div>
+    <div class="strip">${p.fasen.map((f) => `<span class="f ${f.soort}" tabindex="0" aria-label="${esc(f.id)}: ${esc(SOORT[f.soort]?.[0] || f.tekst)}">${esc(f.id.replace(/^F/, ''))}<span class="tip"><b>${esc(f.id)}</b> ${esc(titelKort(f.titel, 160))}<br>${statusTekst(p, f)}${modelTekst(f)}</span></span>`).join('')}</div>
     <div class="tel">${g}/${p.fasen.length}<small>gebouwd</small></div></div>`; }).join('');
   const paneel2 = P.length ? `<div class="card"><div class="kaartkop"><h3>Alle fasen</h3><span class="sub">${meer(alleF.length, 'fase', 'fasen')} in ${meer(P.length, 'plan', 'plannen')}</span></div>${verdeling}</div>
     <div class="card"><div class="kaartkop"><h3>Per plan</h3><span class="sub">wijs een fase aan voor de titel en de status</span></div>${planRijen}</div>` : geenPlannen;
@@ -429,14 +451,14 @@ details.sectie > summary h4{margin:0}
 .grafiek .lab{position:absolute;left:-40px;width:32px;text-align:right;font-size:11px;color:var(--muted);transform:translateY(50%)}
 .staven{position:absolute;inset:0;display:flex;align-items:flex-end;gap:4px}
 .staaf{position:relative;flex:1;min-width:3px;border-radius:3px 3px 0 0}
-.staaf.ok{background:var(--groen)} .staaf.fout{background:var(--rood)} .staaf.anders{background:var(--nvt)}
+.staaf.ok{background:var(--groen)} .staaf.herhaald{background:var(--amber)} .staaf.fout{background:var(--rood)} .staaf.anders{background:var(--nvt)}
 .staaf:is(:hover,:focus){outline:2px solid var(--text);outline-offset:1px}
 .as{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted);margin:6px 0 10px 40px}
 .legenda{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--text2)}
 .legenda > span{display:inline-flex;align-items:center;gap:6px}
 .legenda b{color:var(--text)}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-.dot.ok{background:var(--groen)} .dot.fout{background:var(--rood)} .dot.anders{background:var(--nvt)}
+.dot.ok{background:var(--groen)} .dot.herhaald{background:var(--amber)} .dot.fout{background:var(--rood)} .dot.anders{background:var(--nvt)}
 
 /* tooltips zonder script: het kind wordt zichtbaar bij aanwijzen of focus */
 .tip{display:none;position:absolute;left:0;z-index:5;width:max-content;max-width:min(440px,100%);background:#141414;border:1px solid #555;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.45;color:var(--text2);box-shadow:0 8px 24px #000a;font-weight:500;text-align:left;pointer-events:none}
@@ -571,7 +593,7 @@ footer{margin-top:28px;color:var(--muted);font-size:11.5px;display:flex;justify-
 ${TABS.map(([id], i) => `<input class="vh" type="radio" name="vraag" id="t-${id}"${i === 0 ? ' checked' : ''}>`).join('\n')}
 <nav class="tegels" aria-label="Onderdelen">${TABS.map(([id, naam, inhoud]) => `<label class="tegel" for="t-${id}"><span class="q">${naam}</span>${inhoud}</label>`).join('')}</nav>
 ${TABS.map(([id, naam, , paneel]) => `<section class="paneel" id="p-${id}" aria-label="${esc(naam)}">${paneel}</section>`).join('\n')}
-<footer><span>Gemaakt door de skill brbnt-scan. Alles gemeten, niets geschat; wat niet te meten was, staat er als onbekend.</span>${gh ? link(gh, 'Repository op GitHub →') : ''}</footer>
+<footer><span>Gemaakt door de skill brbnt-scan. Alles gemeten, niets geschat; wat niet te meten was, staat er als onbekend.</span><span>${esc(STEMPEL_TEKST)}</span>${gh ? link(gh, 'Repository op GitHub →') : ''}</footer>
 </main>
 ${blok}</body>
 </html>

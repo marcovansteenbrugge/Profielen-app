@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { dashboardHtml } from './dashboard.mjs';
+import { STEMPEL_MD } from './versie.mjs';
 
 const KLEUR = { groen: '#4cc38a', amber: '#F0A13E', rood: '#f2555a', nvt: '#7a7a7a' };
 const LABEL = { groen: 'op orde', amber: 'bijna', rood: 'aandacht nodig', nvt: 'n.v.t.' };
@@ -110,6 +111,6 @@ export function scanMd(d, { vorige = null } = {}) {
     for (const c of met) r.push('', `**${c.id} bevindingen** (groeien met \`${c.skill}\`):`, '', ...c.items.slice(0, 40).map((t) => `- ${item(t)}`), ...(c.items.length > 40 ? [`- en nog ${c.items.length - 40}`] : []));
     r.push('');
   }
-  r.push('---', '', 'Gemaakt door de skill `brbnt-scan`. Dit bestand wordt automatisch vervangen; wijzig het niet met de hand.', '');
+  r.push('---', '', 'Gemaakt door de skill `brbnt-scan`. Dit bestand wordt automatisch vervangen; wijzig het niet met de hand.', '', STEMPEL_MD, '');
   return r.join('\n');
 }
