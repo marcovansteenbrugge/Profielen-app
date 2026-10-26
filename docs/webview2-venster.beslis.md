@@ -11,8 +11,8 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen programmavenster met WebView2 (versie 2.10.0)
 
-> **Nu van jou gevraagd:** niets. F0 is gebouwd en door jou gecontroleerd; F1 wordt gebouwd, daarna controleer je het tweede starten en het onthouden van de vensterplek.
-> **Later nodig:** besluit **B3**, vóór F2 kan starten.
+> **Nu van jou gevraagd:** besluit **B3** (hoe gaan je instellingen mee), zodat F2 kan starten. F0 en F1 zijn gebouwd en door jou gecontroleerd.
+> **Later nodig:** vrijgave van **F2** (na B3) en **F3**.
 
 De Profielviewer opent straks in een eigen Windows-venster in plaats van in een kaal Chrome- of Edge-venster, zonder welkomstschermen of een apart browserprofiel. De viewer zelf blijft hetzelfde; het werk gaat in vier fasen, en elke fase start pas na jouw akkoord.
 
@@ -22,7 +22,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
 | F0 | Eigen venster: openen, sluiten, Afsluiten-knop, noodroute naar het oude venster | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 22:09 | B1, B2 | ✅ 2026-10-26 23:28 |
-| F1 | Eén venster tegelijk, en het venster onthoudt plek en grootte | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 22:09 | - | - |
+| F1 | Eén venster tegelijk, en het venster onthoudt plek en grootte | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 22:09 | - | ✅ 2026-10-26 23:43 |
 | F2 | Instellingen meenemen uit het oude venster | ○ nog niet | - | B3 | - |
 | F3 | Oplevering 2.10.0: versie, LEESMIJ, handleiding, tests, exe en zip | ○ nog niet | - | - | - |
 
@@ -102,5 +102,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-26 22:09 | B1 en B2 akkoord met voorstel ("B1 en B2 akkoord") | Marco van Steenbrugge, via chat |
 | 2026-10-26 22:09 | Vrijgave F0 en F1 op planversie 1 | Marco van Steenbrugge, via chat |
 | 2026-10-26 23:28 | F0 gebouwd en per criterium getoetst op Marco's laptop (venster, sluiten, noodroute, F12); tijden hierboven staan in UTC, vanaf hier lokale tijd | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-26 23:43 | F1 gebouwd en per criterium getoetst op Marco's laptop (tweede start, plek en grootte, buiten beeld) | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
