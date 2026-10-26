@@ -9,6 +9,7 @@ package main
 // oude Chrome/Edge-app-venster (zie openVenster).
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"path/filepath"
@@ -25,12 +26,22 @@ func init() { runtime.LockOSThread() }
 
 const (
 	vensterKlasse = "webview" // klassenaam die go-webview2 gebruikt
+	swShowNormal  = 1
+	swMinimize    = 2
 	swMaximize    = 3
+	swRestore     = 9
+	wmClose       = 0x0010
 	wmSetIcon     = 0x0080
 	imageIcon     = 1
 	lrDefaultSize = 0x0040
 	lrShared      = 0x8000
+	// WPF_RESTORETOMAXIMIZED: geminimaliseerd vanuit gemaximaliseerd
+	wpfHerstelMax = 0x0002
+	asfwAny       = 0xFFFFFFFF // ASFW_ANY = (DWORD)-1
 )
+
+// GWLP_WNDPROC = -4
+var gwlpWndProc = ^uintptr(3)
 
 var (
 	user32           = syscall.NewLazyDLL("user32.dll")
@@ -40,8 +51,31 @@ var (
 	procSendMessageW = user32.NewProc("SendMessageW")
 	procFindWindowW  = user32.NewProc("FindWindowW")
 	procDestroyWin   = user32.NewProc("DestroyWindow")
+	procGetPlaatsing = user32.NewProc("GetWindowPlacement")
+	procSetPlaatsing = user32.NewProc("SetWindowPlacement")
+	procMonitorRect  = user32.NewProc("MonitorFromRect")
+	procSetWinLong   = user32.NewProc("SetWindowLongPtrW")
+	procCallWinProc  = user32.NewProc("CallWindowProcW")
+	procIsIconic     = user32.NewProc("IsIconic")
+	procVoorgrond    = user32.NewProc("SetForegroundWindow")
+	procStaVoorgrond = user32.NewProc("AllowSetForegroundWindow")
 	procModuleHandle = kernel32.NewProc("GetModuleHandleW")
 )
+
+// Win32 WINDOWPLACEMENT met POINT en RECT
+type punt struct{ X, Y int32 }
+type rechthoek struct{ Links, Boven, Rechts, Onder int32 }
+type plaatsing struct {
+	Lengte, Vlaggen, ToonCmd uint32
+	MinPos, MaxPos           punt
+	Normaal                  rechthoek
+}
+
+// vensterStand: wat er in venster.json staat
+type vensterStand struct {
+	X, Y, Breedte, Hoogte int32
+	Gemaximaliseerd       bool
+}
 
 // openWebView2 opent de viewer in een eigen WebView2-venster en blokkeert tot het
 // venster dicht is. false = WebView2 kon niet starten (terugvallen op het oude venster).
@@ -80,8 +114,14 @@ func openWebView2(url string) bool {
 	}
 	hwnd := uintptr(w.Window())
 	zetIcoon(hwnd)
-	procShowWindow.Call(hwnd, swMaximize)
+	herstelStand(hwnd)
+	vangSluiten(hwnd)
 	log.Println("WebView2-venster geopend, gegevensmap", data)
+
+	// tweede start (POST /__ptsviewer/voorgrond): dit venster naar voren
+	voor := func() { w.Dispatch(func() { haalNaarVoren(hwnd) }) }
+	naarVoren.Store(&voor)
+	defer naarVoren.Store(nil)
 
 	// Afsluiten-knop in de viewer (POST /__ptsviewer/stop): venster sluiten
 	go func() {
@@ -94,6 +134,81 @@ func openWebView2(url string) bool {
 	w.Run()
 	return true
 }
+
+func standBestand() string {
+	return filepath.Join(lokaleAppData(), "Lutrea", "Profielviewer", "venster.json")
+}
+
+// herstelStand zet het venster op de plek en grootte van de vorige keer. Geen
+// venster.json, of valt die plek buiten alle schermen: gemaximaliseerd.
+func herstelStand(hwnd uintptr) {
+	var s vensterStand
+	b, err := os.ReadFile(standBestand())
+	if err == nil {
+		err = json.Unmarshal(b, &s)
+	}
+	if err != nil || s.Breedte < 200 || s.Hoogte < 150 {
+		procShowWindow.Call(hwnd, swMaximize)
+		return
+	}
+	r := rechthoek{s.X, s.Y, s.X + s.Breedte, s.Y + s.Hoogte}
+	if m, _, _ := procMonitorRect.Call(uintptr(unsafe.Pointer(&r)), 0); m == 0 { // MONITOR_DEFAULTTONULL
+		log.Println("onthouden vensterplek valt buiten beeld: gemaximaliseerd")
+		procShowWindow.Call(hwnd, swMaximize)
+		return
+	}
+	p := plaatsing{Normaal: r, ToonCmd: swShowNormal}
+	p.Lengte = uint32(unsafe.Sizeof(p))
+	if s.Gemaximaliseerd {
+		p.ToonCmd = swMaximize
+	}
+	procSetPlaatsing.Call(hwnd, uintptr(unsafe.Pointer(&p)))
+}
+
+// bewaarStand schrijft plek, grootte en gemaximaliseerd naar venster.json.
+func bewaarStand(hwnd uintptr) {
+	var p plaatsing
+	p.Lengte = uint32(unsafe.Sizeof(p))
+	if ok, _, _ := procGetPlaatsing.Call(hwnd, uintptr(unsafe.Pointer(&p))); ok == 0 {
+		return
+	}
+	n := p.Normaal
+	s := vensterStand{
+		X: n.Links, Y: n.Boven, Breedte: n.Rechts - n.Links, Hoogte: n.Onder - n.Boven,
+		Gemaximaliseerd: p.ToonCmd == swMaximize || (p.ToonCmd == swMinimize && p.Vlaggen&wpfHerstelMax != 0),
+	}
+	b, _ := json.Marshal(s)
+	if err := os.WriteFile(standBestand(), b, 0o644); err != nil {
+		log.Println("vensterstand bewaren mislukt:", err)
+	}
+}
+
+// vangSluiten haakt in op WM_CLOSE (kruisje én Afsluiten-knop) om de vensterstand
+// te bewaren voordat go-webview2 het venster weghaalt.
+var oudeWndProc uintptr
+
+func vangSluiten(hwnd uintptr) {
+	nieuw := syscall.NewCallback(func(h, msg, wp, lp uintptr) uintptr {
+		if msg == wmClose {
+			bewaarStand(h)
+		}
+		r, _, _ := procCallWinProc.Call(oudeWndProc, h, msg, wp, lp)
+		return r
+	})
+	oudeWndProc, _, _ = procSetWinLong.Call(hwnd, gwlpWndProc, nieuw)
+}
+
+// haalNaarVoren: geminimaliseerd terugzetten en naar de voorgrond. Houdt Windows
+// dat tegen (focus-bescherming), dan knippert het taakbalkicoon.
+func haalNaarVoren(hwnd uintptr) {
+	if min, _, _ := procIsIconic.Call(hwnd); min != 0 {
+		procShowWindow.Call(hwnd, swRestore)
+	}
+	procVoorgrond.Call(hwnd)
+}
+
+// staVoorgrondToe laat het draaiende viewerproces zijn venster naar voren halen.
+func staVoorgrondToe() { procStaVoorgrond.Call(asfwAny) }
 
 // zetIcoon geeft het venster het icoon uit de exe (go-winres: groepsicoon "APP").
 func zetIcoon(hwnd uintptr) {

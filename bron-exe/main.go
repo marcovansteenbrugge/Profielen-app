@@ -34,6 +34,7 @@ const (
 	hartslagPad  = "/__ptsviewer/hartslag"
 	stopPad      = "/__ptsviewer/stop"
 	dichtPad     = "/__ptsviewer/dicht"
+	voorgrondPad = "/__ptsviewer/voorgrond"
 	pingAntwoord = "pts-viewer-lutrea"
 	appVersie    = "2.9.5"
 	stilteGrens  = 3 * time.Minute
@@ -47,6 +48,9 @@ var (
 	laatsteDicht    atomic.Int64 // tijdstip van het laatste "dicht" van de pagina (0 = niet)
 	browserProces   atomic.Pointer[os.Process]
 	stopVerzocht    = make(chan struct{}, 1)
+	// naarVoren haalt het eigen WebView2-venster naar voren (nil = geen eigen venster,
+	// bv. bij de terugvaloptie)
+	naarVoren atomic.Pointer[func()]
 )
 
 // Logbestand in %LOCALAPPDATA%\Lutrea\PTS-viewer\log.txt — handig als het
@@ -107,6 +111,11 @@ func main() {
 			// opstart: geen tweede venster openen, het eerste komt eraan
 			return
 		case "klaar":
+			// eigen venster open: dat naar voren halen in plaats van een tweede venster
+			if vraagVoorgrond(vastePoort) {
+				log.Println("viewer draait al: bestaande venster naar voren gehaald")
+				return
+			}
 			openVenster(fmt.Sprintf("http://127.0.0.1:%d/index.html", vastePoort), nil)
 			return
 		}
@@ -148,6 +157,16 @@ func main() {
 		case stopVerzocht <- struct{}{}:
 		default:
 		}
+	})
+	mux.HandleFunc(voorgrondPad, func(w http.ResponseWriter, r *http.Request) {
+		// alleen "venster naar voren", zonder gegevens
+		f := naarVoren.Load()
+		if r.Method != http.MethodPost || f == nil {
+			http.Error(w, "geen eigen venster", http.StatusConflict)
+			return
+		}
+		(*f)()
+		w.WriteHeader(http.StatusNoContent)
 	})
 	bestanden := http.FileServer(http.FS(inhoud))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -244,6 +263,21 @@ func browservensterGevraagd() bool {
 		}
 	}
 	return strings.EqualFold(os.Getenv("PV_VENSTER"), "browser")
+}
+
+// vraagVoorgrond vraagt de draaiende viewer zijn eigen venster naar voren te halen.
+// false = die viewer heeft geen eigen venster (terugvaloptie) of antwoordt niet.
+func vraagVoorgrond(poort int) bool {
+	// dit proces is net door de gebruiker gestart en mag de voorgrond doorgeven;
+	// zonder dit houdt Windows het venster soms tegen (dan knippert de taakbalk)
+	staVoorgrondToe()
+	c := http.Client{Timeout: 2 * time.Second}
+	resp, err := c.Post(fmt.Sprintf("http://127.0.0.1:%d%s", poort, voorgrondPad), "text/plain", nil)
+	if err != nil {
+		return false
+	}
+	resp.Body.Close()
+	return resp.StatusCode == http.StatusNoContent
 }
 
 // draaitAl geeft "" (draait niet), "start" (eerste venster is nog aan het

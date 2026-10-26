@@ -18,3 +18,5 @@ func fout(tekst string) { fmt.Fprintln(os.Stderr, tekst) }
 func openWebView2(url string) bool { return false }
 
 func melding(tekst string) { fmt.Fprintln(os.Stderr, tekst) }
+
+func staVoorgrondToe() {}
