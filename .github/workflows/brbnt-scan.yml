@@ -1,0 +1,90 @@
+# brbnt-scan: v3
+# Houdt de BRBNT-scan van dit project bij. Het resultaat (dashboard.html, SCAN.md, scan.svg) staat op
+# de tak brbnt-dashboard; die tak wordt bij elke run vervangen, dus hij bouwt geen geschiedenis op en
+# er komen geen commits bij op main. De README op main linkt ernaartoe.
+# Strikt: de workflow als geheel krijgt geen rechten. De job scan leest alleen (de repo, de CI-runs en
+# de pull requests) en draait de code van de repo; alleen de job publiceren mag schrijven, draait geen
+# code van de repo en pusht alleen de tak brbnt-dashboard. Elke action staat vast op een volledige
+# commit. Hij start na een push naar main, elke ochtend of met de hand, nooit door een andere
+# workflow of een pull request; de testrun van dezelfde push staat daardoor pas in de volgende scan.
+# Altijd op een runner van GitHub, ook als de tests van het project op een eigen runner draaien (Dave
+# Brands, 30 september 2026): de scan is licht, hij moet ook draaien als de machine met de eigen runner
+# uit staat (in een project wachtte de ochtendscan daar 45 minuten op), en een eigen runner bewaart zijn
+# werkmap tussen runs, zodat de scan achtergebleven takken en referenties zou meetellen.
+# Aangemaakt door de skill brbnt-scan. Wijzig dit bestand niet met de hand: draai de skill opnieuw.
+name: brbnt-scan
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: brbnt-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    name: Scannen
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read # de repo uitchecken en de vorige scan van de tak brbnt-dashboard ophalen
+      actions: read # de CI-runs en hun duur lezen
+      pull-requests: read # de stand van de pull requests bij de takken lezen
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Scannen
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # De vorige scan van de tak brbnt-dashboard, voor "sinds de vorige scan". De checkout bewaart het
+          # token niet, dus deze fetch geeft het zelf mee (alleen lezen).
+          VORIGE=""
+          if git fetch -q "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" brbnt-dashboard 2>/dev/null \
+            && git show FETCH_HEAD:dashboard.html > "$RUNNER_TEMP/vorige.html" 2>/dev/null; then
+            VORIGE="--vorige $RUNNER_TEMP/vorige.html"
+          fi
+          node .brbnt/scan/scan.mjs bouw . --uit brbnt-scan-uit $VORIGE
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: brbnt-scan
+          path: brbnt-scan-uit
+          if-no-files-found: error
+          retention-days: 1
+
+  publiceren:
+    name: Publiceren op de tak brbnt-dashboard
+    needs: scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # alleen om de tak brbnt-dashboard te vervangen
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: brbnt-scan
+          path: ${{ runner.temp }}/brbnt-scan
+      - name: Publiceren
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd "$RUNNER_TEMP/brbnt-scan"
+          git init -q -b brbnt-dashboard
+          git config user.name "brbnt-scan"
+          git config user.email "brbnt-scan@users.noreply.github.com"
+          git add -A
+          git commit -q -m "BRBNT-scan van $(echo "$GITHUB_SHA" | cut -c1-7)"
+          # Eén commit, die de vorige vervangt (vandaar --force), en alleen op de tak brbnt-dashboard.
+          git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/brbnt-dashboard

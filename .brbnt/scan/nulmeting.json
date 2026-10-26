@@ -1,0 +1,86 @@
+{
+ "gegenereerd": "2026-10-26T21:58:21.655Z",
+ "commit": "48a71ed",
+ "modus": "zelfscan",
+ "versie": 5,
+ "gehaald": 3,
+ "totaal": 13,
+ "lagen": [
+  {
+   "nr": 1,
+   "gehaald": 1,
+   "totaal": 4
+  },
+  {
+   "nr": 2,
+   "gehaald": 0,
+   "totaal": 2
+  },
+  {
+   "nr": 3,
+   "gehaald": 0,
+   "totaal": 2
+  },
+  {
+   "nr": 4,
+   "gehaald": 0,
+   "totaal": 2
+  },
+  {
+   "nr": 5,
+   "gehaald": 2,
+   "totaal": 3
+  },
+  {
+   "nr": 6,
+   "gehaald": 0,
+   "totaal": 0
+  }
+ ],
+ "oordelen": {
+  "1.1": "gehaald",
+  "1.2": "niet",
+  "1.3": "niet",
+  "1.4": "niet",
+  "1.5": "nvt",
+  "2.1": "niet",
+  "2.2": "nvt",
+  "2.3": "nvt",
+  "2.4": "nvt",
+  "2.5": "nvt",
+  "2.6": "nvt",
+  "2.7": "nvt",
+  "2.8": "niet",
+  "3.1": "niet",
+  "3.2": "niet",
+  "3.3": "nvt",
+  "3.4": "nvt",
+  "3.5": "nvt",
+  "3.6": "nvt",
+  "3.7": "nvt",
+  "3.8": "nvt",
+  "3.9": "nvt",
+  "4.1": "niet",
+  "4.2": "onbekend",
+  "4.3": "onbekend",
+  "4.4": "onbekend",
+  "4.5": "niet",
+  "4.6": "onbekend",
+  "4.7": "nvt",
+  "4.8": "nvt",
+  "5.1": "gehaald",
+  "5.2": "niet",
+  "5.3": "gehaald",
+  "5.4": "onbekend",
+  "5.5": "onbekend",
+  "6.1": "nvt",
+  "6.2": "nvt",
+  "6.3": "nvt",
+  "6.4": "nvt",
+  "6.5": "nvt",
+  "6.6": "nvt"
+ },
+ "tests": null,
+ "memories": 0,
+ "commits": 2
+}
