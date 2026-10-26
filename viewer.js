@@ -4327,6 +4327,51 @@
     }, 400);
   });
 
+  /* Instellingen exporteren/importeren: alle localStorage-sleutels ptsviewer-* en pv.*
+     (PDF-stempel en titelblok, logo's, weergave) in één JSON-bestand. Bedoeld om ze
+     over te zetten van het oude Chrome/Edge-venster naar het eigen programmavenster
+     (dat een eigen gegevensmap heeft). Recente projectmappen (IndexedDB, mapverwijzingen)
+     gaan niet mee: die zijn aan het browserprofiel gebonden. */
+  const INSTELLINGEN_SOORT = 'profielviewer-instellingen';
+  const isInstelling = (k) => (k.startsWith('ptsviewer-') || k.startsWith('pv.')) && k !== BEZIG_OPSLAG;
+  document.getElementById('instellingenExportKnop')?.addEventListener('click', async () => {
+    const sleutels = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (isInstelling(k)) sleutels[k] = localStorage.getItem(k);
+    }
+    const inhoud = {
+      soort: INSTELLINGEN_SOORT, versie: 1, gemaakt: new Date().toISOString(),
+      viewer: document.getElementById('appVersie')?.textContent?.trim() || '', sleutels,
+    };
+    const naam = `profielviewer-instellingen_${new Date().toISOString().slice(0, 10)}.json`;
+    const h = await kiesOpslag(naam, 'instellingen');
+    if (h === false) return;
+    const blob = new Blob([JSON.stringify(inhoud, null, 1)], { type: 'application/json' });
+    const opgeslagen = await schrijfBestand(h, blob, naam);
+    statusEl.textContent = `${Object.keys(sleutels).length} instellingen geëxporteerd: ${opgeslagen}`;
+  });
+  const instellingenLadenVeld = document.getElementById('instellingenLadenVeld');
+  document.getElementById('instellingenImportKnop')?.addEventListener('click', () => instellingenLadenVeld.click());
+  instellingenLadenVeld?.addEventListener('change', async (e) => {
+    const f = e.target.files?.[0];
+    e.target.value = '';
+    if (!f) return;
+    let inhoud;
+    try { inhoud = JSON.parse(await f.text()); } catch { inhoud = null; }
+    if (inhoud?.soort !== INSTELLINGEN_SOORT || !inhoud.sleutels || typeof inhoud.sleutels !== 'object') {
+      toonFout(`${f.name} is geen instellingenbestand van de Profielviewer (maak er een met Instellingen → Exporteren).`);
+      return;
+    }
+    const over = Object.entries(inhoud.sleutels).filter(([k, v]) => isInstelling(k) && typeof v === 'string');
+    if (!over.length) { toonFout(`${f.name} bevat geen instellingen.`); return; }
+    if (!confirm(`${over.length} instellingen overnemen uit ${f.name}${inhoud.viewer ? ` (Profielviewer ${inhoud.viewer})` : ''}?\n\n` +
+      'Dezelfde instellingen in dit venster worden overschreven. De viewer start daarna opnieuw' +
+      (xs ? ' — niet-opgeslagen werk gaat verloren, sla je project eerst op.' : '.'))) return;
+    for (const [k, v] of over) localStorage.setItem(k, v);
+    location.reload();
+  });
+
   document.getElementById('zoomAllesKnop')?.addEventListener('click', () => {
     if (!xs) return;
     if (drieDActief) { document.getElementById('drieDBoven')?.click(); return; }
@@ -4879,7 +4924,7 @@
   /** → FileSystemFileHandle, null (= naar Downloads) of false (= geannuleerd). */
   async function kiesOpslag(naam, soort) {
     // met een projectmap: uitvoer gaat zonder vragen naar uitvoer\ (bestaat de naam al, dan _2, _3, …)
-    if (projectMap && soort !== 'project') {
+    if (projectMap && soort !== 'project' && soort !== 'instellingen') {
       try {
         const uit = await projectMap.getDirectoryHandle('uitvoer', { create: true });
         const h = await uit.getFileHandle(await vrijeNaam(uit, naam), { create: true });
@@ -4898,6 +4943,8 @@
           ? [{ description: 'Snoeilijst (CSV, opent in Excel)', accept: { 'text/csv': ['.csv'] } }]
         : soort === 'ifc'
           ? [{ description: 'IFC 4.3 (openBIM)', accept: { 'application/x-step': ['.ifc'] } }]
+        : soort === 'instellingen'
+          ? [{ description: 'Profielviewer-instellingen', accept: { 'application/json': ['.json'] } }]
         : [{ description: 'Profielviewer-project', accept: { 'application/json': ['.json'] } }];
     try {
       return await window.showSaveFilePicker({ suggestedName: naam, types, id: `ptsviewer-${soort}`, startIn: 'documents' });

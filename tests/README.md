@@ -35,6 +35,7 @@ Uitvoer (screenshots, PDF, DXF, …) komt in `tests/uit/` — handig om te bekij
 | links_rechts | profielbreedte links/rechts los, PDF/DXF/IFC, opslaan/openen |
 | nwb | As uit het NWB (met nagemaakte PDOK-gegevens) |
 | zoom_vakken | vakkenraster en schaalbalk bij inzoomen |
+| instellingen | instellingen exporteren en importeren (ptsviewer-*/pv.*, zonder pv.bezig), vreemd bestand geweigerd |
 | groot_import | 16 mln punten omzetten, Alle punten, Detailstrook (vraagt `testdata/groot/dijk_16mln.las`) |
 
 De projectmap-tests gebruiken de "Origin Private File System" van de browser als nep-projectmap

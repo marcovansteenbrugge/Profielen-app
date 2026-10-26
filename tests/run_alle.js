@@ -5,7 +5,7 @@ const tests = [
   ['stationering_snoei.test.js', 'pdf'], ['doorvaart.test.js'], ['ifc.test.js'], ['ifc.test.js', 'brug'],
   ['dxf_bladen.test.js', 'brug', 'A3'], ['project_losbestand.test.js'], ['lagen_aanuit.test.js'],
   ['maaiveld.test.js'], ['projectmap.test.js'], ['projectmap_bospad.test.js'], ['links_rechts.test.js'],
-  ['nwb.test.js'], ['zoom_vakken.test.js'],
+  ['nwb.test.js'], ['zoom_vakken.test.js'], ['instellingen.test.js'],
 ];
 if (process.argv.includes('groot')) tests.push(['groot_import.test.js']);
 let fout = 0;
