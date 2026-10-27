@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** de controle van F2 op je laptop met `dist\proef\Lutrea-Profielviewer-2.11-proef.exe`: een grote LAS (bijvoorbeeld Halsteren) via Openen… omzetten (voortgang zichtbaar, tijd in de statusregel), en één keer Afbreken proberen.
+> **Nu van jou gevraagd:** de controle van F2 nog één keer, met een **lege** projectmap: Openen… → Halsteren → bij de projectmap een nieuwe, lege map kiezen; kijken of de voortgang loopt, de tijd in de statusregel staat, en één keer Afbreken proberen.
 > **Later nodig:** B5 vóór F5 (na de proef in F4); vrijgave van F3 tot en met F6.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.1), dat begint met een proef. Elke fase start pas na jouw akkoord.
@@ -150,5 +150,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 17:17 | B3 en B4 akkoord met voorstel ("B3 en B4 akkoord met jullie voorstel.") | Marco van Steenbrugge, via chat |
 | 2026-10-27 17:18 | Vrijgave F2 op planversie 1 ("F2 vrijgegeven") | Marco van Steenbrugge, via chat |
 | 2026-10-27 17:49 | F2 uitgevoerd en automatisch getoetst (alle tests groen; 16 mln punten in ± 10 s tegen ± 37 s in de viewer); proefversie klaar, wacht op Marco's controle | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 18:22 | Marco meldt: "de test app werkt naar behoren"; in zijn test zijn de bestaande vakken van Halsteren hergebruikt, dus het omzetten zelf is nog niet bekeken. Nieuwe controle met een lege projectmap gevraagd. Gemeten: Halsteren in 11,1 s door het programma (2.9.1: 37 s), vakken gelijk | Marco van Steenbrugge, via chat; meting Claude Code |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
