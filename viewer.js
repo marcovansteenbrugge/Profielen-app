@@ -1454,6 +1454,136 @@
   });
 
   /* ────────────────────────────────────────────────────────────────
+     Eigen bestandstoegang (exe, 2.10.2): in het eigen venster leest en schrijft de
+     exe de bestanden zelf (/__pv/fs/…, met de sessiesleutel uit window.__pvNatief),
+     zonder toestemmingsvragen van de browser. natieveMap/natiefBestand gedragen zich
+     als FileSystemDirectoryHandle/FileSystemFileHandle, zodat de rest van de viewer
+     niet verandert; extra veld pvPad = het echte pad. Zonder window.__pvNatief (oude
+     venster, dev-server, tests) blijft alles via de browser gaan.
+     ──────────────────────────────────────────────────────────────── */
+  const natief = window.__pvNatief || null;
+  function natiefFout(status, tekst, pad) {
+    const soort = status === 404 ? 'NotFoundError' : status === 403 ? 'NotAllowedError' : status === 409 ? 'InvalidModificationError' : 'UnknownError';
+    return new DOMException(`${tekst || `fout ${status}`} (${pad})`, soort);
+  }
+  async function natiefVraag(route, pad, { methode = 'GET', body, kop, extra = '' } = {}) {
+    const r = await fetch(`/__pv/${route}${pad != null ? `?pad=${encodeURIComponent(pad)}` : ''}${extra}`,
+      { method: methode, body, headers: { 'X-PV-Sleutel': natief.sleutel, ...kop }, cache: 'no-store' });
+    if (!r.ok) throw natiefFout(r.status, (await r.text().catch(() => '')).trim(), pad ?? route);
+    return r;
+  }
+  const natiefInfo = async (pad) => (await natiefVraag('fs/info', pad)).json();
+  const padDeel = (map, naam) => {
+    naam = String(naam);
+    if (!naam || naam === '.' || naam === '..' || /[\\/]/.test(naam)) throw new TypeError(`ongeldige naam: ${naam}`);
+    return map.replace(/[\\/]+$/, '') + '\\' + naam;
+  };
+  const naamVan = (pad) => pad.replace(/[\\/]+$/, '').split(/[\\/]/).pop();
+  const zelfdeEntry = (pad) => async (ander) => !!ander?.pvPad && ander.pvPad.toLowerCase() === pad.toLowerCase();
+  /** Bytes die over alle schrijfstromen samen nog verstuurd moeten worden; boven de grens wacht write(). */
+  const natiefOnderweg = { bytes: 0 }, NATIEF_MAX_ONDERWEG = 64 << 20;
+  function natiefBestand(pad) {
+    return {
+      kind: 'file', name: naamVan(pad), pvPad: pad,
+      async queryPermission() { return 'granted'; }, async requestPermission() { return 'granted'; },
+      isSameEntry: zelfdeEntry(pad),
+      async getFile() {
+        const r = await natiefVraag('fs/lees', pad);
+        const gewijzigd = Date.parse(r.headers.get('Last-Modified') || '') || Date.now();
+        return new File([await r.arrayBuffer()], naamVan(pad), { lastModified: gewijzigd });
+      },
+      /** Schrijft naar een tijdelijk bestand; pas na close() staat het er (atomair). write() wacht niet op
+       *  het versturen; een fout komt bij de volgende write() of bij close(). */
+      async createWritable() {
+        const { id } = await (await natiefVraag('fs/schrijf/start', pad, { methode: 'POST' })).json();
+        let rij = Promise.resolve(), positie = 0, fout = null;
+        const stroom = (route, body, extra = '') => natiefVraag(route, null, { methode: 'POST', body, extra: `?id=${id}${extra}` });
+        /** Groot deel in stukken van 8 MB, vier tegelijk, elk op zijn plek: ± 5× zo snel als in één keer. */
+        const schrijfDeel = async (blob, vanaf) => {
+          const STUK = 8 << 20, plekken = [];
+          for (let o = 0; o < blob.size; o += STUK) plekken.push(o);
+          let i = 0;
+          await Promise.all(Array.from({ length: Math.min(4, plekken.length) }, async () => {
+            while (i < plekken.length) { const o = plekken[i++]; await stroom('fs/schrijf/deel', blob.slice(o, o + STUK), `&positie=${vanaf + o}`); }
+          }));
+        };
+        return {
+          write(data) {
+            if (data && typeof data === 'object' && 'type' in data && !(data instanceof Blob)) {
+              if (data.type !== 'write' || data.position != null) throw new TypeError('alleen schrijven achter elkaar wordt ondersteund');
+              data = data.data;
+            }
+            if (fout) throw fout;
+            // als Blob (een kopie, dus de aanroeper mag zijn buffer meteen hergebruiken): Edge/WebView2
+            // verstuurt een Blob ± 3× zo snel als een ArrayBuffer
+            const body = data instanceof Blob ? data : new Blob([data]);
+            const vanaf = positie; positie += body.size;
+            natiefOnderweg.bytes += body.size;
+            rij = rij.then(() => schrijfDeel(body, vanaf))
+              .catch((err) => { fout = fout || err; })
+              .finally(() => { natiefOnderweg.bytes -= body.size; });
+            // niet op het versturen wachten, zodat de viewer doorrekent; wel als er te veel onderweg is
+            return natiefOnderweg.bytes > NATIEF_MAX_ONDERWEG ? rij.then(() => { if (fout) throw fout; }) : Promise.resolve();
+          },
+          async close() { await rij; if (fout) { await stroom('fs/schrijf/afbreken').catch(() => {}); throw fout; } await stroom('fs/schrijf/klaar'); },
+          async abort() { await rij; await stroom('fs/schrijf/afbreken'); },
+        };
+      },
+    };
+  }
+  function natieveMap(pad) {
+    const map = {
+      kind: 'directory', name: naamVan(pad), pvPad: pad,
+      async queryPermission() { return 'granted'; }, async requestPermission() { return 'granted'; },
+      isSameEntry: zelfdeEntry(pad),
+      async getDirectoryHandle(naam, { create = false } = {}) {
+        const p = padDeel(pad, naam), i = await natiefInfo(p);
+        if (!i.bestaat) {
+          if (!create) throw new DOMException(`${naam} bestaat niet`, 'NotFoundError');
+          await natiefVraag('fs/map', p, { methode: 'POST' });
+        } else if (i.soort !== 'map') throw new DOMException(`${naam} is geen map`, 'TypeMismatchError');
+        return natieveMap(p);
+      },
+      async getFileHandle(naam, { create = false } = {}) {
+        const p = padDeel(pad, naam), i = await natiefInfo(p);
+        if (!i.bestaat) {
+          if (!create) throw new DOMException(`${naam} bestaat niet`, 'NotFoundError');
+          const w = await natiefBestand(p).createWritable(); await w.close();   // leeg bestand, zoals de browser
+        } else if (i.soort !== 'bestand') throw new DOMException(`${naam} is geen bestand`, 'TypeMismatchError');
+        return natiefBestand(p);
+      },
+      async removeEntry(naam, { recursive = false } = {}) {
+        const p = padDeel(pad, naam);
+        if (!(await natiefInfo(p)).bestaat) throw new DOMException(`${naam} bestaat niet`, 'NotFoundError');
+        await natiefVraag('fs/weg', p, { methode: 'POST', extra: recursive ? '&recursief=1' : '' });
+      },
+      async *entries() {
+        for (const it of await (await natiefVraag('fs/lijst', pad)).json()) {
+          const p = padDeel(pad, it.naam);
+          yield [it.naam, it.soort === 'map' ? natieveMap(p) : natiefBestand(p)];
+        }
+      },
+      async *keys() { for await (const [n] of map.entries()) yield n; },
+      async *values() { for await (const [, h] of map.entries()) yield h; },
+      [Symbol.asyncIterator]() { return map.entries(); },
+    };
+    return map;
+  }
+  /** Kan er een map gekozen worden (exe-kiezer of die van de browser)? */
+  const kanMapKiezen = () => !!natief || !!window.showDirectoryPicker;
+  /** Map kiezen: in het eigen venster de Windows-kiezer van de exe, anders die van de browser.
+   *  Annuleren geeft een AbortError, net als showDirectoryPicker. */
+  async function kiesMap(opties = {}) {
+    const { titel, ...browserOpties } = opties;
+    if (!natief) return window.showDirectoryPicker({ mode: 'readwrite', startIn: 'documents', ...browserOpties });
+    const r = await natiefVraag('kies', null, { methode: 'POST', kop: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ soort: 'map', titel: titel || 'Map kiezen' }) });
+    const { pad } = await r.json();
+    if (!pad) throw new DOMException('Kiezen geannuleerd', 'AbortError');
+    return natieveMap(pad);
+  }
+
+  /* ────────────────────────────────────────────────────────────────
      Projectmap (2.9.0): alles van één project in één map.
        <naam>.pvproj   puntenwolk\   ondergrond\   uitvoer\   backup\
      ──────────────────────────────────────────────────────────────── */
@@ -1485,7 +1615,7 @@
    *  → map, of null (= zonder projectmap verder) of false (= geannuleerd). */
   function vraagProjectMap(opties = {}) {
     const dlg = document.getElementById('projectMapDialoog');
-    if (!dlg || !window.showDirectoryPicker) return Promise.resolve(null);
+    if (!dlg || !kanMapKiezen()) return Promise.resolve(null);
     document.getElementById('pmOndertitel').textContent = opties.ondertitel || 'waar komt dit project?';
     document.getElementById('pmInfo').textContent = opties.info || '';
     const zk = document.getElementById('pmZonder');
@@ -1497,7 +1627,7 @@
       const ruim = (w) => { kies.onclick = zonder.onclick = null; dlg.onclose = null; if (dlg.open) dlg.close(); klaar(w); };
       kies.onclick = async () => {
         try {
-          const map = await window.showDirectoryPicker({ id: 'pv-projectmap', mode: 'readwrite', startIn: 'documents' });
+          const map = await kiesMap({ id: 'pv-projectmap', titel: 'Projectmap kiezen' });
           await maakSubmappen(map);
           ruim(map);
         } catch (err) {
@@ -9507,7 +9637,7 @@ ${r3d}
   }
   async function toonProjectOpenen() {
     const dlg = document.getElementById('projectOpenDialoog');
-    if (!dlg || !window.showDirectoryPicker) { openLosProjectbestand(); return; }
+    if (!dlg || !kanMapKiezen()) { openLosProjectbestand(); return; }
     const vak = document.getElementById('poRecent'), info = document.getElementById('poInfo');
     vak.innerHTML = ''; info.textContent = '';
     let lijst = [];
@@ -9531,7 +9661,7 @@ ${r3d}
     document.getElementById('poLos').onclick = () => { dlg.close(); openLosProjectbestand(); };
     document.getElementById('poMap').onclick = async () => {
       try {
-        const map = await window.showDirectoryPicker({ id: 'pv-projectmap', mode: 'readwrite', startIn: 'documents' });
+        const map = await kiesMap({ id: 'pv-projectmap', titel: 'Projectmap openen' });
         dlg.close(); await openProjectMap(map);
       } catch (err) { if (err.name !== 'AbortError') info.textContent = `Map kiezen lukte niet: ${err.message}`; }
     };
@@ -11201,8 +11331,8 @@ ${r3d}
     if (inst.losseBladen && projectMap) {
       try { handle = await projectMap.getDirectoryHandle('uitvoer', { create: true }); } catch { handle = null; }
     } else if (inst.losseBladen) {
-      if (opslaanVragen() && window.showDirectoryPicker) {
-        try { handle = await window.showDirectoryPicker({ id: 'ptsviewer-pdf-map', mode: 'readwrite', startIn: 'documents' }); }
+      if (opslaanVragen() && kanMapKiezen()) {
+        try { handle = await kiesMap({ id: 'ptsviewer-pdf-map', titel: 'Map voor de PDF-bladen' }); }
         catch (err) { if (err.name === 'AbortError') { pdfStatus.textContent = 'Opslaan geannuleerd.'; return; } handle = null; }
       }
     } else {

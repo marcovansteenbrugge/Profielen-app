@@ -36,10 +36,14 @@ Uitvoer (screenshots, PDF, DXF, …) komt in `tests/uit/` — handig om te bekij
 | nwb | As uit het NWB (met nagemaakte PDOK-gegevens) |
 | zoom_vakken | vakkenraster en schaalbalk bij inzoomen |
 | instellingen | instellingen exporteren en importeren (ptsviewer-*/pv.*, zonder pv.bezig), vreemd bestand geweigerd |
+| natieve_map | eigen bestandstoegang van de exe (`/__pv/`, nagemaakt in `hulp.js`): projectmap kiezen, omzetten naar vakken, opslaan + backup, DXF in uitvoer\, herladen en opnieuw openen, annuleren; geen browserkiezer en geen toestemmingsvraag; snelheid omzetten vergeleken met de browsermap (grens 1,5×) |
 | groot_import | 16 mln punten omzetten, Alle punten, Detailstrook (vraagt `testdata/groot/dijk_16mln.las`) |
 
 De projectmap-tests gebruiken de "Origin Private File System" van de browser als nep-projectmap
 (`showDirectoryPicker` wordt in de test vervangen). PDOK wordt in de tests geblokkeerd of nagemaakt.
+`natieve_map` doet hetzelfde via de nagemaakte bestands-API van de exe in `hulp.js` (met de sessiesleutel
+`H.natief.sleutel`; `H.natief.kiesRij` = wat de kiezer teruggeeft). De Go-kant heeft eigen tests:
+`go test ./...` in `bron-exe` (die draaien ook in `tools\bouw.ps1`).
 
 ## Testdata
 - `testdata/snoei_test/` — bospad (puntenwolk, as, kadaster, dijkpalen); `maak_testdata.py` maakt ze opnieuw.

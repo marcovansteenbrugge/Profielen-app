@@ -5,6 +5,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -190,15 +191,20 @@ func TestInfoLijstMapWeg(t *testing.T) {
 	p.verwacht(p.vraag("POST", "fs/map", sub, nil, nil), 204)
 	os.WriteFile(filepath.Join(sub, "a.bin"), []byte("12345"), 0o644)
 	var info struct {
+		Bestaat     bool
 		Soort, Naam string
 		Grootte     int64
 		Gewijzigd   int64
 	}
 	json.Unmarshal(p.verwacht(p.vraag("GET", "fs/info", filepath.Join(sub, "a.bin"), nil, nil), 200), &info)
-	if info.Soort != "bestand" || info.Grootte != 5 || info.Naam != "a.bin" || info.Gewijzigd == 0 {
+	if !info.Bestaat || info.Soort != "bestand" || info.Grootte != 5 || info.Naam != "a.bin" || info.Gewijzigd == 0 {
 		t.Fatalf("info klopt niet: %+v", info)
 	}
-	p.verwacht(p.vraag("GET", "fs/info", filepath.Join(sub, "bestaat-niet"), nil, nil), 404)
+	var niet struct{ Bestaat bool }
+	json.Unmarshal(p.verwacht(p.vraag("GET", "fs/info", filepath.Join(sub, "bestaat-niet"), nil, nil), 200), &niet)
+	if niet.Bestaat {
+		t.Fatal("ontbrekend bestand meldt bestaat=true")
+	}
 	var lijst []struct{ Naam, Soort string }
 	json.Unmarshal(p.verwacht(p.vraag("GET", "fs/lijst", filepath.Join(p.map_, "vakken"), nil, nil), 200), &lijst)
 	if len(lijst) != 1 || lijst[0].Naam != "0_0" || lijst[0].Soort != "map" {
@@ -379,4 +385,43 @@ func TestKiesRoute(t *testing.T) {
 	if c := <-klaar; c != 200 {
 		t.Fatalf("eerste kiezer gaf %d", c)
 	}
+}
+
+func TestSchrijvenOpPositieTegelijk(t *testing.T) {
+	p := nieuweProef(t)
+	pad := filepath.Join(p.map_, "overzicht.pvt")
+	inhoud := make([]byte, 5<<20)
+	for i := range inhoud {
+		inhoud[i] = byte(i * 7 % 253)
+	}
+	id := p.schrijfStart(pad)
+	const stuk = 1 << 20
+	klaar := make(chan int, 8)
+	for o := 0; o < len(inhoud); o += stuk {
+		go func(o int) {
+			r, _ := http.NewRequest("POST", fmt.Sprintf("%s/__pv/fs/schrijf/deel?id=%s&positie=%d", p.srv.URL, id, o), bytes.NewReader(inhoud[o:min(o+stuk, len(inhoud))]))
+			r.Header.Set(sleutelHeader, p.sleutel)
+			resp, err := http.DefaultClient.Do(r)
+			if err != nil {
+				klaar <- 0
+				return
+			}
+			resp.Body.Close()
+			klaar <- resp.StatusCode
+		}(o)
+	}
+	for o := 0; o < len(inhoud); o += stuk {
+		if c := <-klaar; c != 204 {
+			t.Fatalf("deel gaf %d", c)
+		}
+	}
+	p.verwacht(p.stroomVraag("fs/schrijf/klaar", id, nil), 204)
+	if b, _ := os.ReadFile(pad); !bytes.Equal(b, inhoud) {
+		t.Fatalf("inhoud klopt niet (%d bytes)", len(b))
+	}
+	// ongeldige positie
+	id = p.schrijfStart(pad)
+	p.verwacht(p.stroomVraag("fs/schrijf/deel", id+"&positie=-1", []byte("x")), 400)
+	p.verwacht(p.stroomVraag("fs/schrijf/deel", id+"&positie=abc", []byte("x")), 400)
+	p.verwacht(p.stroomVraag("fs/schrijf/afbreken", id, nil), 204)
 }

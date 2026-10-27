@@ -15,10 +15,11 @@ package main
 //     gebruiker zelf koos of die in de recente lijst staan). Daarbuiten 403.
 //
 // Routes (alle paden absoluut, als ?pad=):
-//   GET  /__pv/fs/info      soort, grootte, gewijzigd (ms), naam
+//   GET  /__pv/fs/info      bestaat, soort, grootte, gewijzigd (ms), naam
 //   GET  /__pv/fs/lijst     namen met soort
 //   GET  /__pv/fs/lees      de bytes; Range: bytes=a-b werkt
-//   POST /__pv/fs/schrijf/start → {id}; …/deel?id= (body erachter); …/klaar?id=
+//   POST /__pv/fs/schrijf/start → {id}; …/deel?id= (body erachter, of met &positie=
+//        op die plek, zodat stukken tegelijk kunnen); …/klaar?id=
 //        (tijdelijk bestand wordt het doel); …/afbreken?id= (doel blijft ongemoeid)
 //   POST /__pv/fs/map       map maken, met tussenmappen
 //   POST /__pv/fs/weg       verwijderen (&recursief=1 voor een map met inhoud)
@@ -38,6 +39,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -48,12 +50,15 @@ const (
 	// tijdelijke bestanden van open schrijfstromen; lijst laat ze niet zien
 	tijdelijkAchter = ".pvtmp"
 	maxStromen      = 8192
+	maxPositie      = 1 << 40 // 1 TB
 )
 
 type schrijfStroom struct {
 	doel, tijdelijk string
 	f               *os.File
-	mu              sync.Mutex
+	// delen met een positie mogen tegelijk binnenkomen (RLock); erachter schrijven en
+	// afsluiten gaan alleen (Lock)
+	mu sync.RWMutex
 }
 
 // kiesOpdracht: wat de viewer aan de Windows-kiezer vraagt
@@ -291,6 +296,12 @@ func stuurJSON(w http.ResponseWriter, v any) {
 
 func (a *bestandsAPI) info(w http.ResponseWriter, pad string) {
 	st, err := os.Stat(pad)
+	if errors.Is(err, os.ErrNotExist) {
+		// geen 404: de viewer kijkt vaak of iets al bestaat, en de browser meldt elke
+		// 404 als fout in de console
+		stuurJSON(w, map[string]any{"bestaat": false})
+		return
+	}
 	if err != nil {
 		bestandsFout(w, err)
 		return
@@ -300,7 +311,7 @@ func (a *bestandsAPI) info(w http.ResponseWriter, pad string) {
 		soort = "map"
 	}
 	stuurJSON(w, map[string]any{
-		"soort": soort, "naam": st.Name(), "grootte": st.Size(),
+		"bestaat": true, "soort": soort, "naam": st.Name(), "grootte": st.Size(),
 		"gewijzigd": st.ModTime().UnixMilli(),
 	})
 }
@@ -397,9 +408,22 @@ func (a *bestandsAPI) schrijfDeel(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "onbekende schrijfstroom", http.StatusNotFound)
 		return
 	}
-	s.mu.Lock()
-	_, err := io.Copy(s.f, r.Body)
-	s.mu.Unlock()
+	var err error
+	if p := r.URL.Query().Get("positie"); p != "" {
+		// op een vaste plek: grote bestanden komen in stukken tegelijk binnen (sneller)
+		positie, e := strconv.ParseInt(p, 10, 64)
+		if e != nil || positie < 0 || positie > maxPositie {
+			http.Error(w, "ongeldige positie", http.StatusBadRequest)
+			return
+		}
+		s.mu.RLock()
+		_, err = io.Copy(io.NewOffsetWriter(s.f, positie), r.Body)
+		s.mu.RUnlock()
+	} else {
+		s.mu.Lock()
+		_, err = io.Copy(s.f, r.Body)
+		s.mu.Unlock()
+	}
 	if err != nil {
 		bestandsFout(w, err)
 		return
