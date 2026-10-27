@@ -25,7 +25,7 @@ Marco komt daar los bij.
 
 | Fase | Omvang | Uitvoer-tokens (schatting) | Werktijd Claude (schatting) | Nodig van Marco | Onzekerheid | Gemeten tokens | Gemeten tijd |
 |---|---|---|---|---|---|---|---|
-| F0 LAS en vakken in Go | L | 60.000–90.000 | 1–2 uur | niets | middel | - | - |
+| F0 LAS en vakken in Go | L | 60.000–90.000 | 1–2 uur | niets | middel | 50.765 | 16:49–17:05 (16 min) |
 | F1 PTS | M | 25.000–35.000 | 20–40 min | niets | laag | - | - |
 | F2 viewer laat de exe omzetten | L | 50.000–80.000 | 1–2 uur | B3, B4; test met een grote LAS | middel | - | - |
 | F3 oplevering 2.11.0 | S | ± 15.000 | ± 15 min | handmatige lijst | laag | - | - |

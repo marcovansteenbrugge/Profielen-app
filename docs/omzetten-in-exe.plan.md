@@ -2,8 +2,8 @@
 plan: omzetten-in-exe
 titel: Grote scans omzetten in het programma zelf (versie 2.11)
 versie: 1
-status: deels-vrijgegeven        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ▶ · F1 ○ · F2 ⏳ · F3 ○ · F4 ○ · F5 ⏳ · F6 ○           # berekend door de skill
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ✅ · F1 ○ · F2 ⏳ · F3 ○ · F4 ○ · F5 ⏳ · F6 ○           # berekend door de skill
 opgesteld: 2026-10-27
 opgesteld_door: Claude Code, in opdracht van Marco van Steenbrugge
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
@@ -91,7 +91,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ▶ vrijgegeven | Tegelschrijver, overzichten en `info.json` in Go (`omzet_tegels.go`) en de LAS-lezer (`omzet_las.go`), parallel lezen met ordelijke uitvoer; `cmd/pvomzet` voor de tests | `go vet` schoon en `go test ./...` groen, met tests voor afronding van halve millimeters (ook negatief) en voor 8- en 16-bits kleur. Nieuwe test `tests/omzetten_exe.test.js`: `dijk_begroeid.las` via de viewer en via `pvomzet` geeft byte voor byte dezelfde vakken, `overzicht.pvt`, `overzicht_maaiveld.pvt` en `info.json` (zonder `gemaakt`, `viewer`, `duurImport`), in modus boven en onder; "fouten: geen". Tijd van `pvomzet` op die scan gemeten en genoteerd | B1, B2 | L | Claude Code, high | `F0:` |
+| F0 | ✅ gebouwd | Tegelschrijver, overzichten en `info.json` in Go (`omzet_tegels.go`) en de LAS-lezer (`omzet_las.go`), parallel lezen met ordelijke uitvoer; `cmd/pvomzet` voor de tests | `go vet` schoon en `go test ./...` groen, met tests voor afronding van halve millimeters (ook negatief) en voor 8- en 16-bits kleur. Nieuwe test `tests/omzetten_exe.test.js`: `dijk_begroeid.las` via de viewer en via `pvomzet` geeft byte voor byte dezelfde vakken, `overzicht.pvt`, `overzicht_maaiveld.pvt` en `info.json` (zonder `gemaakt`, `viewer`, `duurImport`), in modus boven en onder; "fouten: geen". Tijd van `pvomzet` op die scan gemeten en genoteerd | B1, B2 | L | Claude Code, high | `F0:` |
 | F1 | ○ niet vrijgegeven | PTS-lezer in Go (`omzet_pts.go`), parallel in blokken op regelgrens, met dezelfde kolomherkenning als `leesPts` | `go test ./...` groen. `tests/omzetten_exe.test.js` vergelijkt ook `bospad_scan.pts` (met kleur) en `bodem_multibeam.pts` (zonder kleur) byte voor byte; "fouten: geen" | F0 | M | Claude Code, medium | `F1:` |
 | F2 | ⏳ wacht op B3, B4 | Omzettaak in de exe (`/__pv/omzet/start`, `/stand`, `/afbreken`) met sessiesleutel en toegestane mappen; tijdelijke map en pas na afloop op zijn plek. In de viewer: Windows-kiezer voor "Openen…" (B3), omzetten via de exe met voortgang en Afbreken, terugval (B4). `tests/hulp.js` doet de omzettaak na met `pvomzet` | `go test ./...` groen met tests voor: zonder sleutel 403, bron of doel buiten toegestane mappen 403, afbreken laat geen vakken achter, tweede taak tegelijk 409. `node run_alle.js` helemaal groen; in een nieuwe test opent een LAS via de kiezer, wordt omgezet via de exe-taak (zichtbaar in de testserver), toont voortgang en opent daarna; afbreken laat de map leeg en de viewer bruikbaar. Marco bevestigt op zijn laptop: een grote LAS (bijvoorbeeld Halsteren) via Openen… zet om met voortgang, Afbreken werkt, en de tijd staat in de statusregel | F1, B3, B4 | L | Claude Code, high | `F2:` |
 | F3 | ○ niet vrijgegeven | Oplevering 2.11.0: `zet_versie.py 2.11.0` (andere lengte: `.syso` opnieuw), LEESMIJ-blok "Nieuw in 2.11.0", handleiding, `tools/bouw.ps1`, tag `v2.11.0` | `node run_alle.js` en `go test ./...` groen; `dist\Lutrea-Profielviewer-2.11.0.exe` en de zip bestaan; Marco bevestigt de handmatige lijst: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT, en met `--browservenster` werkt alles zoals in 2.10.2 | F0, F1, F2 | S | Claude Code, medium | `F3:` en `2.11.0:` |
@@ -129,6 +129,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
+| F0 | 2026-10-27 16:49 | 2026-10-27 17:05 | Marco van Steenbrugge ("F0 vrijgegeven") | Claude Code, claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | medium | 46 / 50.765 | bd8f1c8 | transcript (Claude Code 2.1.308) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -137,12 +138,23 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 
 | Fase | Tijdstip | Criterium | Controle en uitkomst | Oordeel |
 |---|---|---|---|---|
+| F0 | 2026-10-27 17:05 | `go vet` schoon | `CGO_ENABLED=0 go vet ./...` in `bron-exe` (met tijdelijke map `app`): "VET-SCHOON" | gehaald |
+| F0 | 2026-10-27 17:05 | `go test ./...` groen | `CGO_ENABLED=0 go test -count=1 ./...`: "ok ptsviewer" en "ok ptsviewer/omzet", 22 tests PASS (7 nieuw in `omzet/omzet_test.go`) | gehaald |
+| F0 | 2026-10-27 17:05 | Test voor afronding van halve millimeters (ook negatief) | `TestRondZoalsJavaScript` (2,5 → 3; −2,5 → −2; −0,5 → 0; 0,49999999999999994 → 0; …), `TestNaarInt32ZoalsJavaScript` en `TestSchrijverHalveMillimeter` (z = −0,5 mm wordt 0, −1002,5 mm wordt −1002, zoals Math.round): PASS | gehaald |
+| F0 | 2026-10-27 17:05 | Test voor 8- en 16-bits kleur | `TestSchrijverKleurdiepte`: 8-bits (rood 200 blijft 200, een latere 40000 wordt 255), 16-bits (51200 wordt 200, 40000 wordt 156), geen kleur: PASS | gehaald |
+| F0 | 2026-10-27 17:05 | Nieuwe test `tests/omzetten_exe.test.js`: `dijk_begroeid.las` via de viewer en via `pvomzet` byte voor byte dezelfde vakken, `overzicht.pvt`, `overzicht_maaiveld.pvt` en `info.json` (zonder `gemaakt`, `viewer`, `duurImport`), in modus boven en onder | Modus boven en onder: "vakken: 16 van 16 byte voor byte gelijk (48.0 MB)", "overzicht.pvt: gelijk", "overzicht_maaiveld.pvt: gelijk", "info.json: gelijk (zonder gemaakt, viewer, duurImport)"; ook `bron.gewijzigd` gelijk | gehaald |
+| F0 | 2026-10-27 17:05 | "fouten: geen" | `node omzetten_exe.test.js`: "fouten: geen"; in `node run_alle.js` (17:04): 16 van 16 OK, "Alle tests geslaagd" | gehaald |
+| F0 | 2026-10-27 17:05 | Tijd van `pvomzet` op die scan gemeten en genoteerd | `pvomzet` op `dijk_begroeid.las` (3 mln punten, 24 logische processors): 2,35 / 2,42 / 2,43 s (drie runs), in de test 2,4 tot 2,7 s. Ter vergelijking: de viewer deed in dezelfde test 12,5 s tot en met laden; het omzetten zelf duurde daarin ± 7 s (meting F2 van plan eigen-bestandstoegang). De eerste Go-versie deed 7,0 s; de winst komt uit dunUit (zie punt 12) | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
 
 | Fase | Wat week af van het plan | Waarom |
 |---|---|---|
+| F0 | Effort medium in plaats van gepland high | Reden onbekend (effort-instelling van de sessie) |
+| F0 | De omzetcode staat in een eigen package `bron-exe/omzet` in plaats van in het hoofdpackage | `cmd/pvomzet` kan het hoofdpackage (package main) niet gebruiken; zo delen exe en testprogramma dezelfde code |
+| F0 | `dunUit` en de uitdunners gebruiken in Go een andere hash, en `dunUit` een vast raster over de kernen in plaats van de hashtabel | De eerste letterlijke vertaling deed 7,0 s, driekwart in `dunUit` (ook in de viewer ± 4 s). Welk punt per cel blijft en de volgorde hangen alleen af van de cel en de punten, niet van de tabel; `TestDunUitZelfdeAlsViewer` toetst het raster tegen de werkwijze van de viewer, en de gelijkheidstest bevestigt het. Daarna 2,4 s |
+| F0 | De vakken worden nog direct in de doelmap geschreven; een map met vakken wordt geweigerd | De tijdelijke map en het pas-na-afloop-op-zijn-plek-zetten horen bij de omzettaak in F2 |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
