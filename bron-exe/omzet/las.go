@@ -150,7 +150,7 @@ func LeesLas(ctx context.Context, f *os.File, kop *LasKop, s *Schrijver, voortga
 		}
 		for i := range b.x {
 			if metKleur {
-				s.VoegToe(b.x[i], b.y[i], b.z[i], b.r[i], b.g[i], b.b[i], true, b.k[i])
+				s.VoegToe(b.x[i], b.y[i], b.z[i], float64(b.r[i]), float64(b.g[i]), float64(b.b[i]), true, b.k[i])
 			} else {
 				s.VoegToe(b.x[i], b.y[i], b.z[i], 0, 0, 0, false, b.k[i])
 			}

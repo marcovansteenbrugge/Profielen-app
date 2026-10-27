@@ -50,6 +50,10 @@ func Omzet(ctx context.Context, o Opdracht, voortgang Voortgang) (*Info, error) 
 		if err := LeesLas(ctx, f, kop, s, voortgang); err != nil {
 			return nil, err
 		}
+	case ".pts", ".txt":
+		if err := LeesPts(ctx, f, s, voortgang); err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("%s: dit formaat zet het programma (nog) niet om", filepath.Base(o.Bron))
 	}

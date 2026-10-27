@@ -37,7 +37,7 @@ type vak struct {
 
 type punt struct {
 	x, y, z  float64
-	r, g, b  uint16
+	r, g, b  float64
 	metKleur bool
 	k        uint8
 }
@@ -52,9 +52,9 @@ type Schrijver struct {
 	vakken     map[int64]*vak
 	volgorde   []*vak
 	gezien     int64
-	kleurMax   uint16
+	kleurMax   float64
 	metKleur   bool
-	deler      uint16 // 0 = nog niet bepaald
+	deler      float64 // 0 = nog niet bepaald
 	voorraad   []punt
 	minX, maxX float64
 	minY, maxY float64
@@ -92,11 +92,11 @@ func (s *Schrijver) schrijf(p punt) {
 	binary.LittleEndian.PutUint32(rec[4:], uint32(naarInt32(rond(float64((p.y-s.oy)*1000)))))
 	binary.LittleEndian.PutUint32(rec[8:], uint32(naarInt32(rond(float64(p.z*1000)))))
 	rec[12] = p.k
-	var r8, g8, b8 uint16
+	var r8, g8, b8 float64
 	if p.metKleur {
-		r8, g8, b8 = min(255, p.r/s.deler), min(255, p.g/s.deler), min(255, p.b/s.deler)
+		r8, g8, b8 = math.Min(255, math.Floor(p.r/s.deler)), math.Min(255, math.Floor(p.g/s.deler)), math.Min(255, math.Floor(p.b/s.deler))
 	}
-	rec[13], rec[14], rec[15] = byte(r8), byte(g8), byte(b8)
+	rec[13], rec[14], rec[15] = naarUint8(r8), naarUint8(g8), naarUint8(b8)
 	if p.z < t.minZ {
 		t.minZ = p.z
 	}
@@ -134,8 +134,9 @@ func (s *Schrijver) bepaalDeler() {
 	}
 }
 
-// VoegToe is voegToe(x, y, z, r, g, b, k); metKleur = false is "r is undefined".
-func (s *Schrijver) VoegToe(x, y, z float64, r, g, b uint16, metKleur bool, k uint8) {
+// VoegToe is voegToe(x, y, z, r, g, b, k); metKleur = false is "r is undefined". De kleur is een
+// getal zoals in JavaScript (LAS: 0 tot 65535; PTS: wat er in het bestand staat).
+func (s *Schrijver) VoegToe(x, y, z float64, r, g, b float64, metKleur bool, k uint8) {
 	s.gezien++
 	if !s.oorsprong {
 		s.ox, s.oy, s.oorsprong = math.Floor(x/1000)*1000, math.Floor(y/1000)*1000, true

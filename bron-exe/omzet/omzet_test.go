@@ -102,9 +102,9 @@ func TestSchrijverKleurdiepte(t *testing.T) {
 			d := t.TempDir()
 			s := NieuweSchrijver(d, false)
 			for i := 0; i < voorraadPunten; i++ {
-				s.VoegToe(82010+float64(i%1000)*0.01, 389010+float64(i/1000)*0.01, 1, geval.r, geval.r, geval.r, true, 1)
+				s.VoegToe(82010+float64(i%1000)*0.01, 389010+float64(i/1000)*0.01, 1, float64(geval.r), float64(geval.r), float64(geval.r), true, 1)
 			}
-			s.VoegToe(82020, 389020, 1, geval.later, geval.later, geval.later, true, 1)
+			s.VoegToe(82020, 389020, 1, float64(geval.later), float64(geval.later), float64(geval.later), true, 1)
 			info, _, _, err := s.Afronden()
 			if err != nil {
 				t.Fatal(err)

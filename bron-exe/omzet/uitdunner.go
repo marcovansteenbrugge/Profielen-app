@@ -38,6 +38,11 @@ func naarInt32(v float64) int32 {
 	return int32(uint32(int64(math.Trunc(math.Mod(v, 4294967296)))))
 }
 
+// naarUint16 en naarUint8 zijn ToUint16 en ToUint8 van JavaScript (Uint16Array en
+// DataView.setUint8): afkappen en rondlopen; NaN en oneindig worden 0.
+func naarUint16(v float64) uint16 { return uint16(naarInt32(v)) }
+func naarUint8(v float64) uint8   { return uint8(naarInt32(v)) }
+
 // celHash: hash van een cel (i, j) voor de hashtabellen hieronder. De viewer gebruikt
 // Math.imul(i ^ Math.imul(j, 0x85EBCA77), 0x9E3779B1); welk punt per cel overblijft en in
 // welke volgorde hangt daar niet van af (alleen van de cel en de punten), dus hier een
@@ -73,7 +78,7 @@ type Uitdunner struct {
 	kk         []uint8
 	ci, cj     []int32
 	metKleur   bool
-	kleurMax   uint16
+	kleurMax   float64
 	tgrootte   int
 	masker     uint32
 	tab        []int32
@@ -145,8 +150,10 @@ func (u *Uitdunner) vergroof() {
 	}
 }
 
-// VoegToe is voegToe(x, y, z, r, g, b); metKleur = false is "r is undefined".
-func (u *Uitdunner) VoegToe(x, y, z float64, r, g, b uint16, metKleur bool) {
+// VoegToe is voegToe(x, y, z, r, g, b); metKleur = false is "r is undefined". De kleur is een
+// getal zoals in JavaScript (uit een PTS kan dat een kommagetal of negatief zijn); opgeslagen
+// zoals Uint16Array dat doet.
+func (u *Uitdunner) VoegToe(x, y, z float64, r, g, b float64, metKleur bool) {
 	u.gezien++
 	if !u.oorsprong {
 		u.ox, u.oy, u.oorsprong = x, y, true
@@ -167,7 +174,7 @@ func (u *Uitdunner) VoegToe(x, y, z float64, r, g, b uint16, metKleur bool) {
 		u.kx[p], u.ky[p], u.kz[p] = x, y, z
 		if metKleur {
 			u.houdKleurMax(r, g, b)
-			u.kr[p], u.kg[p], u.kb[p], u.kk[p] = r, g, b, 1
+			u.kr[p], u.kg[p], u.kb[p], u.kk[p] = naarUint16(r), naarUint16(g), naarUint16(b), 1
 		}
 		return
 	}
@@ -179,7 +186,7 @@ func (u *Uitdunner) VoegToe(x, y, z float64, r, g, b uint16, metKleur bool) {
 	if metKleur {
 		u.metKleur = true
 		u.houdKleurMax(r, g, b)
-		u.kr, u.kg, u.kb, u.kk = append(u.kr, r), append(u.kg, g), append(u.kb, b), append(u.kk, 1)
+		u.kr, u.kg, u.kb, u.kk = append(u.kr, naarUint16(r)), append(u.kg, naarUint16(g)), append(u.kb, naarUint16(b)), append(u.kk, 1)
 	} else {
 		u.kr, u.kg, u.kb, u.kk = append(u.kr, 0), append(u.kg, 0), append(u.kb, 0), append(u.kk, 0)
 	}
@@ -201,7 +208,7 @@ func (u *Uitdunner) kort() {
 	u.ci, u.cj = u.ci[:u.n], u.cj[:u.n]
 }
 
-func (u *Uitdunner) houdKleurMax(r, g, b uint16) {
+func (u *Uitdunner) houdKleurMax(r, g, b float64) {
 	if r > u.kleurMax {
 		u.kleurMax = r
 	}
@@ -224,7 +231,7 @@ func (u *Uitdunner) Resultaat() Punten {
 		Zs: append([]float64(nil), u.kz[:u.n]...),
 	}
 	if u.metKleur && u.kleurMax > 0 { // alle kleurvelden 0 = geen kleur
-		deler := uint16(1)
+		deler := 1.0
 		if u.kleurMax > 255 {
 			deler = 256
 		}
@@ -234,7 +241,7 @@ func (u *Uitdunner) Resultaat() Punten {
 				p.Cs[i] = 0x808080
 				continue
 			}
-			r, g, b := min(255, u.kr[i]/deler), min(255, u.kg[i]/deler), min(255, u.kb[i]/deler)
+			r, g, b := math.Min(255, math.Floor(float64(u.kr[i])/deler)), math.Min(255, math.Floor(float64(u.kg[i])/deler)), math.Min(255, math.Floor(float64(u.kb[i])/deler))
 			p.Cs[i] = uint32(r)<<16 | uint32(g)<<8 | uint32(b)
 		}
 	}

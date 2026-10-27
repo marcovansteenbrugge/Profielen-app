@@ -1,12 +1,43 @@
 // Omzetten in de exe (2.11, plan omzetten-in-exe, besluit B2): de exe-code (bron-exe/omzet, via
 // pvomzet) maakt byte voor byte dezelfde vakken, overzichten en info.json als de viewer.
 // De viewer zet om via de eigen bestandstoegang (zoals in het eigen venster), in modus boven en onder.
-// Gebruik: node omzetten_exe.test.js [scan ...]   (standaard testdata/groot/dijk_begroeid.las)
+// Gebruik: node omzetten_exe.test.js [scan ...]   (standaard dijk_begroeid.las, twee PTS uit testdata en drie lastige PTS)
 const fs = require('fs'), path = require('path'), { spawnSync } = require('child_process');
 const H = require('./hulp');
 const { chromium } = H;
 const UIT = path.join(H.UIT, 'omzetten');
-const scans = process.argv.slice(2).length ? process.argv.slice(2).map(s => path.resolve(s)) : [H.data('groot', 'dijk_begroeid.las')];
+/** PTS-bestanden met lastige gevallen, gemaakt uit bospad_scan.pts (zelfde regels als de viewer moeten gelden). */
+function maakLastigePts() {
+  const regels = fs.readFileSync(H.data('snoei_test', 'bospad_scan.pts'), 'utf8').split(/\r?\n/).slice(1).filter(Boolean);
+  const pt = (i) => regels[i].split(' ');   // x y z i r g b
+  const uit = [], schrijf = (naam, tekst) => { const f = path.join(UIT, naam); fs.writeFileSync(f, tekst); uit.push(f); };
+  // zonder kleur, zonder aantal-regel, komma's, BOM, gemengde regeleinden, lege en ongeldige regels
+  let t = '\ufeff';
+  for (let i = 0; i < regels.length; i += 3) {
+    const [x, y, z] = pt(i);
+    t += (i % 7 === 0 ? `${x},${y},${z}` : i % 5 === 0 ? `  ${x}\t${y}  ${z}  ` : `${x} ${y} ${z}`) + (i % 11 === 0 ? '\r' : i % 13 === 0 ? '\r\n\r\n' : '\n');
+    if (i === 300) t += 'dit is geen punt\n';
+    if (i === 600) t += 'NaN 1 2\n';
+  }
+  schrijf('zonder_kleur.pts', t);
+  // 10 kolommen (x y z i r g b nx ny nz) met tabs
+  t = `${Math.floor(regels.length / 2)}\n`;
+  for (let i = 0; i < regels.length; i += 2) { const [x, y, z, n, r, g, b] = pt(i); t += [x, y, z, n, r, g, b, '0.1', '0.2', '0.97'].join('\t') + '\n'; }
+  schrijf('tien_kolommen.pts', t);
+  // 6 kolommen (x y z r g b) met rare kleuren later in het bestand, en een aantal dat eerder stopt
+  t = `${Math.floor(regels.length / 4) - 500}\r\n`;
+  for (let i = 0; i < regels.length; i += 4) {
+    const [x, y, z, , r, g, b] = pt(i);
+    const k = i / 4;
+    const kleur = k < 10 ? [r, g, b] : k % 97 === 0 ? ['300', '-5', '12.7'] : k % 89 === 0 ? [r, g] : k % 83 === 0 ? ['0x1f', '1e2', ''] : [r, g, b];
+    t += [x, y, z, ...kleur].join(' ') + '\r\n';
+  }
+  schrijf('zes_kolommen.pts', t);
+  return uit;
+}
+fs.mkdirSync(UIT, { recursive: true });
+const scans = process.argv.slice(2).length ? process.argv.slice(2).map(s => path.resolve(s))
+  : [H.data('groot', 'dijk_begroeid.las'), H.data('snoei_test', 'bospad_scan.pts'), H.data('doorvaart_test', 'bodem_multibeam.pts'), ...maakLastigePts()];
 
 /** pvomzet bouwen (Go, zonder cgo). */
 function bouwPvomzet() {
@@ -32,8 +63,7 @@ function verschil(a, b) {
 
 (async () => {
   await H.start();
-  fs.rmSync(UIT, { recursive: true, force: true });
-  fs.mkdirSync(UIT, { recursive: true });
+  for (const n of fs.readdirSync(UIT)) if (/^(viewer|exe)_/.test(n)) fs.rmSync(path.join(UIT, n), { recursive: true, force: true });
   const fouten = [];
   const pvomzet = bouwPvomzet();
   const b = await chromium.launch({ ...H.browserOpties(), args: ['--no-sandbox'] });
