@@ -3,7 +3,7 @@ plan: webview2-venster
 titel: Eigen programmavenster met WebView2 (versie 2.10.0)
 versie: 1
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ✅ · F2 ▶ · F3 ○           # berekend door de skill
+voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ○           # berekend door de skill
 opgesteld: 2026-10-26
 opgesteld_door: Claude Code, in opdracht van Marco van Steenbrugge
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
@@ -78,7 +78,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 |---|---|---|---|---|---|---|---|
 | F0 | ✅ gebouwd | Eigen WebView2-venster: binding in `go.mod`, venster naar de bestaande server, titel met versie, icoon, gemaximaliseerd, gegevensmap, venster dicht = proces stopt, Afsluiten-knop sluit het venster, terugval op Chrome/Edge (automatisch en handmatig), DevTools alleen met `PV_DEVTOOLS=1` | `GOOS=windows CGO_ENABLED=0 go build` slaagt en `go vet` is schoon. Marco bevestigt op zijn laptop: venster opent binnen 3 s zonder Chrome-profiel; sluiten (kruisje en Afsluiten-knop) stopt het proces (Taakbeheer); met `--browservenster` opent het oude venster; F12 doet niets zonder `PV_DEVTOOLS=1` | B1, B2 | M | Claude Code, high | `F0:` |
 | F1 | ✅ gebouwd | Eén exemplaar (`/__ptsviewer/voorgrond`) en venster onthouden (`venster.json`) | Build slaagt. Marco bevestigt: tweede start opent geen tweede venster en brengt het bestaande naar voren; positie en grootte zijn na herstart hetzelfde; buiten beeld → gemaximaliseerd | F0 | S | Claude Code, medium | `F1:` |
-| F2 | ▶ vrijgegeven | Instellingen overnemen volgens B3 | Volgens B3. Bij het voorstel: nieuwe test in `tests/` die exporteren en importeren van `ptsviewer-*`/`pv.*` toetst en `fouten: geen` geeft; Marco bevestigt dat zijn PDF-stempel na import in het nieuwe venster staat | F0, B3 | S | Claude Code, medium | `F2:` |
+| F2 | ✅ gebouwd | Instellingen overnemen volgens B3 | Volgens B3. Bij het voorstel: nieuwe test in `tests/` die exporteren en importeren van `ptsviewer-*`/`pv.*` toetst en `fouten: geen` geeft; Marco bevestigt dat zijn PDF-stempel na import in het nieuwe venster staat | F0, B3 | S | Claude Code, medium | `F2:` |
 | F3 | ○ niet vrijgegeven | Oplevering 2.10.0: `zet_versie.py 2.10.0`, `.syso` opnieuw, LEESMIJ-blok "Nieuw in 2.10.0", handleiding, `tools/bouw.ps1`, tag `v2.10.0` | `node run_alle.js` helemaal groen (Marco's laptop of hier met Chromium); `dist\Lutrea-Profielviewer-2.10.0.exe` en de zip bestaan; Marco bevestigt de handmatige lijst: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT (PDOK) | F0, F1, F2 | S | Claude Code, medium | `F3:` en `2.10.0:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix; de opleveringscommit volgt de projectregel `2.10.0: <wat>` met tag `v2.10.0`.
@@ -111,6 +111,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 |---|---|---|---|---|---|---|---|---|
 | F0 | 2026-10-26 23:09 | 2026-10-26 23:28 | Marco van Steenbrugge | Bouw: Claude Code, sessie session_01CGaZKrr6zGoWaXP63so657, model onbekend (commit-trailer noemt Claude Opus 5.5). Toetsing: claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | bouw onbekend; toetsing medium | bouw onbekend; toetsing 70 / 9.386 | b313806 | git (bouw); transcript Claude Code 2.1.308 (toetsing) |
 | F1 | 2026-10-26 23:29 | 2026-10-26 23:43 | Marco van Steenbrugge | claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | medium | 104 / 31.613 | 214d055 | transcript Claude Code 2.1.308 (interval bevat ook de scan-update, zie punt 12) |
+| F2 | 2026-10-26 23:46 | 2026-10-27 08:56 | Marco van Steenbrugge | claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | medium | 60 / 19.225 | d89d56c, 2a4119b | transcript Claude Code 2.1.308 (interval bevat de nacht tot Marco's controle, zie punt 12) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -134,6 +135,9 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F2 | 2026-10-26 23:51 | Nieuwe test in `tests/` die exporteren en importeren van `ptsviewer-*`/`pv.*` toetst | `node instellingen.test.js`: export bevat ptsviewer-klantlogo, ptsviewer-pdf-v1, ptsviewer-puntdichtheid, pv.drieDLagen (geen pv.bezig, geen vreemde sleutel); vreemd bestand geweigerd; na import in een leeg profiel "PDF-stempel gelijk"; "fouten: geen" | gehaald |
 | F2 | 2026-10-26 23:51 | De test geeft `fouten: geen` (en de suite blijft groen) | `node run_alle.js` (Edge): 14 van 14 OK, waaronder instellingen.test.js, "Alle tests geslaagd", exit 0 | gehaald |
 | F2 | 2026-10-26 23:51 | Marco bevestigt dat zijn PDF-stempel na import in het nieuwe venster staat | Nog niet beoordeeld: Marco is na 23:46 offline; bevestiging volgt | niet toetsbaar |
+| F2 | 2026-10-27 08:55 | Nieuwe test in `tests/` die exporteren en importeren van `ptsviewer-*`/`pv.*` toetst | `node instellingen.test.js` opnieuw (08:55): export bevat ptsviewer-klantlogo, ptsviewer-pdf-v1, ptsviewer-puntdichtheid, pv.drieDLagen; vreemd bestand geweigerd ("… is geen instellingenbestand van de Profielviewer …"); na import "PDF-stempel gelijk · puntdichtheid 3000000"; "fouten: geen" | gehaald |
+| F2 | 2026-10-27 08:55 | De test geeft `fouten: geen` (en de suite blijft groen) | `node instellingen.test.js` 08:55: "fouten: geen"; `node run_alle.js` (Edge, 2026-10-26 23:51, sindsdien geen codewijziging, commit d89d56c): 14 van 14 OK, "Alle tests geslaagd", exit 0 | gehaald |
+| F2 | 2026-10-27 08:55 | Marco bevestigt dat zijn PDF-stempel na import in het nieuwe venster staat | Marco van Steenbrugge, 2026-10-27 08:55, via chat: "Ja, mijn PDF-stempel staat na importeren in het nieuwe venster." | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
@@ -146,6 +150,7 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 | F0 | Open vraag projectmap/service worker: alleen deels getoetst. Marco, via chat: "hij is halsteren aan het inlezen.. dus ja"; de service worker (`/sw.js`) wordt opgevraagd (log) | geen F0-criterium; de projectmap-toestemmingen blijven een aandachtspunt voor fase C |
 | F1 | Het meetinterval (23:29–23:43) bevat ook het bijwerken van de BRBNT-scan naar v1.2 op verzoek van Marco; tokens zijn dus niet alleen F1 | tussendoor gevraagd via /brbnt-scan |
 | F1 | Waargenomen, niet opgelost: een tweede start overschrijft `PTS-viewer\log.txt` terwijl het eerste proces erin schrijft (NUL-tekens in de log). Bestond al vóór F1 (`startLog` in `main.go`), maar komt nu vaker voor | buiten de scope van F1; voorstel voor F3 of een losse fix |
+| F2 | Het meetinterval (23:46–08:56) bevat de nacht: de bouw was om 23:51 klaar, de laatste controle (PDF-stempel) deed Marco de volgende ochtend | Marco ging na de vrijgave offline |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |

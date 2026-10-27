@@ -11,8 +11,8 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen programmavenster met WebView2 (versie 2.10.0)
 
-> **Nu van jou gevraagd:** controleer F2: start de viewer met `--browservenster`, kies onder Project bij "instellingen" **Exporteren…**, sluit, start de viewer gewoon, kies **Importeren…** met dat bestand en kijk of je PDF-stempel in het PDF-venster staat. Zeg daarna of het klopt.
-> **Later nodig:** vrijgave van **F3** (oplevering 2.10.0).
+> **Nu van jou gevraagd:** vrijgave van **F3** (oplevering 2.10.0): zeg "F3 vrijgegeven" als je wilt dat ik de versie 2.10.0 opbouw.
+> **Later nodig:** niets.
 
 De Profielviewer opent straks in een eigen Windows-venster in plaats van in een kaal Chrome- of Edge-venster, zonder welkomstschermen of een apart browserprofiel. De viewer zelf blijft hetzelfde; het werk gaat in vier fasen, en elke fase start pas na jouw akkoord.
 
@@ -23,7 +23,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 |---|---|---|---|---|---|
 | F0 | Eigen venster: openen, sluiten, Afsluiten-knop, noodroute naar het oude venster | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 22:09 | B1, B2 | ✅ 2026-10-26 23:28 |
 | F1 | Eén venster tegelijk, en het venster onthoudt plek en grootte | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 22:09 | - | ✅ 2026-10-26 23:43 |
-| F2 | Instellingen meenemen uit het oude venster | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 23:46 | B3 | - |
+| F2 | Instellingen meenemen uit het oude venster | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 23:46 | B3 | ✅ 2026-10-27 08:56 |
 | F3 | Oplevering 2.10.0: versie, LEESMIJ, handleiding, tests, exe en zip | ○ nog niet | - | - | - |
 
 Letterlijk akkoord (F0 tot en met F1, via chat): "akkoord voor bouwen F0 en F1"
@@ -107,5 +107,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-26 23:45 | B3 akkoord met voorstel ("B3 akkoord") | Marco van Steenbrugge, via chat |
 | 2026-10-26 23:46 | Vrijgave F2 op planversie 1 ("F2 vrijgegeven"); daarna toestemming: "daarna mag je alles pushen en committen" | Marco van Steenbrugge, via chat |
 | 2026-10-26 23:51 | F2 uitgevoerd en automatisch getoetst (alle tests groen); wacht op Marco's controle van de PDF-stempel | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 08:55 | Marco bevestigt: "Ja, mijn PDF-stempel staat na importeren in het nieuwe venster." | Marco van Steenbrugge, via chat |
+| 2026-10-27 08:56 | F2 gebouwd en per criterium getoetst | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
