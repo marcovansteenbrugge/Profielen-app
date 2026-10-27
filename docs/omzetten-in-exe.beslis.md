@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** niets; F2 wordt gebouwd. Daarna een controle op je laptop met een grote LAS.
+> **Nu van jou gevraagd:** de controle van F2 op je laptop met `dist\proef\Lutrea-Profielviewer-2.11-proef.exe`: een grote LAS (bijvoorbeeld Halsteren) via Openen… omzetten (voortgang zichtbaar, tijd in de statusregel), en één keer Afbreken proberen.
 > **Later nodig:** B5 vóór F5 (na de proef in F4); vrijgave van F3 tot en met F6.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.1), dat begint met een proef. Elke fase start pas na jouw akkoord.
@@ -149,5 +149,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 17:16 | F1 gebouwd en per criterium getoetst: ook PTS-bestanden geven byte voor byte dezelfde vakken als de viewer, ook bij lastige bestanden | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 17:17 | B3 en B4 akkoord met voorstel ("B3 en B4 akkoord met jullie voorstel.") | Marco van Steenbrugge, via chat |
 | 2026-10-27 17:18 | Vrijgave F2 op planversie 1 ("F2 vrijgegeven") | Marco van Steenbrugge, via chat |
+| 2026-10-27 17:49 | F2 uitgevoerd en automatisch getoetst (alle tests groen; 16 mln punten in ± 10 s tegen ± 37 s in de viewer); proefversie klaar, wacht op Marco's controle | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
