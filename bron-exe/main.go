@@ -51,6 +51,8 @@ var (
 	// naarVoren haalt het eigen WebView2-venster naar voren (nil = geen eigen venster,
 	// bv. bij de terugvaloptie)
 	naarVoren atomic.Pointer[func()]
+	// bestandsapi: eigen bestandstoegang van het eigen venster (bestanden.go)
+	bestandsapi *bestandsAPI
 )
 
 // Logbestand in %LOCALAPPDATA%\Lutrea\PTS-viewer\log.txt — handig als het
@@ -177,6 +179,10 @@ func main() {
 		(*f)()
 		w.WriteHeader(http.StatusNoContent)
 	})
+	// eigen bestandstoegang (/__pv/), alleen open voor het eigen venster
+	bestandsapi = nieuweBestandsAPI(poort)
+	defer bestandsapi.ruimOp()
+	bestandsapi.registreer(mux)
 	bestanden := http.FileServer(http.FS(inhoud))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store, must-revalidate")

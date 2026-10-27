@@ -130,6 +130,15 @@ func openWebView2(url string) bool {
 		w.Destroy()
 	}()
 
+	// sessiesleutel voor de eigen bestandstoegang: staat in de pagina vóór de eigen
+	// scripts; een gewone browser op deze pc heeft hem niet
+	if bestandsapi != nil {
+		if sl := bestandsapi.geefSleutel(); sl != "" {
+			natief, _ := json.Marshal(map[string]string{"sleutel": sl, "versie": appVersie})
+			w.Init("window.__pvNatief = Object.freeze(" + string(natief) + ");")
+		}
+	}
+
 	w.Navigate(url)
 	w.Run()
 	return true

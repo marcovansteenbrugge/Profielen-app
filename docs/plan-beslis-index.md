@@ -6,7 +6,7 @@
 
 | Naam | Titel | Status | Voortgang per fase | Wacht op jou | Beslisser | Laatst vrijgegeven | Samenvatting | Trefwoorden |
 |---|---|---|---|---|---|---|---|---|
-| eigen-bestandstoegang | Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2) | ter-akkoord | F0 ○ · F1 ○ · F2 ○ · F3 ○ · F4 ○ | vrijgave F0 | Marco van Steenbrugge, eigenaar van de Profielviewer | - | De exe leest en schrijft de bestanden van de viewer zelf, zodat er geen toestemmingsvragen meer zijn en de exe later (fase E) zelf met paden kan werken; fase C van PLAN-2.10. | bestandstoegang, projectmap, toestemming, exe, go, webview2, token, 2.10.2, recente projecten, pvproj |
+| eigen-bestandstoegang | Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2) | deels-vrijgegeven | F0 ▶ · F1 ○ · F2 ○ · F3 ○ · F4 ○ | - | Marco van Steenbrugge, eigenaar van de Profielviewer | F0, 2026-10-27 | De exe leest en schrijft de bestanden van de viewer zelf, zodat er geen toestemmingsvragen meer zijn en de exe later (fase E) zelf met paden kan werken; fase C van PLAN-2.10. | bestandstoegang, projectmap, toestemming, exe, go, webview2, token, 2.10.2, recente projecten, pvproj |
 | webview2-venster | Eigen programmavenster met WebView2 (versie 2.10.0) | gebouwd | F0 ✅ · F1 ✅ · F2 ✅ · F3 ✅ | - | Marco van Steenbrugge, eigenaar van de Profielviewer | F0 t/m F3, 2026-10-27 | De exe opent de viewer in een eigen WebView2-venster in plaats van een Chrome/Edge-app-venster; fase A van PLAN-2.10. | webview2, exe, go, venster, windows, 2.10.0, terugvaloptie, instellingen |
 
 **Statussen** (berekend, nooit met de hand gezet): concept · ter-akkoord · deels-vrijgegeven · vrijgegeven · in-uitvoering · gebouwd · afgerond · geparkeerd · vervallen.

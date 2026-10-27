@@ -2,8 +2,8 @@
 plan: eigen-bestandstoegang
 titel: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 versie: 1
-status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ○ · F1 ○ · F2 ○ · F3 ○ · F4 ○           # berekend door de skill
+status: deels-vrijgegeven        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ▶ · F1 ○ · F2 ○ · F3 ○ · F4 ○           # berekend door de skill
 opgesteld: 2026-10-27
 opgesteld_door: Claude Code, in opdracht van Marco van Steenbrugge
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
@@ -85,7 +85,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ○ niet vrijgegeven | Bestands-API in de exe (`bestanden.go`): sessiesleutel via `Init`, Host- en Origin-controle, info/lijst/lees met bereik/schrijfstromen met atomair afronden/map/weg, toegestane mappen volgens B2, opruimen bij stoppen | `go vet` schoon en `go test ./...` in `bron-exe` groen, met tests voor: zonder sleutel 403; verkeerde Host 403; pad buiten toegestane map 403 (ook via `..`); lezen met `Range`; schrijven in delen en pas na `klaar` zichtbaar; afbreken laat het doel ongemoeid. Build met `CGO_ENABLED=0` slaagt | B2 | M | Claude Code, high | `F0:` |
+| F0 | ▶ vrijgegeven | Bestands-API in de exe (`bestanden.go`): sessiesleutel via `Init`, Host- en Origin-controle, info/lijst/lees met bereik/schrijfstromen met atomair afronden/map/weg, toegestane mappen volgens B2, opruimen bij stoppen | `go vet` schoon en `go test ./...` in `bron-exe` groen, met tests voor: zonder sleutel 403; verkeerde Host 403; pad buiten toegestane map 403 (ook via `..`); lezen met `Range`; schrijven in delen en pas na `klaar` zichtbaar; afbreken laat het doel ongemoeid. Build met `CGO_ENABLED=0` slaagt | B2 | M | Claude Code, high | `F0:` |
 | F1 | ○ niet vrijgegeven | Windows-kiezer vanuit de exe (`/__pv/kies`): map kiezen, bestand openen, bestand opslaan, via `IFileOpenDialog`/`IFileSaveDialog` zonder cgo, modaal voor het venster; gekozen pad wordt een toegestane map | Build slaagt, `go vet` schoon. Marco bevestigt op zijn laptop: de mapkiezer opent vóór het venster, een gekozen map geeft het pad terug (log), annuleren geeft niets terug en de viewer loopt door | F0 | M | Claude Code, high | `F1:` |
 | F2 | ○ niet vrijgegeven | Tussenstuk in viewer.js (`natieveMap`/`natiefBestand`) en één kiezer-hulpfunctie voor alle plekken met `showDirectoryPicker`; `tests/hulp.js` krijgt dezelfde `/__pv/`-API met sleutel; browserroute blijft volgens B3 | Nieuwe test `tests/natieve_map.test.js` (met sleutel via `addInitScript`): projectmap aanmaken, puntenwolk omzetten naar vakken, project opslaan, viewer herladen, project opnieuw openen en vakken lezen, allemaal via de API; geen aanroep van `requestPermission` van de browser; "fouten: geen". `node run_alle.js` helemaal groen | F0, B3 | L | Claude Code, high | `F2:` |
 | F3 | ○ niet vrijgegeven | Recente projecten volgens B1, PDF-uitvoermap en los projectbestand via de exe-kiezer, startparameter `.pvproj` (ook doorgegeven door een tweede start), slepen van puntenwolk en `.pvproj` op het venster | `node run_alle.js` groen. Marco bevestigt op zijn laptop: in een sessie met projectmap kiezen, puntenwolk omzetten, opslaan, PDF maken, viewer sluiten en via Recent opnieuw openen komt geen enkele toestemmingsvraag; `Lutrea-Profielviewer.exe "<pad>\x.pvproj"` opent dat project, ook als de viewer al open is; een gesleepte .las of .laz wordt geopend | F1, F2, B1 | M | Claude Code, medium | `F3:` |

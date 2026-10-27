@@ -13,6 +13,11 @@ Copy-Item -Recurse "$hoofd\vendor" $app
 New-Item -ItemType Directory -Force "$hoofd\dist" | Out-Null
 Push-Location "$hoofd\bron-exe"
 $env:GOOS = 'windows'; $env:GOARCH = 'amd64'; $env:CGO_ENABLED = '0'
+# eerst de Go-tests (bestandstoegang e.d.); die hebben de map app nodig, dus hier
+go vet ./...
+$goFout = $LASTEXITCODE
+if ($goFout -eq 0) { go test -count=1 ./...; $goFout = $LASTEXITCODE }
+if ($goFout -ne 0) { Pop-Location; Remove-Item -Recurse -Force $app; throw "go vet of go test mislukt (exitcode $goFout)" }
 go build -trimpath -ldflags "-H windowsgui -s -w" -o "$hoofd\dist\Lutrea-Profielviewer-$versie.exe" .
 $goFout = $LASTEXITCODE
 Pop-Location
