@@ -37,6 +37,7 @@ Uitvoer (screenshots, PDF, DXF, …) komt in `tests/uit/` — handig om te bekij
 | zoom_vakken | vakkenraster en schaalbalk bij inzoomen |
 | instellingen | instellingen exporteren en importeren (ptsviewer-*/pv.*, zonder pv.bezig), vreemd bestand geweigerd |
 | natieve_map | eigen bestandstoegang van de exe (`/__pv/`, nagemaakt in `hulp.js`): projectmap kiezen, omzetten naar vakken, opslaan + backup, DXF in uitvoer\, herladen en opnieuw openen, annuleren; geen browserkiezer en geen toestemmingsvraag; snelheid omzetten vergeleken met de browsermap (grens 1,5×) |
+| omzetten_exe | omzetten naar vakken in de exe (`bron-exe/omzet`, via `pvomzet`): byte voor byte dezelfde vakken, overzichten en info.json als de viewer, in modus boven en onder. Vraagt Go (`go` in het pad, of `GO=` het pad van go.exe) |
 | groot_import | 16 mln punten omzetten, Alle punten, Detailstrook (vraagt `testdata/groot/dijk_16mln.las`) |
 
 De projectmap-tests gebruiken de "Origin Private File System" van de browser als nep-projectmap
