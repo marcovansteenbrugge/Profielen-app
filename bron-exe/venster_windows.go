@@ -138,6 +138,27 @@ func openWebView2(url string) bool {
 			w.Init("window.__pvNatief = Object.freeze(" + string(natief) + ");")
 		}
 	}
+	// Windows-kiezer (/__pv/kies): op de thread van het venster, met het venster als
+	// eigenaar, dus modaal
+	if bestandsapi != nil {
+		bestandsapi.kiezer = func(o kiesOpdracht) (string, error) {
+			type uitkomst struct {
+				pad string
+				err error
+			}
+			klaar := make(chan uitkomst, 1)
+			w.Dispatch(func() {
+				pad, err := toonKiezer(hwnd, o)
+				klaar <- uitkomst{pad, err}
+			})
+			u := <-klaar
+			return u.pad, u.err
+		}
+		defer func() { bestandsapi.kiezer = nil }()
+		if kiezertestGevraagd() {
+			go kiezertest()
+		}
+	}
 
 	w.Navigate(url)
 	w.Run()

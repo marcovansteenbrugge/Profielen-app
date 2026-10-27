@@ -22,6 +22,9 @@ package main
 //        (tijdelijk bestand wordt het doel); …/afbreken?id= (doel blijft ongemoeid)
 //   POST /__pv/fs/map       map maken, met tussenmappen
 //   POST /__pv/fs/weg       verwijderen (&recursief=1 voor een map met inhoud)
+//   POST /__pv/kies         Windows-kiezer (F1), body {soort: "map"|"open"|"opslaan",
+//        titel, filter: [{naam, patroon}], naam, extensie} → {pad} ("" = geannuleerd);
+//        het gekozen pad wordt een toegestane plek
 
 import (
 	"crypto/rand"
@@ -53,8 +56,23 @@ type schrijfStroom struct {
 	mu              sync.Mutex
 }
 
+// kiesOpdracht: wat de viewer aan de Windows-kiezer vraagt
+type kiesOpdracht struct {
+	Soort  string `json:"soort"` // "map", "open" of "opslaan"
+	Titel  string `json:"titel"`
+	Filter []struct {
+		Naam    string `json:"naam"`    // bv. "Projectbestand"
+		Patroon string `json:"patroon"` // bv. "*.pvproj"
+	} `json:"filter"`
+	Naam     string `json:"naam"`     // voorgestelde bestandsnaam bij opslaan
+	Extensie string `json:"extensie"` // standaardextensie bij opslaan, zonder punt
+}
+
 type bestandsAPI struct {
 	poort int
+	// kiezer opent de Windows-kiezer modaal voor het venster; nil = geen eigen venster
+	kiezer    func(kiesOpdracht) (string, error)
+	kiesBezig sync.Mutex
 
 	mu         sync.Mutex
 	sleutel    string // "" = nog niet uitgegeven: alles dicht
@@ -197,6 +215,14 @@ func (a *bestandsAPI) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	route := strings.TrimPrefix(r.URL.Path, pvPrefix)
+	if route == "kies" {
+		if r.Method != http.MethodPost {
+			http.Error(w, "alleen POST", http.StatusMethodNotAllowed)
+			return
+		}
+		a.kies(w, r)
+		return
+	}
 	lezen := route == "fs/info" || route == "fs/lijst" || route == "fs/lees"
 	if lezen && r.Method != http.MethodGet && r.Method != http.MethodHead {
 		http.Error(w, "alleen GET", http.StatusMethodNotAllowed)
@@ -430,6 +456,45 @@ func (a *bestandsAPI) weg(w http.ResponseWriter, r *http.Request, pad string) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// kies opent de Windows-kiezer en zet het gekozen pad open (B2: de gebruiker koos het zelf).
+func (a *bestandsAPI) kies(w http.ResponseWriter, r *http.Request) {
+	var o kiesOpdracht
+	if err := json.NewDecoder(io.LimitReader(r.Body, 64<<10)).Decode(&o); err != nil {
+		http.Error(w, "ongeldige opdracht", http.StatusBadRequest)
+		return
+	}
+	if o.Soort != "map" && o.Soort != "open" && o.Soort != "opslaan" {
+		http.Error(w, "soort moet map, open of opslaan zijn", http.StatusBadRequest)
+		return
+	}
+	if a.kiezer == nil {
+		http.Error(w, "geen eigen venster", http.StatusServiceUnavailable)
+		return
+	}
+	// één kiezer tegelijk
+	if !a.kiesBezig.TryLock() {
+		http.Error(w, "er staat al een kiezer open", http.StatusConflict)
+		return
+	}
+	defer a.kiesBezig.Unlock()
+	pad, err := a.kiezer(o)
+	if err != nil {
+		log.Println("kiezer:", err)
+		http.Error(w, "kiezer mislukt: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if pad == "" {
+		log.Printf("kiezer (%s): geannuleerd", o.Soort)
+	} else {
+		log.Printf("kiezer (%s): gekozen %s", o.Soort, pad)
+		if err := a.staToe(pad); err != nil {
+			bestandsFout(w, err)
+			return
+		}
+	}
+	stuurJSON(w, map[string]string{"pad": pad})
 }
 
 // ruimOp sluit open schrijfstromen en haalt hun tijdelijke bestanden weg; bij het

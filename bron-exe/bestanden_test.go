@@ -323,3 +323,60 @@ func assertGeenTijdelijk(t *testing.T, map_ string) {
 		}
 	}
 }
+
+func TestKiesRoute(t *testing.T) {
+	p := nieuweProef(t)
+	kies := func(body string, aan func(*http.Request)) *http.Response {
+		return p.vraag("POST", "kies", "", []byte(body), aan)
+	}
+	// zonder eigen venster (geen kiezer): 503
+	p.verwacht(kies(`{"soort":"map"}`, nil), 503)
+	// zonder sleutel: 403, en de kiezer wordt niet aangeroepen
+	aangeroepen := 0
+	gekozen := p.buiten
+	p.api.kiezer = func(o kiesOpdracht) (string, error) { aangeroepen++; return gekozen, nil }
+	p.verwacht(kies(`{"soort":"map"}`, func(r *http.Request) { r.Header.Del(sleutelHeader) }), 403)
+	if aangeroepen != 0 {
+		t.Fatal("kiezer geopend zonder sleutel")
+	}
+	// onbekende soort en kapotte opdracht: 400
+	p.verwacht(kies(`{"soort":"alles"}`, nil), 400)
+	p.verwacht(kies(`{kapot`, nil), 400)
+	p.verwacht(p.vraag("GET", "kies", "", nil, nil), 405)
+	// vóór de keuze is de map dicht, daarna open (B2)
+	p.verwacht(p.vraag("GET", "fs/lijst", p.buiten, nil, nil), 403)
+	var u struct{ Pad string }
+	json.Unmarshal(p.verwacht(kies(`{"soort":"map","titel":"Kies"}`, nil), 200), &u)
+	if u.Pad != p.buiten || aangeroepen != 1 {
+		t.Fatalf("pad %q, %d keer aangeroepen", u.Pad, aangeroepen)
+	}
+	p.verwacht(p.vraag("GET", "fs/lijst", p.buiten, nil, nil), 200)
+	// annuleren: leeg pad, niets extra toegestaan
+	gekozen = ""
+	json.Unmarshal(p.verwacht(kies(`{"soort":"open"}`, nil), 200), &u)
+	if u.Pad != "" {
+		t.Fatalf("annuleren gaf %q", u.Pad)
+	}
+	// één kiezer tegelijk
+	vrij := make(chan struct{})
+	bezig := make(chan struct{})
+	p.api.kiezer = func(o kiesOpdracht) (string, error) { close(bezig); <-vrij; return "", nil }
+	klaar := make(chan int)
+	go func() {
+		r, _ := http.NewRequest("POST", p.srv.URL+"/__pv/kies", strings.NewReader(`{"soort":"map"}`))
+		r.Header.Set(sleutelHeader, p.sleutel)
+		resp, err := http.DefaultClient.Do(r)
+		if err != nil {
+			klaar <- 0
+			return
+		}
+		resp.Body.Close()
+		klaar <- resp.StatusCode
+	}()
+	<-bezig
+	p.verwacht(kies(`{"soort":"map"}`, nil), 409)
+	close(vrij)
+	if c := <-klaar; c != 200 {
+		t.Fatalf("eerste kiezer gaf %d", c)
+	}
+}
