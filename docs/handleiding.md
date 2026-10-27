@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Oct 27, 2026 · @Marco van Steenbrugge · versie 2.11.0
+Oct 27, 2026 · @Marco van Steenbrugge · versie 2.11.1
 
 ## Wat is de Profielviewer
 
@@ -10,10 +10,10 @@ Daarnaast zitten er twee toetsen in. De **doorvaartcontrole** kijkt of een schip
 
 **Starten**
 
-1. Dubbelklik `Lutrea-Profielviewer-2.11.0.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
+1. Dubbelklik `Lutrea-Profielviewer-2.11.1.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
 2. De eerste keer kan Windows "Windows heeft uw pc beschermd" tonen: kies **Meer informatie → Toch uitvoeren**. Het programma is (nog) niet digitaal ondertekend.
 3. De viewer opent in een eigen programmavenster (WebView2, zit in Windows 10 en 11; Chrome of Edge is niet nodig). Venster dicht = programma stopt. Het venster onthoudt plek en grootte.
-4. Controleer het versienummer naast de titel linksboven (nu **2.11.0**).
+4. Controleer het versienummer naast de titel linksboven (nu **2.11.1**).
 
 **Al open?** Start je de viewer nog een keer, dan komt het venster dat al open is naar voren; er komt geen tweede venster.
 
@@ -169,6 +169,8 @@ Zodra de as er is, rekent de viewer beide profielen uit. Alles wat je hier inste
 | breedte | Totale breedte van het profiel, bv. 50 m = 25 m links en rechts van de as |
 | interval | Afstand tussen de dwarsprofielen langs de as, bv. elke 10 m |
 | waterpeil | Hoogte in m NAP; geeft een waterlijn met ▽ en lichtblauw water waar het profiel lager ligt. Leeg = uit |
+| BGT | Wat van de BGT in het dwarsprofiel staat: uit, alleen de balk, + hoogtes, + namen |
+| kadaster | Vinkje: kadastrale perceelgrenzen (sectie + nummer) in het dwarsprofiel, ook in de PDF en DXF. Uit = weg. Alleen als er kadaster is opgehaald |
 | maten elke | Om de hoeveel meter een zwart hoogtegetal; 0 = alleen de rode BGT-hoogtes |
 | verh. 1: | Overdrijving van de hoogte (1 = ware verhouding) |
 | ◀ ▶ | Vorig / volgend station |
@@ -180,6 +182,7 @@ Zodra de as er is, rekent de viewer beide profielen uit. Alles wat je hier inste
 - **L en R** bovenin, de **as** als rode stippellijn met de asnaam.
 - **Legenda** rechts, met alleen wat er in dit profiel staat, en onderaan de profielbreedte. Op het scherm verschijnt de legenda als het paneel breed genoeg is; sleep anders de middelste balk naar links.
 - **BGT-band of maatketting** onder het profiel (stap 2).
+- **Kadastrale perceelgrenzen** als paarse streeplijnen met sectie en nummer, als het kadaster is opgehaald en het vinkje **kadaster** aan staat.
 
 **Zoomen in een profiel.** Muiswiel = in- en uitzoomen, slepen = verschuiven, ⬚ = zoomen op een rechthoek, ⤢ = alles weer in beeld. De getallen blijven leesbaar en schuiven mee.
 

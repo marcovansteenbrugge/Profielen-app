@@ -1,4 +1,4 @@
-Lutrea Profielviewer 2.11.0 (voorheen PTS-viewer)
+Lutrea Profielviewer 2.11.1 (voorheen PTS-viewer)
 ================================================
 Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
 De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
@@ -31,6 +31,13 @@ Mapversie (alternatief)
 
 Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
 adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.11.1 — Kadaster in het dwarsprofiel aan en uit
+-----------------------------------------------------------
+- In de kop van het dwarsprofiel staat naast de BGT-keuze een vinkje "kadaster". Uit = geen
+  kadastrale perceelgrenzen (sectie + nummer) in het dwarsprofiel, en ook niet in de PDF en
+  de DXF (laag PV_PROF_KADASTER). De keuze wordt onthouden, net als die voor de BGT.
+  Standaard staat het vinkje aan.
 
 Nieuw in 2.11.0 — Grote scans sneller omzetten
 -----------------------------------------------

@@ -37,7 +37,7 @@ const (
 	dichtPad     = "/__ptsviewer/dicht"
 	voorgrondPad = "/__ptsviewer/voorgrond"
 	pingAntwoord = "pts-viewer-lutrea"
-	appVersie    = "2.11.0"
+	appVersie    = "2.11.1"
 	stilteGrens  = 3 * time.Minute
 	// valt de pagina weg zonder "dicht" (crash, bv. te weinig geheugen), dan nog zo lang
 	// blijven draaien dat Vernieuwen in het venster werkt
