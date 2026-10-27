@@ -2,8 +2,8 @@
 plan: eigen-bestandstoegang
 titel: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 versie: 1
-status: deels-vrijgegeven        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ▶ · F1 ○ · F2 ○ · F3 ○ · F4 ○           # berekend door de skill
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ✅ · F1 ○ · F2 ○ · F3 ○ · F4 ○           # berekend door de skill
 opgesteld: 2026-10-27
 opgesteld_door: Claude Code, in opdracht van Marco van Steenbrugge
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
@@ -85,7 +85,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ▶ vrijgegeven | Bestands-API in de exe (`bestanden.go`): sessiesleutel via `Init`, Host- en Origin-controle, info/lijst/lees met bereik/schrijfstromen met atomair afronden/map/weg, toegestane mappen volgens B2, opruimen bij stoppen | `go vet` schoon en `go test ./...` in `bron-exe` groen, met tests voor: zonder sleutel 403; verkeerde Host 403; pad buiten toegestane map 403 (ook via `..`); lezen met `Range`; schrijven in delen en pas na `klaar` zichtbaar; afbreken laat het doel ongemoeid. Build met `CGO_ENABLED=0` slaagt | B2 | M | Claude Code, high | `F0:` |
+| F0 | ✅ gebouwd | Bestands-API in de exe (`bestanden.go`): sessiesleutel via `Init`, Host- en Origin-controle, info/lijst/lees met bereik/schrijfstromen met atomair afronden/map/weg, toegestane mappen volgens B2, opruimen bij stoppen | `go vet` schoon en `go test ./...` in `bron-exe` groen, met tests voor: zonder sleutel 403; verkeerde Host 403; pad buiten toegestane map 403 (ook via `..`); lezen met `Range`; schrijven in delen en pas na `klaar` zichtbaar; afbreken laat het doel ongemoeid. Build met `CGO_ENABLED=0` slaagt | B2 | M | Claude Code, high | `F0:` |
 | F1 | ○ niet vrijgegeven | Windows-kiezer vanuit de exe (`/__pv/kies`): map kiezen, bestand openen, bestand opslaan, via `IFileOpenDialog`/`IFileSaveDialog` zonder cgo, modaal voor het venster; gekozen pad wordt een toegestane map | Build slaagt, `go vet` schoon. Marco bevestigt op zijn laptop: de mapkiezer opent vóór het venster, een gekozen map geeft het pad terug (log), annuleren geeft niets terug en de viewer loopt door | F0 | M | Claude Code, high | `F1:` |
 | F2 | ○ niet vrijgegeven | Tussenstuk in viewer.js (`natieveMap`/`natiefBestand`) en één kiezer-hulpfunctie voor alle plekken met `showDirectoryPicker`; `tests/hulp.js` krijgt dezelfde `/__pv/`-API met sleutel; browserroute blijft volgens B3 | Nieuwe test `tests/natieve_map.test.js` (met sleutel via `addInitScript`): projectmap aanmaken, puntenwolk omzetten naar vakken, project opslaan, viewer herladen, project opnieuw openen en vakken lezen, allemaal via de API; geen aanroep van `requestPermission` van de browser; "fouten: geen". `node run_alle.js` helemaal groen | F0, B3 | L | Claude Code, high | `F2:` |
 | F3 | ○ niet vrijgegeven | Recente projecten volgens B1, PDF-uitvoermap en los projectbestand via de exe-kiezer, startparameter `.pvproj` (ook doorgegeven door een tweede start), slepen van puntenwolk en `.pvproj` op het venster | `node run_alle.js` groen. Marco bevestigt op zijn laptop: in een sessie met projectmap kiezen, puntenwolk omzetten, opslaan, PDF maken, viewer sluiten en via Recent opnieuw openen komt geen enkele toestemmingsvraag; `Lutrea-Profielviewer.exe "<pad>\x.pvproj"` opent dat project, ook als de viewer al open is; een gesleepte .las of .laz wordt geopend | F1, F2, B1 | M | Claude Code, medium | `F3:` |
@@ -119,6 +119,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
+| F0 | 2026-10-27 10:59 | 2026-10-27 11:06 | Marco van Steenbrugge ("Akkoord, bouw F0 van eigen-bestandstoegang op planversie 1.") | Claude Code, claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | medium | 48 / 29.953 | 769842d | transcript (Claude Code 2.1.308) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -127,12 +128,25 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 
 | Fase | Tijdstip | Criterium | Controle en uitkomst | Oordeel |
 |---|---|---|---|---|
+| F0 | 2026-10-27 11:05 | `go vet` schoon | `CGO_ENABLED=0 go vet ./...` in `bron-exe` (met tijdelijke map `app`): geen uitvoer, "VET-SCHOON"; ook met `GOOS=linux` schoon | gehaald |
+| F0 | 2026-10-27 11:05 | `go test ./...` in `bron-exe` groen | `CGO_ENABLED=0 go test ./... -v -count=1`: 10 tests PASS, "ok ptsviewer 1.174s" | gehaald |
+| F0 | 2026-10-27 11:05 | Test: zonder sleutel 403 | `TestZonderSleutel403` (geen header en verkeerde sleutel: 403; juiste sleutel: 200) en `TestZonderEigenVensterDicht` (geen sleutel uitgegeven: 403): PASS. In de echte exe (proefbuild pv-f0.exe): `/__pv/fs/lijst` zonder sleutel en met sleutel "abc" beide 403, log "verkeerde of ontbrekende sessiesleutel" | gehaald |
+| F0 | 2026-10-27 11:05 | Test: verkeerde Host 403 | `TestVerkeerdeHostEnOrigin403`: Host `kwaad.voorbeeld:80` en `localhost:<poort>` 403, Origin `https://kwaad.voorbeeld` 403, eigen Origin 200: PASS | gehaald |
+| F0 | 2026-10-27 11:05 | Test: pad buiten toegestane map 403 (ook via `..`) | `TestPadBuitenToegestaneMap403`: lezen, schrijven, map maken en verwijderen buiten de map 403, ook via `\..\` en `/../`, `project2` naast `project`, relatief en leeg pad; gekozen map zelf niet te verwijderen: PASS. `TestKoppelingNaarBuiten403`: junction in de map naar buiten 403: PASS (eerst FAIL met `EvalSymlinks`, hersteld met `echtpad_windows.go`) | gehaald |
+| F0 | 2026-10-27 11:05 | Test: lezen met `Range` | `TestLezenMetRange`: `bytes=100-199` en `bytes=990-` geven 206 met precies die bytes, zonder Range 200 met het hele bestand: PASS | gehaald |
+| F0 | 2026-10-27 11:05 | Test: schrijven in delen en pas na `klaar` zichtbaar | `TestSchrijvenInDelenPasNaKlaarZichtbaar`: twee delen, doel blijft "oud" tot `klaar`, tijdelijk bestand niet in `lijst`, daarna "nieuw-deel2"; plus 78 stromen tegelijk open en afgerond, geen tijdelijke bestanden over: PASS | gehaald |
+| F0 | 2026-10-27 11:05 | Test: afbreken laat het doel ongemoeid | `TestAfbrekenLaatDoelOngemoeid`: bestaand doel blijft "oud", nieuw bestand ontstaat niet, geen tijdelijke bestanden over: PASS. `TestOpruimenBijStoppen`: open stroom bij stoppen opgeruimd: PASS | gehaald |
+| F0 | 2026-10-27 11:05 | Build met `CGO_ENABLED=0` slaagt | `go build -trimpath -ldflags "-H windowsgui -s -w"` met `CGO_ENABLED=0`, GOOS windows/amd64: exitcode 0, pv-f0.exe 11.084.288 bytes; gestart: ping "klaar:2.10.1", viewer volledig geladen (log "eerste hartslag"), afsluiten via de knop werkt | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
 
 | Fase | Wat week af van het plan | Waarom |
 |---|---|---|
+| F0 | Effort medium in plaats van gepland high | Reden onbekend (effort-instelling van de sessie) |
+| F0 | Extra: `echtpad_windows.go` (echt pad via `GetFinalPathNameByHandleW`) | De junction-test faalde eerst: Go's `EvalSymlinks` lost een junction niet op, zodat een junction in een projectmap naar buiten kon. Nodig voor B2 |
+| F0 | Extra: `tools/bouw.ps1` draait `go vet` en `go test` vóór het bouwen; `BOUWEN.txt` noemt de tests | `go test` heeft de map `app` nodig, die alleen tijdens het bouwen bestaat. Zo draaien de tests bij elke bouw. Via `bouw.ps1` zelf nog niet gedraaid (dat zou `dist\` 2.10.1 overschrijven); dat gebeurt in F4 |
+| F0 | Een map die niet leeg is zonder `recursief` verwijderen geeft 409, niet 500 | Windows meldt "map niet leeg" als "bestaat al"; 409 met een duidelijke melding past beter |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |

@@ -4,15 +4,15 @@ titel: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 plan: eigen-bestandstoegang.plan.md
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
 voorgelegd: 2026-10-27 09:35          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
-status: deels-vrijgegeven        # berekend door de skill, nooit met de hand gezet
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 ---
 
 > Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
 
 # Beslisdocument: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 
-> **Nu van jou gevraagd:** niets; F0 wordt gebouwd.
-> **Later nodig:** vrijgave van F1 tot en met F4.
+> **Nu van jou gevraagd:** de vrijgave van **F1** (de Windows-kiezer; daarna een korte controle op je laptop).
+> **Later nodig:** vrijgave van F2 tot en met F4.
 
 Nu vraagt de viewer bij elke sessie opnieuw toestemming voor je projectmap, omdat de browser dat bewaakt. Straks leest en schrijft het programma je bestanden zelf, zodat die vragen verdwijnen, recente projecten na een herstart gewoon werken en het programma later (fase E) grote scans zelf kan omzetten. Het werk gaat in vijf fasen, en elke fase start pas na jouw akkoord.
 
@@ -21,7 +21,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
-| F0 | Het programma kan zelf bestanden lezen en schrijven, afgeschermd zodat alleen het eigen venster dat mag | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 10:59 | B2 | - |
+| F0 | Het programma kan zelf bestanden lezen en schrijven, afgeschermd zodat alleen het eigen venster dat mag | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 10:59 | B2 | ✅ 2026-10-27 11:06 |
 | F1 | De gewone Windows-kiezer voor mappen en bestanden, vanuit het programma | ○ nog niet | - | - | - |
 | F2 | De viewer gebruikt die nieuwe toegang voor de projectmap; alles werkt verder zoals je gewend bent | ○ nog niet | - | B3 | - |
 | F3 | Recente projecten, PDF-map, los projectbestand, project openen vanaf een pad, puntenwolk op het venster slepen | ○ nog niet | - | B1 | - |
@@ -101,5 +101,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 10:58 | Marco van Steenbrugge als beslisser bevestigd in deze sessie (eerder: "Ja ik ben Marco"), via chat | Marco van Steenbrugge, via chat |
 | 2026-10-27 10:58 | B1, B2 en B3 akkoord met voorstel ("B1, B2 en B3 akkoord met jullie voorstel.") | Marco van Steenbrugge, via chat |
 | 2026-10-27 10:59 | Vrijgave F0 op planversie 1 | Marco van Steenbrugge, via chat |
+| 2026-10-27 11:06 | F0 gebouwd en per criterium getoetst (alle Go-tests groen, ook een extra controle op snelkoppelingen naar buiten de projectmap) | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
