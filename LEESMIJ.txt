@@ -1,4 +1,4 @@
-Lutrea Profielviewer 2.10.2 (voorheen PTS-viewer)
+Lutrea Profielviewer 2.11.0 (voorheen PTS-viewer)
 ================================================
 Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
 De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
@@ -31,6 +31,22 @@ Mapversie (alternatief)
 
 Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
 adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.11.0 — Grote scans sneller omzetten
+-----------------------------------------------
+- In het eigen venster zet het programma zelf een LAS of PTS om naar vakken, op alle
+  processorkernen en buiten het geheugen van het venster. Halsteren (52 miljoen punten)
+  duurt ± 10 s in plaats van ± 37 s; het geheugen van het venster groeit niet mee.
+- Openen… bij de puntenwolk opent nu de gewone Windows-kiezer, zodat het programma weet
+  waar de scan staat.
+- Tijdens het omzetten staat de voortgang in de statusregel, met een knop Afbreken. Na
+  afbreken blijft er niets van de omzetting achter. Na het laden staat de tijd achteraan
+  de statusregel ("omgezet in 10 s door het programma").
+- De vakken zijn precies dezelfde als voorheen: bestaande projectmappen blijven werken, en
+  een opnieuw omgezette scan geeft hetzelfde resultaat.
+- Lukt het omzetten in het programma niet, dan meldt de viewer dat en zet hij om zoals
+  voorheen. LAZ, een gesleepte scan en het oude venster (--browservenster) zetten ook om
+  zoals voorheen; LAZ komt in een volgende versie.
 
 Nieuw in 2.10.2 — Geen toestemmingsvragen meer
 ------------------------------------------------
