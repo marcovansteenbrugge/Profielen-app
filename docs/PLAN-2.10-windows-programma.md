@@ -1,6 +1,6 @@
 # Plan 2.10 — de Profielviewer als echt Windows-programma
 
-Vastgelegd op 26 oktober 2026 (Marco en Claude). Status: **fase A klaar (2.10.0, patch 2.10.1); volgende: fase C**. Werk dit plan bij
+Vastgelegd op 26 oktober 2026 (Marco en Claude). Status: **fase A klaar (2.10.0, patch 2.10.1), fase C klaar (2.10.2); volgende: fase E**. Werk dit plan bij
 als een fase klaar is of als er iets verandert (vink af, noteer beslissingen onderaan).
 
 ## Waarom
@@ -72,19 +72,19 @@ Gebouwd en getoetst 26–27 oktober 2026: zie `docs/webview2-venster.plan.md` en
 - [ ] Optioneel: "Openen met Profielviewer" voor .las/.laz/.pts.
 - Klaar als: installeren, starten via startmenu, verwijderen en opnieuw installeren werken op Marco's laptop.
 
-### Fase C — eigen bestandstoegang, geen toestemmingsvragen meer (2.10.2)
+### Fase C — eigen bestandstoegang, geen toestemmingsvragen meer (2.10.2) ✅
 Plan: `docs/eigen-bestandstoegang.plan.md` en `.beslis.md`.
-- [ ] In de exe: `/__pv/fs/…` (lijst, lees met bereik, schrijf atomair via tijdelijk bestand + hernoemen,
+- [x] In de exe: `/__pv/fs/…` (lijst, lees met bereik, schrijf atomair via tijdelijk bestand + hernoemen,
       map maken, verwijderen, info). **Beveiliging**: sessietoken dat de exe in de WebView2-pagina zet
       (bv. `AddScriptToExecuteOnDocumentCreated`) en dat elk verzoek als header meestuurt, plus Origin-controle.
       Zonder token geen toegang (anders kan een willekeurige website in een gewone browser lokale bestanden aanspreken).
-- [ ] Windows-mapkiezer en bestandskiezer vanuit de exe (`IFileOpenDialog`, ook met `FOS_PICKFOLDERS`).
-- [ ] In viewer.js een adapter die zich gedraagt als `FileSystemDirectoryHandle`/`FileSystemFileHandle`
+- [x] Windows-mapkiezer en bestandskiezer vanuit de exe (`IFileOpenDialog`, ook met `FOS_PICKFOLDERS`).
+- [x] In viewer.js een adapter die zich gedraagt als `FileSystemDirectoryHandle`/`FileSystemFileHandle`
       (`getDirectoryHandle`, `getFileHandle`, `entries`, `removeEntry`, `createWritable`, `getFile`, `isSameEntry`,
       `queryPermission`/`requestPermission` → altijd toegestaan), zodat `projectMap` gewoon een "native map" wordt
       en de rest van de code (tegels, project, uitvoer) niet hoeft te veranderen.
-- [ ] Recente projecten als pad; `.pvproj` dubbelklikken → `openProjectMap(nativeMap(map van het bestand))`.
-- [ ] Slepen van een .las/.laz/.pts op het venster opent de puntenwolk.
+- [x] Recente projecten als pad; `.pvproj` als startparameter → `openProjectMap(natieveMap(map van het bestand))` (dubbelklikken in de Verkenner zelf vraagt de bestandskoppeling van fase B).
+- [x] Slepen van een .las/.laz/.pts op het venster opent de puntenwolk.
 - Klaar als: geen enkele toestemmingsvraag meer, .pvproj dubbelklikken werkt, alle tests groen
   (tests kunnen de adapter testen met de testserver in tests/hulp.js uitgebreid met dezelfde `/__pv/fs`-API).
 
@@ -120,4 +120,5 @@ Plan: `docs/eigen-bestandstoegang.plan.md` en `.beslis.md`.
 - 26-10-2026: optie 2 gekozen (WebView2-venster, viewer-code blijft). Eigen tegelformaat i.p.v. COPC (2.9.0).
 - 26-10-2026: verder werken in Claude Code op Marco's Windows 11-laptop, met git.
 - 27-10-2026: fase A klaar (2.10.0); patch 2.10.1. Volgorde voor de rest: C → E → B → D (zie Fasen).
+- 27-10-2026: fase C klaar (2.10.2), door Marco gecontroleerd. De exe kent nu de echte paden van de projectmap: de basis voor fase E.
 - Open: plek voor updates (fase D); certificaat (los); .las/.laz ook koppelen (fase B, optioneel).

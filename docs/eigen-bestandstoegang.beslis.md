@@ -4,14 +4,14 @@ titel: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 plan: eigen-bestandstoegang.plan.md
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
 voorgelegd: 2026-10-27 09:35          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
-status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+status: gebouwd        # berekend door de skill, nooit met de hand gezet
 ---
 
 > Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
 
 # Beslisdocument: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 
-> **Nu van jou gevraagd:** de controle van 2.10.2 (`dist\Lutrea-Profielviewer-2.10.2.exe`): puntenwolk openen (Wallach/Halsteren), projectmap, PDF en DXF opslaan, 3D, luchtfoto en BGT, en met `--browservenster` de projectmap zoals in 2.10.1.
+> **Nu van jou gevraagd:** niets; het plan is klaar. 2.10.2 staat in `dist\` en als tag v2.10.2.
 > **Later nodig:** niets.
 
 Nu vraagt de viewer bij elke sessie opnieuw toestemming voor je projectmap, omdat de browser dat bewaakt. Straks leest en schrijft het programma je bestanden zelf, zodat die vragen verdwijnen, recente projecten na een herstart gewoon werken en het programma later (fase E) grote scans zelf kan omzetten. Het werk gaat in vijf fasen, en elke fase start pas na jouw akkoord.
@@ -25,7 +25,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F1 | De gewone Windows-kiezer voor mappen en bestanden, vanuit het programma | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 11:07 | - | ✅ 2026-10-27 11:19 |
 | F2 | De viewer gebruikt die nieuwe toegang voor de projectmap; alles werkt verder zoals je gewend bent | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 11:20 | B3 | ✅ 2026-10-27 13:34 |
 | F3 | Recente projecten, PDF-map, los projectbestand, project openen vanaf een pad, puntenwolk op het venster slepen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 13:43 | B1 | ✅ 2026-10-27 14:31 |
-| F4 | Oplevering 2.10.2: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 14:37 | - | - |
+| F4 | Oplevering 2.10.2: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 14:37 | - | ✅ 2026-10-27 16:27 |
 
 Letterlijk akkoord (F0, via chat): "Akkoord, bouw F0 van eigen-bestandstoegang op planversie 1."
 
@@ -123,5 +123,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 14:31 | F3 gebouwd en per criterium getoetst | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 14:37 | Vrijgave F4 op planversie 1 | Marco van Steenbrugge, via chat |
 | 2026-10-27 14:44 | F4 uitgevoerd: versie 2.10.2, LEESMIJ, handleiding, alle tests groen, exe en zip gebouwd, tag v2.10.2; wacht op Marco's handmatige controle | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 16:27 | Marco bevestigt: "Ja, in 2.10.2 werkt alles: puntenwolk openen (Wallach/Halsteren), projectmap, PDF en DXF opslaan, 3D, luchtfoto en BGT; met --browservenster werkt de projectmap nog zoals in 2.10.1." | Marco van Steenbrugge, via chat |
+| 2026-10-27 16:27 | F4 gebouwd en per criterium getoetst; plan afgerond | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
