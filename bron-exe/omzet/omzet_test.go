@@ -62,7 +62,7 @@ func TestSchrijverHalveMillimeter(t *testing.T) {
 	// oorsprong (82000, 389000); x - ox = 12,0005 m → 12000,5 mm; z = -0,0005 m → -0,5 mm
 	s.VoegToe(82012.0005, 389010, -0.0005, 0, 0, 0, false, 2)
 	s.VoegToe(82012.0015, 389010, -1.0025, 0, 0, 0, false, 2)
-	if _, _, _, err := s.Afronden(); err != nil {
+	if _, _, err := s.Afronden(); err != nil {
 		t.Fatal(err)
 	}
 	r := leesVak(t, filepath.Join(d, TegelNaam(1640, 7780)))
@@ -105,7 +105,7 @@ func TestSchrijverKleurdiepte(t *testing.T) {
 				s.VoegToe(82010+float64(i%1000)*0.01, 389010+float64(i/1000)*0.01, 1, float64(geval.r), float64(geval.r), float64(geval.r), true, 1)
 			}
 			s.VoegToe(82020, 389020, 1, float64(geval.later), float64(geval.later), float64(geval.later), true, 1)
-			info, _, _, err := s.Afronden()
+			info, _, err := s.Afronden()
 			if err != nil {
 				t.Fatal(err)
 			}

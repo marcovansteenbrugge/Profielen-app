@@ -18,7 +18,7 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.
 /* Nagemaakte eigen bestandstoegang van de exe (/__pv/, zie bron-exe/bestanden.go), voor tests in
    Edge met window.__pvNatief. Zelfde regels: sessiesleutel, Host, alleen toegestane mappen.
    natief.kiesRij: paden die /__pv/kies achter elkaar teruggeeft ('' = geannuleerd). */
-const natief = { sleutel: 'test-' + require('crypto').randomBytes(16).toString('hex'), kiesRij: [], toegestaan: [], verzoeken: 0, recent: [] };
+const natief = { sleutel: 'test-' + require('crypto').randomBytes(16).toString('hex'), kiesRij: [], toegestaan: [], verzoeken: 0, recent: [], omzettingen: 0, omzetFout: null };
 const stromen = new Map();
 const binnen = (p) => {
   if (!p || !path.isAbsolute(p)) return null;
@@ -34,6 +34,8 @@ function natiefVerzoek(req, res, url) {
   const route = url.pathname.slice('/__pv/'.length), q = url.searchParams;
   const lees = () => new Promise((ok, mis) => { const d = []; req.on('data', c => d.push(c)); req.on('end', () => ok(Buffer.concat(d))); req.on('error', mis); });
   if (route === 'kies') return lees().then(() => { const pad = natief.kiesRij.length ? natief.kiesRij.shift() : ''; if (pad) natief.toegestaan.push(pad, ...(/\.pvproj$/i.test(pad) ? [path.dirname(pad)] : [])); json({ pad }); });
+  // omzettaak (omzet_taak.go): pvomzet in een tijdelijke map, daarna op zijn plek
+  if (route.startsWith('omzet/')) return omzetVerzoek(req, res, route, q, lees, stuur, json);
   // recente projecten (recent.go): in het geheugen, laatste 8
   if (route === 'recent' && req.method === 'GET') return json(natief.recent.map(r => ({ ...r, bestaat: fs.existsSync(r.pad) })));
   if (route === 'recent' || route === 'recent/weg') return lees().then(b => {
@@ -83,6 +85,54 @@ function natiefVerzoek(req, res, url) {
   } catch (e) { fout(e); }
 }
 
+/** pvomzet (dezelfde Go-code als de exe) bouwen, één keer per testproces. */
+let pvomzetPad = null;
+function pvomzet() {
+  if (pvomzetPad) return pvomzetPad;
+  const { spawnSync } = require('child_process');
+  const exe = path.join(UIT, 'pvomzet.exe');
+  const go = [process.env.GO, 'go', path.join('C:', 'Program Files', 'Go', 'bin', 'go.exe')].filter(Boolean)
+    .find(g => spawnSync(g, ['version'], { encoding: 'utf8' }).status === 0);
+  if (!go) throw new Error('Go niet gevonden (zet GO op het pad van go.exe)');
+  const r = spawnSync(go, ['build', '-o', exe, './cmd/pvomzet'], { cwd: path.join(ROOT, 'bron-exe'), encoding: 'utf8', env: { ...process.env, CGO_ENABLED: '0' } });
+  if (r.status !== 0) throw new Error('pvomzet bouwen mislukt: ' + r.stderr);
+  return (pvomzetPad = exe);
+}
+const omzettingen = new Map();
+function omzetVerzoek(req, res, route, q, lees, stuur, json) {
+  if (route === 'omzet/stand') { const t = omzettingen.get(q.get('id')); if (!t) return stuur(404, 'onbekende omzetting'); const { proc, ...stand } = t; return json(stand); }
+  if (route === 'omzet/afbreken') {
+    const t = omzettingen.get(q.get('id'));
+    if (!t || t.fase !== 'lezen' && t.fase !== 'afronden') return stuur(204);
+    t.afbreken = true; t.proc.kill();
+    return t.klaar.then(() => stuur(204));
+  }
+  if (route !== 'omzet/start') return stuur(404, 'onbekende route');
+  return lees().then(b => {
+    const { bron, doel, modus } = JSON.parse(String(b) || '{}');
+    if (!bron || !doel || !['boven', 'onder'].includes(modus)) return stuur(400, 'ongeldige opdracht');
+    if (!binnen(bron) || !binnen(doel)) return stuur(403, 'bron of doel buiten toegestane plekken');
+    if ([...omzettingen.values()].some(t => t.fase === 'lezen' || t.fase === 'afronden')) return stuur(409, 'er loopt al een omzetting');
+    const id = require('crypto').randomBytes(12).toString('hex'), tijdelijk = `${doel}.${id}.pvtmp`;
+    // natief.omzetFout: de exe laat het omzetten mislukken (om de terugval van de viewer te testen)
+    if (natief.omzetFout) { omzettingen.set(id, { fase: 'fout', fout: natief.omzetFout, gelezen: 0, totaal: 0, klaar: Promise.resolve() }); return json({ id }); }
+    const proc = require('child_process').spawn(pvomzet(), ['-bron', bron, '-doel', tijdelijk, '-modus', modus, '-voortgang', '-viewer', 'pvomzet (testserver)']);
+    const t = { fase: 'lezen', gelezen: 0, totaal: 0, proc };
+    natief.omzettingen = (natief.omzettingen || 0) + 1;
+    let fout = '';
+    proc.stderr.on('data', d => { for (const r of String(d).split('\n')) { const m = /^voortgang (\d+) (\d+)/.exec(r); if (m) { t.gelezen = +m[1]; t.totaal = +m[2]; } else if (/^fase afronden/.test(r)) t.fase = 'afronden'; else if (r.trim()) fout = r.trim(); } });
+    t.klaar = new Promise(ok => proc.on('exit', (code) => {
+      if (code === 0 && !t.afbreken) {
+        try { fs.rmSync(doel, { recursive: true, force: true }); fs.renameSync(tijdelijk, doel); t.info = JSON.parse(fs.readFileSync(path.join(doel, 'info.json'), 'utf8')); t.fase = 'klaar'; }
+        catch (e) { t.fase = 'fout'; t.fout = e.message; }
+      } else { fs.rmSync(tijdelijk, { recursive: true, force: true }); if (t.afbreken) t.fase = 'afgebroken'; else { t.fase = 'fout'; t.fout = fout.replace(/^pvomzet: /, '') || `pvomzet stopte met ${code}`; } }
+      ok();
+    }));
+    omzettingen.set(id, t);
+    json({ id });
+  });
+}
+
 let server = null;
 /** Start de testserver (of gebruik er een die al draait op deze poort). */
 async function start() {
@@ -107,4 +157,4 @@ async function start() {
 function browserOpties() {
   return process.env.PV_CHROMIUM ? { executablePath: process.env.PV_CHROMIUM } : { channel: process.env.PV_KANAAL || 'msedge' };
 }
-module.exports = { chromium: pw.chromium, ROOT, UIT, URL, POORT, data, start, browserOpties, natief };
+module.exports = { chromium: pw.chromium, ROOT, UIT, URL, POORT, data, start, browserOpties, natief, pvomzet };

@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 )
 
 const (
@@ -24,7 +25,7 @@ const (
 	// de viewer bepaalt de kleurdiepte (8 of 16 bits) na zoveel punten
 	voorraadPunten = 200000
 	// een vak gaat naar schijf als zijn buffer zo groot is, of als alles samen te groot wordt
-	vakBuffer    = 1 << 20
+	vakBuffer    = 256 << 10
 	totaalBuffer = 256 << 20
 )
 
@@ -62,17 +63,21 @@ type Schrijver struct {
 	klassen    [256]float64
 	ovAlle     *Uitdunner
 	ovGrond    *Uitdunner
+	rijAlle    *ovRij
+	rijGrond   *ovRij
 	gebufferd  int
 	fout       error
 }
 
 // NieuweSchrijver schrijft de vakken in tegelMap (de map "tegels", die al moet bestaan).
 func NieuweSchrijver(tegelMap string, onder bool) *Schrijver {
-	return &Schrijver{
+	s := &Schrijver{
 		tegelMap: tegelMap, onder: onder, vakken: map[int64]*vak{},
 		minX: math.Inf(1), maxX: math.Inf(-1), minY: math.Inf(1), maxY: math.Inf(-1), minZ: math.Inf(1), maxZ: math.Inf(-1),
 		ovAlle: NieuweUitdunner(OverzichtDoel*2, onder), ovGrond: NieuweUitdunner(OverzichtDoel*2, onder),
 	}
+	s.rijAlle, s.rijGrond = nieuweOvRij(s.ovAlle), nieuweOvRij(s.ovGrond)
+	return s
 }
 
 // Gezien: aantal ontvangen punten.
@@ -104,22 +109,78 @@ func (s *Schrijver) schrijf(p punt) {
 		t.maxZ = p.z
 	}
 	t.n++
+	if t.buf == nil {
+		t.buf = make([]byte, 0, vakBuffer) // vaste grootte: geen verdubbeling bij append
+	}
 	t.buf = append(t.buf, rec[:]...)
 	s.gebufferd += TegelRec
 	if len(t.buf) >= vakBuffer {
 		s.leeg(t)
 	}
+	o := ovPunt{p.x, p.y, p.z, 0, 0, 0, p.metKleur}
 	if p.metKleur {
-		s.ovAlle.VoegToe(p.x, p.y, p.z, r8, g8, b8, true)
-		if p.k == 2 {
-			s.ovGrond.VoegToe(p.x, p.y, p.z, r8, g8, b8, true)
-		}
-	} else {
-		s.ovAlle.VoegToe(p.x, p.y, p.z, 0, 0, 0, false)
-		if p.k == 2 {
-			s.ovGrond.VoegToe(p.x, p.y, p.z, 0, 0, 0, false)
-		}
+		o.r, o.g, o.b = r8, g8, b8
 	}
+	s.rijAlle.voegToe(o)
+	if p.k == 2 {
+		s.rijGrond.voegToe(o)
+	}
+}
+
+// De twee overzichten (uitdunners) kosten het meeste rekenwerk; elk draait op een eigen kern.
+// De schrijver geeft ze de punten in pakketjes, in dezelfde volgorde, dus de uitkomst is gelijk.
+type ovPunt struct {
+	x, y, z, r, g, b float64
+	metKleur         bool
+}
+
+type ovRij struct {
+	u      *Uitdunner
+	pak    []ovPunt
+	kanaal chan []ovPunt
+	klaar  chan struct{}
+	dicht  sync.Once
+}
+
+const ovPak = 8192
+
+func nieuweOvRij(u *Uitdunner) *ovRij {
+	r := &ovRij{u: u, pak: make([]ovPunt, 0, ovPak), kanaal: make(chan []ovPunt, 4), klaar: make(chan struct{})}
+	go func() {
+		defer close(r.klaar)
+		for pak := range r.kanaal {
+			for _, p := range pak {
+				u.VoegToe(p.x, p.y, p.z, p.r, p.g, p.b, p.metKleur)
+			}
+		}
+	}()
+	return r
+}
+
+func (r *ovRij) voegToe(p ovPunt) {
+	r.pak = append(r.pak, p)
+	if len(r.pak) == ovPak {
+		r.kanaal <- r.pak
+		r.pak = make([]ovPunt, 0, ovPak)
+	}
+}
+
+// sluit geeft de rest door en wacht tot de uitdunner klaar is. Mag vaker.
+func (r *ovRij) sluit() {
+	r.dicht.Do(func() {
+		if len(r.pak) > 0 {
+			r.kanaal <- r.pak
+		}
+		r.pak = nil
+		close(r.kanaal)
+	})
+	<-r.klaar
+}
+
+// Stop: de overzichten stoppen (ook na een fout of afbreken, anders blijven ze in het geheugen).
+func (s *Schrijver) Stop() {
+	s.rijAlle.sluit()
+	s.rijGrond.sluit()
 }
 
 func (s *Schrijver) bepaalDeler() {
@@ -247,9 +308,9 @@ type InfoBron struct {
 	Gewijzigd int64  `json:"gewijzigd"`
 }
 
-// Afronden schrijft alles weg en geeft info en de twee overzichten (grond = nil als er te
-// weinig maaiveldpunten zijn).
-func (s *Schrijver) Afronden() (*Info, Punten, *Punten, error) {
+// Afronden schrijft alles weg en geeft info en het overzicht van alle punten. Het
+// maaiveldoverzicht volgt daarna met Grond(), zodat de twee niet tegelijk in het geheugen staan.
+func (s *Schrijver) Afronden() (*Info, Punten, error) {
 	if s.deler == 0 {
 		s.bepaalDeler()
 	}
@@ -257,18 +318,11 @@ func (s *Schrijver) Afronden() (*Info, Punten, *Punten, error) {
 		s.leeg(t)
 	}
 	if s.fout != nil {
-		return nil, Punten{}, nil, s.fout
+		return nil, Punten{}, s.fout
 	}
 	modus := "boven"
 	if s.onder {
 		modus = "onder"
-	}
-	ov := func(u *Uitdunner) Punten {
-		r := u.Resultaat()
-		if len(r.Xs) > OverzichtDoel {
-			return DunUit(r, OverzichtDoel, s.onder)
-		}
-		return r
 	}
 	info := &Info{
 		Formaat: TegelFormaat, TegelM: TegelM, Rec: TegelRec, Oorsprong: [2]float64{s.ox, s.oy},
@@ -285,14 +339,36 @@ func (s *Schrijver) Afronden() (*Info, Punten, *Punten, error) {
 	for _, t := range s.volgorde {
 		info.Tegels = append(info.Tegels, [5]float64{float64(t.tx), float64(t.ty), float64(t.n), rond(float64(t.minZ*1000)) / 1000, rond(float64(t.maxZ*1000)) / 1000})
 	}
-	alle := ov(s.ovAlle)
-	var grond *Punten
-	grondTotaal := s.klassen[2]
-	if grondTotaal >= math.Max(50, float64(float64(s.gezien)*0.01)) {
-		g := ov(s.ovGrond)
-		grond = &g
+	s.Stop() // de overzichten hebben alle punten gehad
+	if !s.metGrond() {
+		s.ovGrond = nil // niet nodig: geheugen vrij
 	}
-	return info, alle, grond, nil
+	alle := s.overzicht(s.ovAlle)
+	s.ovAlle = nil
+	return info, alle, nil
+}
+
+// metGrond: genoeg maaiveldpunten (klasse 2) voor een eigen overzicht?
+func (s *Schrijver) metGrond() bool {
+	return s.klassen[2] >= math.Max(50, float64(float64(s.gezien)*0.01))
+}
+
+func (s *Schrijver) overzicht(u *Uitdunner) Punten {
+	r := u.Resultaat()
+	if len(r.Xs) > OverzichtDoel {
+		return DunUit(r, OverzichtDoel, s.onder)
+	}
+	return r
+}
+
+// Grond: het maaiveldoverzicht (na Afronden), of nil als er te weinig maaiveldpunten zijn.
+func (s *Schrijver) Grond() *Punten {
+	if s.ovGrond == nil {
+		return nil
+	}
+	g := s.overzicht(s.ovGrond)
+	s.ovGrond = nil
+	return &g
 }
 
 // TegelBytes is puntenNaarTegelBytes(p, ox, oy): het overzicht in het tegelformaat (klasse 0).

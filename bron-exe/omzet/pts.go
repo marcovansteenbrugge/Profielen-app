@@ -241,7 +241,8 @@ func LeesPts(ctx context.Context, f *os.File, s *Schrijver, voortgang Voortgang)
 	}
 	ctx, stop := context.WithCancel(ctx)
 	defer stop()
-	volgorde := make(chan chan *ptsBlok, 2*werkers)
+	// niet te veel blokken vooruit lezen: elk blok kost geheugen tot de schrijver het heeft gehad
+	volgorde := make(chan chan *ptsBlok, werkers+2)
 	taken := make(chan taak)
 	fouten := make(chan error, 1)
 	go func() {

@@ -80,9 +80,10 @@ type bestandsAPI struct {
 	kiesBezig sync.Mutex
 
 	mu         sync.Mutex
-	recentPad  string // recent.json (recent.go)
-	openen     string // projectmap die bij de start is meegegeven (recent.go)
-	sleutel    string // "" = nog niet uitgegeven: alles dicht
+	recentPad  string   // recent.json (recent.go)
+	openen     string   // projectmap die bij de start is meegegeven (recent.go)
+	omzetten   omzetter // omzettaak (omzet_taak.go)
+	sleutel    string   // "" = nog niet uitgegeven: alles dicht
 	toegestaan []string
 	stromen    map[string]*schrijfStroom
 }
@@ -222,6 +223,10 @@ func (a *bestandsAPI) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	route := strings.TrimPrefix(r.URL.Path, pvPrefix)
+	if isOmzetRoute(route) {
+		a.omzet(w, r, route)
+		return
+	}
 	if route == "recent" || route == "recent/weg" {
 		a.recent(w, r, route)
 		return
@@ -531,9 +536,10 @@ func (a *bestandsAPI) kies(w http.ResponseWriter, r *http.Request) {
 	stuurJSON(w, map[string]string{"pad": pad})
 }
 
-// ruimOp sluit open schrijfstromen en haalt hun tijdelijke bestanden weg; bij het
-// stoppen van de exe.
+// ruimOp breekt een lopende omzetting af en sluit open schrijfstromen, en haalt hun
+// tijdelijke bestanden weg; bij het stoppen van de exe.
 func (a *bestandsAPI) ruimOp() {
+	a.stopOmzetten()
 	a.mu.Lock()
 	stromen := a.stromen
 	a.stromen = map[string]*schrijfStroom{}

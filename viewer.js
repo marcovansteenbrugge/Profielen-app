@@ -843,7 +843,12 @@
   for (const knop of document.querySelectorAll('button.bestandOpen[data-voor]')) {
     const veld = document.getElementById(knop.dataset.voor);
     if (!veld) continue;
-    knop.addEventListener('click', () => { if (!veld.disabled) veld.click(); });
+    knop.addEventListener('click', () => {
+      if (veld.disabled) return;
+      // eigen venster: de puntenwolk met de Windows-kiezer, zodat het programma kan omzetten
+      if (veld.id === 'ptsBestand' && window.__pvNatief) { kiesPuntenwolkA(); return; }
+      veld.click();
+    });
     knop.disabled = veld.disabled;
     new MutationObserver(() => { knop.disabled = veld.disabled; }).observe(veld, { attributes: true, attributeFilter: ['disabled'] });
   }
@@ -1570,6 +1575,39 @@
     };
     return map;
   }
+  /** Een scan die met de Windows-kiezer is gekozen (2.11.0): gedraagt zich voor de lezers als een
+   *  File (name, size, lastModified, slice(a, b).arrayBuffer()/text()), maar leest alleen de
+   *  gevraagde stukken (Range), ook bij een scan van vele GB. pvPad = het pad, voor het omzetten
+   *  door het programma. */
+  async function natieveScan(pad) {
+    const i = await natiefInfo(pad);
+    if (!i.bestaat || i.soort !== 'bestand') throw new DOMException(`${pad} bestaat niet`, 'NotFoundError');
+    const stuk = (van, tot) => {
+      van = Math.max(0, Math.min(i.grootte, van)); tot = Math.max(van, Math.min(i.grootte, tot));
+      const lees = async () => {
+        if (tot <= van) return new ArrayBuffer(0);
+        return (await natiefVraag('fs/lees', pad, { kop: { Range: `bytes=${van}-${tot - 1}` } })).arrayBuffer();
+      };
+      return { size: tot - van, arrayBuffer: lees, text: async () => new TextDecoder().decode(await lees()),
+        slice: (a = 0, b = tot - van) => stuk(van + a, van + Math.min(b, tot - van)) };
+    };
+    const geheel = stuk(0, i.grootte);
+    return { name: i.naam, size: i.grootte, lastModified: i.gewijzigd, pvPad: pad, type: '',
+      slice: (a = 0, b = i.grootte) => stuk(a, b), arrayBuffer: geheel.arrayBuffer, text: geheel.text };
+  }
+  /** Puntenwolk A kiezen met de Windows-kiezer (eigen venster, besluit B3), zodat het pad bekend is. */
+  async function kiesPuntenwolkA() {
+    let pad;
+    try {
+      ({ pad } = await (await natiefVraag('kies', null, { methode: 'POST', kop: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ soort: 'open', titel: 'Puntenwolk openen', filter: [
+          { naam: 'Puntenwolk (*.las, *.laz, *.pts, *.txt)', patroon: '*.las;*.laz;*.pts;*.txt' }, { naam: 'Alle bestanden', patroon: '*.*' }] }) })).json());
+    } catch (err) { toonFout(`Bestand kiezen lukte niet: ${err.message}`); return; }
+    if (!pad) return;
+    try { await openPuntenwolkA(await natieveScan(pad)); }
+    catch (err) { console.error(err); toonFout(`${naamVan(pad)} openen lukte niet: ${err.message || err}`); }
+  }
+
   /** Kan er een map gekozen worden (exe-kiezer of die van de browser)? */
   const kanMapKiezen = () => !!natief || !!window.showDirectoryPicker;
   /** Map kiezen: in het eigen venster de Windows-kiezer van de exe, anders die van de browser.
@@ -1657,9 +1695,45 @@
     let bron = null;
     try { bron = await tegelbronVoor(bestand, 'A'); }
     catch (err) { console.error(err); toonFout(`${bestand.name} omzetten naar vakken lukte niet: ${err.message || err}`); return; }
-    if (bron) await laadBestand(bron, false);
+    if (bron) {
+      await laadBestand(bron, false);
+      // de omzettijd blijft zichtbaar (anders overschrijft het laden hem)
+      if (bron.pvOmzetTekst && !/omgezet in/.test(statusEl.textContent)) statusEl.textContent += ` · ${bron.pvOmzetTekst}`;
+    }
   }
   /** Vakken voor `bestand` in puntenwolk\<letter> - <naam>: hergebruiken als ze er al zijn, anders omzetten. */
+  /** Omzetten door het programma (2.11.0, /__pv/omzet/…): voortgang in de statusregel en een knop
+   *  Afbreken. → info (zoals info.json), null = afgebroken; gooit een fout als het niet lukt. */
+  async function omzettenDoorProgramma(bestand, wolkMap) {
+    const json = { 'Content-Type': 'application/json' };
+    const { id } = await (await natiefVraag('omzet/start', null, { methode: 'POST', kop: json,
+      body: JSON.stringify({ bron: bestand.pvPad, doel: wolkMap.pvPad, modus: oppervlakModus() }) })).json();
+    let knop = document.getElementById('omzetAfbreken');
+    if (!knop) {
+      knop = document.createElement('button');
+      knop.id = 'omzetAfbreken'; knop.type = 'button'; knop.textContent = 'Afbreken';
+      knop.title = 'Het omzetten naar vakken stoppen; er blijft niets van achter';
+      statusEl.after(knop);
+    }
+    let afbreken = false;
+    knop.onclick = () => { afbreken = true; knop.disabled = true; knop.textContent = 'Afbreken…'; natiefVraag('omzet/afbreken', null, { methode: 'POST', extra: `?id=${id}` }).catch(() => {}); };
+    knop.hidden = false; knop.disabled = false; knop.textContent = 'Afbreken';
+    const t0 = performance.now();
+    try {
+      for (;;) {
+        await new Promise(r => setTimeout(r, 250));
+        const s = await (await natiefVraag('omzet/stand', null, { extra: `?id=${id}` })).json();
+        const tijd = `${Math.round((performance.now() - t0) / 1000)} s`;
+        statusEl.style.color = '';
+        if (s.fase === 'lezen') statusEl.textContent = `${bestand.name} omzetten naar vakken (programma)… ${Math.round(100 * s.gelezen / Math.max(1, s.totaal))}% · ${tijd}`;
+        else if (s.fase === 'afronden') statusEl.textContent = `${bestand.name}: vakken afsluiten en overzicht maken (programma)… ${tijd}`;
+        else if (s.fase === 'klaar') return s.info;
+        else if (s.fase === 'afgebroken') return null;
+        else throw new Error(s.fout || `onbekende stand ${s.fase}`);
+      }
+    } finally { knop.hidden = true; }
+  }
+
   async function tegelbronVoor(bestand, letter) {
     if (!(await magSchrijvenMap(projectMap))) { toonFout('Geen toestemming om in de projectmap te schrijven.'); return null; }
     const pw = await projectMap.getDirectoryHandle('puntenwolk', { create: true });
@@ -1672,11 +1746,26 @@
         return maakTegelbron(wolkMap, info);
       }
     } catch { /* nog niet omgezet */ }
+    // eigen venster, scan met pad: het programma zet om (op alle kernen, buiten het venster); lukt dat
+    // niet, dan hieronder zoals voorheen (besluit B4)
+    if (natief && bestand.pvPad && wolkMap.pvPad && /\.(las|pts|txt)$/i.test(bestand.name)) {
+      markeerBezig('omzetten naar vakken', bestand.name);
+      try {
+        const info = await omzettenDoorProgramma(bestand, wolkMap);
+        if (info === null) { statusEl.style.color = ''; statusEl.textContent = `${bestand.name}: omzetten afgebroken`; return null; }
+        statusEl.textContent = `${bestand.name}: ${info.aantal.toLocaleString('nl-NL')} punten omgezet naar ${info.tegels.length} vakken in ${info.duurImport} s (door het programma)`;
+        return Object.assign(maakTegelbron(wolkMap, info), { pvOmzetTekst: `omgezet in ${info.duurImport} s door het programma` });
+      } catch (err) {
+        console.warn('omzetten door het programma mislukt, de viewer zet om:', err);
+        statusEl.style.color = ''; statusEl.textContent = `${bestand.name}: het programma kon niet omzetten (${err.message || err}); de viewer zet om…`;
+      } finally { markeerKlaar(); }
+    }
     for (const oud of ['tegels', 'info.json', 'overzicht.pvt', 'overzicht_maaiveld.pvt']) { try { await wolkMap.removeEntry(oud, { recursive: true }); } catch { /* */ } }
     markeerBezig('omzetten naar vakken', bestand.name);
     try {
       const bron = await importeerNaarTegels(bestand, wolkMap, (t) => { statusEl.style.color = ''; statusEl.textContent = t; });
       statusEl.textContent = `${bestand.name}: ${bron.info.aantal.toLocaleString('nl-NL')} punten omgezet naar ${bron.info.tegels.length} vakken in ${bron.info.duurImport} s`;
+      bron.pvOmzetTekst = `omgezet in ${bron.info.duurImport} s`;
       return bron;
     } catch (err) {
       console.error(err);

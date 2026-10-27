@@ -23,13 +23,20 @@ func main() {
 	doel := flag.String("doel", "", "puntenwolkmap (tegels komt daarin)")
 	modus := flag.String("modus", "boven", "oppervlak: boven of onder")
 	viewer := flag.String("viewer", "pvomzet", "tekst voor het veld viewer in info.json")
+	metVoortgang := flag.Bool("voortgang", false, "voortgang op stderr: \"voortgang <gelezen> <totaal>\" en \"fase <naam>\"")
 	flag.Parse()
 	if *bron == "" || *doel == "" || (*modus != "boven" && *modus != "onder") {
 		flag.Usage()
 		os.Exit(2)
 	}
 	t0 := time.Now()
-	info, err := omzet.Omzet(context.Background(), omzet.Opdracht{Bron: *bron, Doel: *doel, Onder: *modus == "onder", Viewer: *viewer}, nil)
+	o := omzet.Opdracht{Bron: *bron, Doel: *doel, Onder: *modus == "onder", Viewer: *viewer}
+	var voortgang omzet.Voortgang
+	if *metVoortgang {
+		o.Fase = func(f string) { fmt.Fprintln(os.Stderr, "fase", f) }
+		voortgang = func(gelezen, totaal int64) { fmt.Fprintln(os.Stderr, "voortgang", gelezen, totaal) }
+	}
+	info, err := omzet.Omzet(context.Background(), o, voortgang)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "pvomzet:", err)
 		os.Exit(1)

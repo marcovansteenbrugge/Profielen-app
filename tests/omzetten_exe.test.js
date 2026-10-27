@@ -39,16 +39,6 @@ fs.mkdirSync(UIT, { recursive: true });
 const scans = process.argv.slice(2).length ? process.argv.slice(2).map(s => path.resolve(s))
   : [H.data('groot', 'dijk_begroeid.las'), H.data('snoei_test', 'bospad_scan.pts'), H.data('doorvaart_test', 'bodem_multibeam.pts'), ...maakLastigePts()];
 
-/** pvomzet bouwen (Go, zonder cgo). */
-function bouwPvomzet() {
-  const exe = path.join(UIT, 'pvomzet.exe');
-  const go = [process.env.GO, 'go', 'C:\\Program Files\\Go\\bin\\go.exe'].filter(Boolean)
-    .find(g => spawnSync(g, ['version'], { encoding: 'utf8' }).status === 0);
-  if (!go) throw new Error('Go niet gevonden (zet GO op het pad van go.exe)');
-  const r = spawnSync(go, ['build', '-o', exe, './cmd/pvomzet'], { cwd: path.join(H.ROOT, 'bron-exe'), encoding: 'utf8', env: { ...process.env, CGO_ENABLED: '0' } });
-  if (r.status !== 0) throw new Error('pvomzet bouwen mislukt: ' + r.stderr);
-  return exe;
-}
 /** Eerste verschil tussen twee vakbestanden, als tekst. */
 function verschil(a, b) {
   if (a.length !== b.length) return `lengte ${a.length} tegen ${b.length} bytes`;
@@ -65,7 +55,7 @@ function verschil(a, b) {
   await H.start();
   for (const n of fs.readdirSync(UIT)) if (/^(viewer|exe)_/.test(n)) fs.rmSync(path.join(UIT, n), { recursive: true, force: true });
   const fouten = [];
-  const pvomzet = bouwPvomzet();
+  const pvomzet = H.pvomzet();
   const b = await chromium.launch({ ...H.browserOpties(), args: ['--no-sandbox'] });
   for (const scan of scans) {
     for (const modus of ['boven', 'onder']) {

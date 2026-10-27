@@ -9,9 +9,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"time"
 )
+
+// gcProcent: GOGC tijdens het omzetten (standaard 100 = de heap mag verdubbelen voor hij opruimt).
+var gcProcent = 50
 
 // Opdracht: wat er omgezet moet worden.
 type Opdracht struct {
@@ -19,11 +23,15 @@ type Opdracht struct {
 	Doel   string // de puntenwolkmap, bv. <projectmap>\puntenwolk\A - <naam>
 	Onder  bool   // oppervlak onderkant (anders bovenkant)
 	Viewer string // komt in info.json als "viewer"
+	// Fase krijgt "afronden" als alle punten gelezen zijn (overzichten en info.json); mag nil zijn
+	Fase func(fase string)
 }
 
 // Omzet zet de scan om. De map tegels in Doel moet leeg zijn of nog niet bestaan.
 func Omzet(ctx context.Context, o Opdracht, voortgang Voortgang) (*Info, error) {
 	t0 := time.Now()
+	// zuiniger opruimen tijdens het omzetten: minder piekgeheugen, iets meer rekentijd
+	defer debug.SetGCPercent(debug.SetGCPercent(gcProcent))
 	tegelMap := filepath.Join(o.Doel, "tegels")
 	if items, err := os.ReadDir(tegelMap); err == nil && len(items) > 0 {
 		return nil, fmt.Errorf("de map %s is niet leeg", tegelMap)
@@ -41,6 +49,7 @@ func Omzet(ctx context.Context, o Opdracht, voortgang Voortgang) (*Info, error) 
 		return nil, err
 	}
 	s := NieuweSchrijver(tegelMap, o.Onder)
+	defer s.Stop()
 	switch strings.ToLower(filepath.Ext(o.Bron)) {
 	case ".las":
 		kop, err := LeesLasKop(f)
@@ -57,7 +66,10 @@ func Omzet(ctx context.Context, o Opdracht, voortgang Voortgang) (*Info, error) 
 	default:
 		return nil, fmt.Errorf("%s: dit formaat zet het programma (nog) niet om", filepath.Base(o.Bron))
 	}
-	info, alle, grond, err := s.Afronden()
+	if o.Fase != nil {
+		o.Fase("afronden")
+	}
+	info, alle, err := s.Afronden()
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +80,8 @@ func Omzet(ctx context.Context, o Opdracht, voortgang Voortgang) (*Info, error) 
 		return nil, err
 	}
 	info.Overzicht.Alle = len(alle.Xs)
-	if grond != nil {
+	alle = Punten{} // geheugen vrij vóór het maaiveldoverzicht
+	if grond := s.Grond(); grond != nil {
 		if err := os.WriteFile(filepath.Join(o.Doel, "overzicht_maaiveld.pvt"), TegelBytes(*grond, info.Oorsprong[0], info.Oorsprong[1]), 0o644); err != nil {
 			return nil, err
 		}

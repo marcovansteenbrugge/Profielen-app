@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** de vrijgave van **F2** (de viewer laat het programma omzetten).
+> **Nu van jou gevraagd:** niets; F2 wordt gebouwd. Daarna een controle op je laptop met een grote LAS.
 > **Later nodig:** B5 vóór F5 (na de proef in F4); vrijgave van F3 tot en met F6.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.1), dat begint met een proef. Elke fase start pas na jouw akkoord.
@@ -23,7 +23,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 |---|---|---|---|---|---|
 | F0 | Het programma kan een LAS omzetten naar vakken, precies zoals de viewer dat nu doet (nog zonder knop in de viewer) | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 16:49 | B1, B2 | ✅ 2026-10-27 17:05 |
 | F1 | Hetzelfde voor PTS | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 17:06 | - | ✅ 2026-10-27 17:16 |
-| F2 | De viewer laat het programma omzetten: scan kiezen met de Windows-kiezer, voortgang, knop Afbreken; lukt het niet, dan zoals nu | ○ nog niet | - | B3, B4 | - |
+| F2 | De viewer laat het programma omzetten: scan kiezen met de Windows-kiezer, voortgang, knop Afbreken; lukt het niet, dan zoals nu | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 17:18 | B3, B4 | - |
 | F3 | Oplevering 2.11.0: versie, LEESMIJ, handleiding, tests, exe en zip | ○ nog niet | - | - | - |
 | F4 | Proef: kan de LAZ-decoder van de viewer ook in het programma draaien, en hoe snel | ○ nog niet | - | - | - |
 | F5 | LAZ omzetten in het programma | ○ nog niet | - | B5 | - |
@@ -32,6 +32,8 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 Letterlijk akkoord (F0, via chat): "F0 vrijgegeven"
 
 Letterlijk akkoord (F1, via chat): "F1 vrijgegeven"
+
+Letterlijk akkoord (F2, via chat): "F2 vrijgegeven"
 
 ## Overzicht besluiten
 | | # | Onderwerp | Besluit | Nodig vóór |
@@ -146,5 +148,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 17:06 | Vrijgave F1 op planversie 1 ("F1 vrijgegeven") | Marco van Steenbrugge, via chat |
 | 2026-10-27 17:16 | F1 gebouwd en per criterium getoetst: ook PTS-bestanden geven byte voor byte dezelfde vakken als de viewer, ook bij lastige bestanden | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 17:17 | B3 en B4 akkoord met voorstel ("B3 en B4 akkoord met jullie voorstel.") | Marco van Steenbrugge, via chat |
+| 2026-10-27 17:18 | Vrijgave F2 op planversie 1 ("F2 vrijgegeven") | Marco van Steenbrugge, via chat |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

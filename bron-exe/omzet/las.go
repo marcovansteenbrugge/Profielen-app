@@ -111,7 +111,8 @@ func LeesLas(ctx context.Context, f *os.File, kop *LasKop, s *Schrijver, voortga
 	}
 	ctx, stop := context.WithCancel(ctx)
 	defer stop()
-	volgorde := make(chan chan *lasBlok, 2*werkers)
+	// niet te veel blokken vooruit lezen: elk blok kost geheugen tot de schrijver het heeft gehad
+	volgorde := make(chan chan *lasBlok, werkers+2)
 	taken := make(chan taak)
 	go func() {
 		defer close(volgorde)

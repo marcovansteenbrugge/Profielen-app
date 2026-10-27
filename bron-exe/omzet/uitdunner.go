@@ -12,6 +12,7 @@ package omzet
 import (
 	"math"
 	"runtime"
+	"slices"
 	"sync"
 )
 
@@ -178,6 +179,9 @@ func (u *Uitdunner) VoegToe(x, y, z float64, r, g, b float64, metKleur bool) {
 		}
 		return
 	}
+	if len(u.kx) == cap(u.kx) {
+		u.groei()
+	}
 	u.kx = append(u.kx, x)
 	u.ky = append(u.ky, y)
 	u.kz = append(u.kz, z)
@@ -199,6 +203,21 @@ func (u *Uitdunner) VoegToe(x, y, z float64, r, g, b float64, metKleur bool) {
 		u.vergroof()
 		u.kort()
 	}
+}
+
+// groei: ruimte voor meer punten. Verdubbelen, maar nooit verder dan de limiet + 1 (meer
+// punten houdt de uitdunner nooit vast); zo blijft het geheugen bij een grote scan binnen de perken.
+func (u *Uitdunner) groei() {
+	nieuw := min(max(1<<16, 2*cap(u.kx)), int(u.limiet)+1)
+	if cap(u.kx) >= 1<<20 {
+		nieuw = int(u.limiet) + 1 // groot: in één keer naar de limiet (niet nog eens kopiëren)
+	}
+	if nieuw <= cap(u.kx) {
+		nieuw = cap(u.kx) + 1<<16
+	}
+	u.kx, u.ky, u.kz = slices.Grow(u.kx, nieuw-len(u.kx)), slices.Grow(u.ky, nieuw-len(u.ky)), slices.Grow(u.kz, nieuw-len(u.kz))
+	u.kr, u.kg, u.kb = slices.Grow(u.kr, nieuw-len(u.kr)), slices.Grow(u.kg, nieuw-len(u.kg)), slices.Grow(u.kb, nieuw-len(u.kb))
+	u.kk, u.ci, u.cj = slices.Grow(u.kk, nieuw-len(u.kk)), slices.Grow(u.ci, nieuw-len(u.ci)), slices.Grow(u.cj, nieuw-len(u.cj))
 }
 
 // kort maakt de lijsten even lang als n (na vergroof); append gaat dan verder vanaf n.
@@ -223,13 +242,10 @@ func (u *Uitdunner) houdKleurMax(r, g, b float64) {
 // Gezien: aantal punten dat aan VoegToe is gegeven.
 func (u *Uitdunner) Gezien() int { return u.gezien }
 
-// Resultaat is resultaat(): de overgebleven punten, met kleur als er kleur was.
+// Resultaat is resultaat(): de overgebleven punten, met kleur als er kleur was. Geeft de eigen
+// lijsten terug (geen kopie, dat scheelt geheugen): daarna geen VoegToe meer.
 func (u *Uitdunner) Resultaat() Punten {
-	p := Punten{
-		Xs: append([]float64(nil), u.kx[:u.n]...),
-		Ys: append([]float64(nil), u.ky[:u.n]...),
-		Zs: append([]float64(nil), u.kz[:u.n]...),
-	}
+	p := Punten{Xs: u.kx[:u.n], Ys: u.ky[:u.n], Zs: u.kz[:u.n]}
 	if u.metKleur && u.kleurMax > 0 { // alle kleurvelden 0 = geen kleur
 		deler := 1.0
 		if u.kleurMax > 255 {
@@ -281,7 +297,7 @@ func DunUit(in Punten, max int, onder bool) Punten {
 		grootte *= 2
 	}
 	masker := uint32(grootte - 1)
-	tab, ti, tj := make([]int32, grootte), make([]int32, grootte), make([]int32, grootte)
+	var tab, ti, tj []int32 // hashtabel, alleen als het raster te groot is
 	beter := func(z, oud float64) bool {
 		if onder {
 			return z < oud
@@ -309,6 +325,9 @@ func DunUit(in Punten, max int, onder bool) Punten {
 				}
 			}
 			return sel
+		}
+		if tab == nil {
+			tab, ti, tj = make([]int32, grootte), make([]int32, grootte), make([]int32, grootte)
 		}
 		vulMin1(tab)
 		aantal := 0
@@ -384,7 +403,9 @@ func DunUit(in Punten, max int, onder bool) Punten {
 func kiesRaster(in Punten, minX, minY, inv float64, ny int64, raster []int32, onder bool) []bool {
 	n := len(in.Xs)
 	// niet te veel stukken: elk stuk heeft een eigen raster dat gevuld en samengevoegd moet worden
-	delen := min(runtime.NumCPU(), 8, max(1, n/500000))
+	// en samen hooguit ± 256 MB aan rasters: bij een schuine, smalle wolk is het kader veel groter
+	// dan het gebied en heeft het raster tientallen miljoenen cellen
+	delen := min(runtime.NumCPU(), 8, max(1, n/500000), max(1, (256<<20)/(4*len(raster))))
 	rasters := make([][]int32, delen)
 	rasters[0] = raster
 	var wg sync.WaitGroup
