@@ -3,7 +3,7 @@ plan: eigen-bestandstoegang
 titel: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 versie: 1
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ▶ · F2 ○ · F3 ○ · F4 ○           # berekend door de skill
+voortgang: F0 ✅ · F1 ✅ · F2 ○ · F3 ○ · F4 ○           # berekend door de skill
 opgesteld: 2026-10-27
 opgesteld_door: Claude Code, in opdracht van Marco van Steenbrugge
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
@@ -86,7 +86,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
 | F0 | ✅ gebouwd | Bestands-API in de exe (`bestanden.go`): sessiesleutel via `Init`, Host- en Origin-controle, info/lijst/lees met bereik/schrijfstromen met atomair afronden/map/weg, toegestane mappen volgens B2, opruimen bij stoppen | `go vet` schoon en `go test ./...` in `bron-exe` groen, met tests voor: zonder sleutel 403; verkeerde Host 403; pad buiten toegestane map 403 (ook via `..`); lezen met `Range`; schrijven in delen en pas na `klaar` zichtbaar; afbreken laat het doel ongemoeid. Build met `CGO_ENABLED=0` slaagt | B2 | M | Claude Code, high | `F0:` |
-| F1 | ▶ vrijgegeven | Windows-kiezer vanuit de exe (`/__pv/kies`): map kiezen, bestand openen, bestand opslaan, via `IFileOpenDialog`/`IFileSaveDialog` zonder cgo, modaal voor het venster; gekozen pad wordt een toegestane map | Build slaagt, `go vet` schoon. Marco bevestigt op zijn laptop: de mapkiezer opent vóór het venster, een gekozen map geeft het pad terug (log), annuleren geeft niets terug en de viewer loopt door | F0 | M | Claude Code, high | `F1:` |
+| F1 | ✅ gebouwd | Windows-kiezer vanuit de exe (`/__pv/kies`): map kiezen, bestand openen, bestand opslaan, via `IFileOpenDialog`/`IFileSaveDialog` zonder cgo, modaal voor het venster; gekozen pad wordt een toegestane map | Build slaagt, `go vet` schoon. Marco bevestigt op zijn laptop: de mapkiezer opent vóór het venster, een gekozen map geeft het pad terug (log), annuleren geeft niets terug en de viewer loopt door | F0 | M | Claude Code, high | `F1:` |
 | F2 | ○ niet vrijgegeven | Tussenstuk in viewer.js (`natieveMap`/`natiefBestand`) en één kiezer-hulpfunctie voor alle plekken met `showDirectoryPicker`; `tests/hulp.js` krijgt dezelfde `/__pv/`-API met sleutel; browserroute blijft volgens B3 | Nieuwe test `tests/natieve_map.test.js` (met sleutel via `addInitScript`): projectmap aanmaken, puntenwolk omzetten naar vakken, project opslaan, viewer herladen, project opnieuw openen en vakken lezen, allemaal via de API; geen aanroep van `requestPermission` van de browser; "fouten: geen". `node run_alle.js` helemaal groen | F0, B3 | L | Claude Code, high | `F2:` |
 | F3 | ○ niet vrijgegeven | Recente projecten volgens B1, PDF-uitvoermap en los projectbestand via de exe-kiezer, startparameter `.pvproj` (ook doorgegeven door een tweede start), slepen van puntenwolk en `.pvproj` op het venster | `node run_alle.js` groen. Marco bevestigt op zijn laptop: in een sessie met projectmap kiezen, puntenwolk omzetten, opslaan, PDF maken, viewer sluiten en via Recent opnieuw openen komt geen enkele toestemmingsvraag; `Lutrea-Profielviewer.exe "<pad>\x.pvproj"` opent dat project, ook als de viewer al open is; een gesleepte .las of .laz wordt geopend | F1, F2, B1 | M | Claude Code, medium | `F3:` |
 | F4 | ○ niet vrijgegeven | Oplevering 2.10.2: `zet_versie.py 2.10.2`, LEESMIJ-blok "Nieuw in 2.10.2", handleiding, `tools/bouw.ps1`, tag `v2.10.2` | `node run_alle.js` en `go test ./...` groen; `dist\Lutrea-Profielviewer-2.10.2.exe` en de zip bestaan; Marco bevestigt de handmatige lijst: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT (PDOK), en met `--browservenster` werkt de projectmap nog zoals in 2.10.1 | F0, F1, F2, F3 | S | Claude Code, medium | `F4:` en `2.10.2:` |
@@ -120,6 +120,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
 | F0 | 2026-10-27 10:59 | 2026-10-27 11:06 | Marco van Steenbrugge ("Akkoord, bouw F0 van eigen-bestandstoegang op planversie 1.") | Claude Code, claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | medium | 48 / 29.953 | 769842d | transcript (Claude Code 2.1.308) |
+| F1 | 2026-10-27 11:07 | 2026-10-27 11:19 | Marco van Steenbrugge ("Akkoord, bouw F1 van eigen-bestandstoegang op planversie 1.") | Claude Code, claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | medium | 30 / 23.760 | f803f8e, c07227f | transcript (Claude Code 2.1.308) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -142,6 +143,11 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F1 | 2026-10-27 11:11 | Marco bevestigt: de mapkiezer opent vóór het venster | Automatisch (proefexe met `--kiezertest`, vensters van het eigen proces via EnumWindows): alle drie de kiezers hebben het viewervenster als eigenaar en de viewer is uitgeschakeld zolang de kiezer open is (modaal). Bevestiging van Marco nog niet ontvangen | niet toetsbaar |
 | F1 | 2026-10-27 11:11 | Marco bevestigt: een gekozen map geeft het pad terug (log) | Nog niet gedaan: een echte keuze vraagt een mens. Wacht op Marco | niet toetsbaar |
 | F1 | 2026-10-27 11:11 | Marco bevestigt: annuleren geeft niets terug en de viewer loopt door | Automatisch (Annuleren via IDCANCEL): log "kiezer (map|open|opslaan): geannuleerd", melding "geannuleerd (niets teruggegeven)" voor alle drie; daarna viewer weer bruikbaar en ping "klaar". Bevestiging van Marco nog niet ontvangen | niet toetsbaar |
+| F1 | 2026-10-27 11:18 | Build slaagt | Ongewijzigd sinds de toetsing van 11:11 (commit f803f8e): `go build` met `CGO_ENABLED=0` exitcode 0, proefexe 11.111.424 bytes | gehaald |
+| F1 | 2026-10-27 11:18 | `go vet` schoon | Ongewijzigd sinds 11:11: `go vet ./...` schoon (windows en linux), `go test ./...` 11 tests PASS | gehaald |
+| F1 | 2026-10-27 11:18 | Marco bevestigt: de mapkiezer opent vóór het venster | Marco van Steenbrugge, 2026-10-27 11:18, via chat: "Ja: de kiezers openden vóór het venster, mijn gekozen map stond in de melding en na annuleren liep de viewer door." Daarnaast automatisch om 11:11: eigenaar is het viewervenster, viewer uitgeschakeld zolang de kiezer open is | gehaald |
+| F1 | 2026-10-27 11:18 | Marco bevestigt: een gekozen map geeft het pad terug (log) | Marco van Steenbrugge, 2026-10-27 11:18, via chat: "Ja: de kiezers openden vóór het venster, mijn gekozen map stond in de melding en na annuleren liep de viewer door." Let op: in het log op de ontwikkel-pc staat zijn run niet (alleen de automatische runs van 11:10 en 11:11); vermoedelijk op een andere pc gedraaid. Het oordeel steunt op zijn bevestiging dat het pad in de melding stond; de melding komt uit hetzelfde antwoord van `/__pv/kies` als de logregel | gehaald |
+| F1 | 2026-10-27 11:18 | Marco bevestigt: annuleren geeft niets terug en de viewer loopt door | Marco van Steenbrugge, 2026-10-27 11:18, via chat: "Ja: de kiezers openden vóór het venster, mijn gekozen map stond in de melding en na annuleren liep de viewer door." Daarnaast automatisch om 11:11: alle drie geannuleerd, daarna viewer bruikbaar | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
@@ -152,6 +158,9 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 | F0 | Extra: `echtpad_windows.go` (echt pad via `GetFinalPathNameByHandleW`) | De junction-test faalde eerst: Go's `EvalSymlinks` lost een junction niet op, zodat een junction in een projectmap naar buiten kon. Nodig voor B2 |
 | F0 | Extra: `tools/bouw.ps1` draait `go vet` en `go test` vóór het bouwen; `BOUWEN.txt` noemt de tests | `go test` heeft de map `app` nodig, die alleen tijdens het bouwen bestaat. Zo draaien de tests bij elke bouw. Via `bouw.ps1` zelf nog niet gedraaid (dat zou `dist\` 2.10.1 overschrijven); dat gebeurt in F4 |
 | F0 | Een map die niet leeg is zonder `recursief` verwijderen geeft 409, niet 500 | Windows meldt "map niet leeg" als "bestaat al"; 409 met een duidelijke melding past beter |
+| F1 | Effort medium in plaats van gepland high | Reden onbekend (effort-instelling van de sessie) |
+| F1 | Extra: startoptie `--kiezertest` (`kiezertest_windows.go`) en de proefexe in `dist\proef\` | De viewer gebruikt de kiezer pas in F2; zonder deze optie was er voor Marco niets te controleren. De optie gaat via dezelfde route met sessiesleutel, dus de afscherming verandert niet. Blijft staan als diagnose |
+| F1 | De wachttijd tussen vrijgave en controle (11:11 tot 11:18) valt in het tijdvak van de uitvoeringsrij | Wachten op Marco's controle |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |

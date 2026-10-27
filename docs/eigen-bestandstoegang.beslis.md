@@ -11,8 +11,8 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 
-> **Nu van jou gevraagd:** de controle van F1 op je laptop: `dist\proef\Lutrea-Profielviewer-F1-proef.exe --kiezertest`, een map kiezen en melden wat je zag.
-> **Later nodig:** vrijgave van F2 tot en met F4.
+> **Nu van jou gevraagd:** de vrijgave van **F2** (de viewer gaat de nieuwe toegang gebruiken).
+> **Later nodig:** vrijgave van F3 en F4.
 
 Nu vraagt de viewer bij elke sessie opnieuw toestemming voor je projectmap, omdat de browser dat bewaakt. Straks leest en schrijft het programma je bestanden zelf, zodat die vragen verdwijnen, recente projecten na een herstart gewoon werken en het programma later (fase E) grote scans zelf kan omzetten. Het werk gaat in vijf fasen, en elke fase start pas na jouw akkoord.
 
@@ -22,7 +22,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
 | F0 | Het programma kan zelf bestanden lezen en schrijven, afgeschermd zodat alleen het eigen venster dat mag | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 10:59 | B2 | ✅ 2026-10-27 11:06 |
-| F1 | De gewone Windows-kiezer voor mappen en bestanden, vanuit het programma | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 11:07 | - | - |
+| F1 | De gewone Windows-kiezer voor mappen en bestanden, vanuit het programma | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 11:07 | - | ✅ 2026-10-27 11:19 |
 | F2 | De viewer gebruikt die nieuwe toegang voor de projectmap; alles werkt verder zoals je gewend bent | ○ nog niet | - | B3 | - |
 | F3 | Recente projecten, PDF-map, los projectbestand, project openen vanaf een pad, puntenwolk op het venster slepen | ○ nog niet | - | B1 | - |
 | F4 | Oplevering 2.10.2: versie, LEESMIJ, handleiding, tests, exe en zip | ○ nog niet | - | - | - |
@@ -106,5 +106,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 11:06 | F0 gebouwd en per criterium getoetst (alle Go-tests groen, ook een extra controle op snelkoppelingen naar buiten de projectmap) | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 11:07 | Vrijgave F1 op planversie 1 | Marco van Steenbrugge, via chat |
 | 2026-10-27 11:11 | F1 uitgevoerd en automatisch getoetst (kiezers modaal, annuleren werkt); wacht op Marco's controle met een echte keuze | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 11:18 | Marco bevestigt: "Ja: de kiezers openden vóór het venster, mijn gekozen map stond in de melding en na annuleren liep de viewer door." | Marco van Steenbrugge, via chat |
+| 2026-10-27 11:19 | F1 gebouwd en per criterium getoetst | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
