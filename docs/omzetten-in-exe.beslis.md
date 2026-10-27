@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** niets; F3 wordt gebouwd. Daarna je controle van de handmatige lijst.
+> **Nu van jou gevraagd:** de controle van 2.11.0 (`dist\Lutrea-Profielviewer-2.11.0.exe`): puntenwolk openen (Wallach/Halsteren), projectmap, PDF en DXF opslaan, 3D, luchtfoto en BGT, en met `--browservenster` alles zoals in 2.10.2.
 > **Later nodig:** B5 vóór F5 (na de proef in F4); vrijgave van F4 tot en met F6.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.1), dat begint met een proef. Elke fase start pas na jouw akkoord.
@@ -157,5 +157,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 20:54 | Marco bevestigt: "Ja, volgens de stappen: na Nieuw en Openen… bij de puntenwolk zag ik de voortgang, de omzettijd stond in de statusregel, en Afbreken werkte." en "heb het alleen om gedraaid"; het log bevestigt het (afgebroken na 7,5 s, daarna omgezet in 9,7 en 9,5 s) | Marco van Steenbrugge, via chat |
 | 2026-10-27 20:54 | F2 gebouwd en per criterium getoetst: Halsteren (52,5 mln punten) in ± 10 s door het programma, tegen 37 s in de viewer | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 20:55 | Vrijgave F3 op planversie 1 ("F3 vrijgegeven") | Marco van Steenbrugge, via chat |
+| 2026-10-27 21:02 | F3 uitgevoerd: versie 2.11.0, LEESMIJ, handleiding, alle tests groen, exe en zip gebouwd, tag v2.11.0; wacht op Marco's handmatige controle | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

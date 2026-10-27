@@ -170,6 +170,9 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F2 | 2026-10-27 20:54 | Nieuwe test: een LAS opent via de kiezer, wordt omgezet via de exe-taak (zichtbaar in de testserver), toont voortgang en opent daarna | Ongewijzigd sinds 17:49: `omzetten_viewer.test.js` ronde 1, "fouten: geen" | gehaald |
 | F2 | 2026-10-27 20:54 | Nieuwe test: afbreken laat de map leeg en de viewer bruikbaar | Ongewijzigd sinds 17:49: ronde 2 en 3, "fouten: geen" | gehaald |
 | F2 | 2026-10-27 20:54 | Marco bevestigt op zijn laptop: een grote LAS (bijvoorbeeld Halsteren) via Openen… zet om met voortgang, Afbreken werkt, en de tijd staat in de statusregel | Marco van Steenbrugge, 20:53, via chat: "Ja, volgens de stappen: na Nieuw en Openen… bij de puntenwolk zag ik de voortgang, de omzettijd stond in de statusregel, en Afbreken werkte." en "heb het alleen om gedraaid" (eerst afgebroken). Log van zijn run (20:50–20:52): "kiezer (open): DIJK Halsteren..las", "omzetten gestart … 003-test", "omzetten afgebroken na 7.5 s", daarna "omzetten klaar: 52461129 punten in 71 vakken, 9.7 s" (003-test) en "9.5 s" (004-test). In 004-test: info.json "Lutrea Profielviewer 2.10.2 (exe)", 71 vakken, byte voor byte gelijk aan de vakken van 2.9.1; geen .pvtmp over | gehaald |
+| F3 | 2026-10-27 21:02 | `node run_alle.js` en `go test ./...` groen | `node run_alle.js` op 2.11.0 (20:57–21:01): 17 van 17 OK, "Alle tests geslaagd". `tools\bouw.ps1` draaide `go vet` en `go test`: "ok ptsviewer", "ok ptsviewer/omzet" | gehaald |
+| F3 | 2026-10-27 21:02 | `dist\Lutrea-Profielviewer-2.11.0.exe` en de zip bestaan | `dist\Lutrea-Profielviewer-2.11.0.exe` 11.279.360 bytes en `dist\Lutrea-Profielviewer_compleet_2.11.0.zip` 5.694.879 bytes (21:01); versie-info 2.11.0; gestart: ping "klaar:2.11.0", omzettaak zonder sleutel 403, `viewer.js?v=73`; zip 57 bestanden met `bron-exe\omzet\*.go` en `omzet_taak.go`. Commit b5e219c, tag v2.11.0 gepusht | gehaald |
+| F3 | 2026-10-27 21:02 | Marco bevestigt de handmatige lijst: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT, en met `--browservenster` werkt alles zoals in 2.10.2 | Nog niet gedaan; wacht op Marco | niet toetsbaar |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
@@ -188,6 +191,7 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 | F2 | Effort medium in plaats van gepland high | Reden onbekend (effort-instelling van de sessie) |
 | F2 | De handmatige controle kostte drie rondes; de eerste twee raakten het omzetten niet (vakken hergebruikt, daarna Opslaan als) | De controle-instructie noemde niet dat er geen project open mocht staan; de derde keer met stappen (Project → Nieuw eerst). Het tijdvak van de uitvoeringsrij bevat die wachttijd |
 | F2 | Gemeten op Halsteren (52,5 mln punten, 1,8 GB LAS): 9,5 tot 11,1 s in het programma tegen 37 s in de viewer van 2.9.1, piekgeheugen 959 MB, vakken gelijk | Vergelijkingspunt uit open vraag 1 |
+| F3 | `.syso` niet opnieuw gemaakt | 2.10.2 en 2.11.0 hebben dezelfde lengte; `zet_versie.py` werkte de versie-info zelf bij (gecontroleerd: versie-info 2.11.0) |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
