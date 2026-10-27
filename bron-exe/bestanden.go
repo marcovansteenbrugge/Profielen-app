@@ -80,6 +80,8 @@ type bestandsAPI struct {
 	kiesBezig sync.Mutex
 
 	mu         sync.Mutex
+	recentPad  string // recent.json (recent.go)
+	openen     string // projectmap die bij de start is meegegeven (recent.go)
 	sleutel    string // "" = nog niet uitgegeven: alles dicht
 	toegestaan []string
 	stromen    map[string]*schrijfStroom
@@ -220,6 +222,10 @@ func (a *bestandsAPI) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	route := strings.TrimPrefix(r.URL.Path, pvPrefix)
+	if route == "recent" || route == "recent/weg" {
+		a.recent(w, r, route)
+		return
+	}
 	if route == "kies" {
 		if r.Method != http.MethodPost {
 			http.Error(w, "alleen POST", http.StatusMethodNotAllowed)
@@ -516,6 +522,10 @@ func (a *bestandsAPI) kies(w http.ResponseWriter, r *http.Request) {
 		if err := a.staToe(pad); err != nil {
 			bestandsFout(w, err)
 			return
+		}
+		// een gekozen projectbestand: de projectmap eromheen hoort erbij (vakken, uitvoer)
+		if o.Soort == "open" && strings.EqualFold(filepath.Ext(pad), ".pvproj") {
+			a.staToe(filepath.Dir(pad))
 		}
 	}
 	stuurJSON(w, map[string]string{"pad": pad})

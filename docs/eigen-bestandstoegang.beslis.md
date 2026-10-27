@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 
-> **Nu van jou gevraagd:** de vrijgave van **F3** (recente projecten, PDF-map, los projectbestand, openen vanaf een pad, slepen; daarna een controle op je laptop).
+> **Nu van jou gevraagd:** niets; F3 wordt gebouwd. Daarna een controle op je laptop.
 > **Later nodig:** vrijgave van F4.
 
 Nu vraagt de viewer bij elke sessie opnieuw toestemming voor je projectmap, omdat de browser dat bewaakt. Straks leest en schrijft het programma je bestanden zelf, zodat die vragen verdwijnen, recente projecten na een herstart gewoon werken en het programma later (fase E) grote scans zelf kan omzetten. Het werk gaat in vijf fasen, en elke fase start pas na jouw akkoord.
@@ -24,7 +24,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F0 | Het programma kan zelf bestanden lezen en schrijven, afgeschermd zodat alleen het eigen venster dat mag | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 10:59 | B2 | ✅ 2026-10-27 11:06 |
 | F1 | De gewone Windows-kiezer voor mappen en bestanden, vanuit het programma | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 11:07 | - | ✅ 2026-10-27 11:19 |
 | F2 | De viewer gebruikt die nieuwe toegang voor de projectmap; alles werkt verder zoals je gewend bent | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 11:20 | B3 | ✅ 2026-10-27 13:34 |
-| F3 | Recente projecten, PDF-map, los projectbestand, project openen vanaf een pad, puntenwolk op het venster slepen | ○ nog niet | - | B1 | - |
+| F3 | Recente projecten, PDF-map, los projectbestand, project openen vanaf een pad, puntenwolk op het venster slepen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 13:43 | B1 | - |
 | F4 | Oplevering 2.10.2: versie, LEESMIJ, handleiding, tests, exe en zip | ○ nog niet | - | - | - |
 
 Letterlijk akkoord (F0, via chat): "Akkoord, bouw F0 van eigen-bestandstoegang op planversie 1."
@@ -32,6 +32,8 @@ Letterlijk akkoord (F0, via chat): "Akkoord, bouw F0 van eigen-bestandstoegang o
 Letterlijk akkoord (F1, via chat): "Akkoord, bouw F1 van eigen-bestandstoegang op planversie 1."
 
 Letterlijk akkoord (F2, via chat): "Akkoord, bouw F2 van eigen-bestandstoegang op planversie 1."
+
+Letterlijk akkoord (F3, via chat): "Akkoord, bouw F3 van eigen-bestandstoegang op planversie 1."
 
 ## Overzicht besluiten
 | | # | Onderwerp | Besluit | Nodig vóór |
@@ -112,5 +114,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 11:19 | F1 gebouwd en per criterium getoetst | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 11:20 | Vrijgave F2 op planversie 1 | Marco van Steenbrugge, via chat |
 | 2026-10-27 13:34 | F2 gebouwd en per criterium getoetst (alle 15 tests groen; omzetten via de nieuwe toegang 0,96 tot 1,37 keer de tijd van de oude, binnen de grens 1,5) | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 13:43 | Vrijgave F3 op planversie 1 | Marco van Steenbrugge, via chat |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

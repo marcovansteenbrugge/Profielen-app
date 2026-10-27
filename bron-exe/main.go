@@ -11,6 +11,7 @@ package main
 import (
 	"embed"
 	"fmt"
+	"io"
 	"io/fs"
 	"log"
 	"mime"
@@ -51,6 +52,8 @@ var (
 	// naarVoren haalt het eigen WebView2-venster naar voren (nil = geen eigen venster,
 	// bv. bij de terugvaloptie)
 	naarVoren atomic.Pointer[func()]
+	// openInVenster opent een projectmap in het eigen venster (tweede start met een pad)
+	openInVenster atomic.Pointer[func(string)]
 	// bestandsapi: eigen bestandstoegang van het eigen venster (bestanden.go)
 	bestandsapi *bestandsAPI
 )
@@ -123,7 +126,7 @@ func main() {
 			return
 		case "klaar":
 			// eigen venster open: dat naar voren halen in plaats van een tweede venster
-			if vraagVoorgrond(vastePoort) {
+			if vraagVoorgrond(vastePoort, startProject()) {
 				log.Println("viewer draait al: bestaande venster naar voren gehaald")
 				return
 			}
@@ -170,11 +173,28 @@ func main() {
 		}
 	})
 	mux.HandleFunc(voorgrondPad, func(w http.ResponseWriter, r *http.Request) {
-		// alleen "venster naar voren", zonder gegevens
+		// venster naar voren; met een pad in de body (tweede start met een .pvproj of
+		// projectmap) ook dat project openen
 		f := naarVoren.Load()
 		if r.Method != http.MethodPost || f == nil {
 			http.Error(w, "geen eigen venster", http.StatusConflict)
 			return
+		}
+		b, _ := io.ReadAll(io.LimitReader(r.Body, 32<<10))
+		if pad := strings.TrimSpace(string(b)); pad != "" {
+			// alleen van een tweede start van de exe: die stuurt geen Origin, een website wel
+			if r.Header.Get("Origin") != "" || r.Host != fmt.Sprintf("127.0.0.1:%d", poort) {
+				log.Printf("voorgrond met pad geweigerd (Origin %q, Host %q)", r.Header.Get("Origin"), r.Host)
+				http.Error(w, "geen toegang", http.StatusForbidden)
+				return
+			}
+			if p := projectPad(pad); p != "" {
+				log.Println("tweede start: project openen", p)
+				bestandsapi.staToe(p)
+				if o := openInVenster.Load(); o != nil {
+					(*o)(p)
+				}
+			}
 		}
 		(*f)()
 		w.WriteHeader(http.StatusNoContent)
@@ -182,6 +202,12 @@ func main() {
 	// eigen bestandstoegang (/__pv/), alleen open voor het eigen venster
 	bestandsapi = nieuweBestandsAPI(poort)
 	defer bestandsapi.ruimOp()
+	bestandsapi.laadRecent(recentBestand())
+	if p := startProject(); p != "" {
+		log.Println("project meegegeven bij de start:", p)
+		bestandsapi.staToe(p)
+		bestandsapi.openen = p
+	}
 	bestandsapi.registreer(mux)
 	bestanden := http.FileServer(http.FS(inhoud))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -280,14 +306,15 @@ func browservensterGevraagd() bool {
 	return strings.EqualFold(os.Getenv("PV_VENSTER"), "browser")
 }
 
-// vraagVoorgrond vraagt de draaiende viewer zijn eigen venster naar voren te halen.
+// vraagVoorgrond vraagt de draaiende viewer zijn eigen venster naar voren te halen,
+// en met project (een pad, of "") dat project te openen.
 // false = die viewer heeft geen eigen venster (terugvaloptie) of antwoordt niet.
-func vraagVoorgrond(poort int) bool {
+func vraagVoorgrond(poort int, project string) bool {
 	// dit proces is net door de gebruiker gestart en mag de voorgrond doorgeven;
 	// zonder dit houdt Windows het venster soms tegen (dan knippert de taakbalk)
 	staVoorgrondToe()
 	c := http.Client{Timeout: 2 * time.Second}
-	resp, err := c.Post(fmt.Sprintf("http://127.0.0.1:%d%s", poort, voorgrondPad), "text/plain", nil)
+	resp, err := c.Post(fmt.Sprintf("http://127.0.0.1:%d%s", poort, voorgrondPad), "text/plain", strings.NewReader(project))
 	if err != nil {
 		return false
 	}

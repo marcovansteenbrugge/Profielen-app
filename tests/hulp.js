@@ -18,7 +18,7 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.
 /* Nagemaakte eigen bestandstoegang van de exe (/__pv/, zie bron-exe/bestanden.go), voor tests in
    Edge met window.__pvNatief. Zelfde regels: sessiesleutel, Host, alleen toegestane mappen.
    natief.kiesRij: paden die /__pv/kies achter elkaar teruggeeft ('' = geannuleerd). */
-const natief = { sleutel: 'test-' + require('crypto').randomBytes(16).toString('hex'), kiesRij: [], toegestaan: [], verzoeken: 0 };
+const natief = { sleutel: 'test-' + require('crypto').randomBytes(16).toString('hex'), kiesRij: [], toegestaan: [], verzoeken: 0, recent: [] };
 const stromen = new Map();
 const binnen = (p) => {
   if (!p || !path.isAbsolute(p)) return null;
@@ -33,7 +33,16 @@ function natiefVerzoek(req, res, url) {
   natief.verzoeken++;
   const route = url.pathname.slice('/__pv/'.length), q = url.searchParams;
   const lees = () => new Promise((ok, mis) => { const d = []; req.on('data', c => d.push(c)); req.on('end', () => ok(Buffer.concat(d))); req.on('error', mis); });
-  if (route === 'kies') return lees().then(() => { const pad = natief.kiesRij.length ? natief.kiesRij.shift() : ''; if (pad) natief.toegestaan.push(pad); json({ pad }); });
+  if (route === 'kies') return lees().then(() => { const pad = natief.kiesRij.length ? natief.kiesRij.shift() : ''; if (pad) natief.toegestaan.push(pad, ...(/\.pvproj$/i.test(pad) ? [path.dirname(pad)] : [])); json({ pad }); });
+  // recente projecten (recent.go): in het geheugen, laatste 8
+  if (route === 'recent' && req.method === 'GET') return json(natief.recent.map(r => ({ ...r, bestaat: fs.existsSync(r.pad) })));
+  if (route === 'recent' || route === 'recent/weg') return lees().then(b => {
+    const { pad } = JSON.parse(String(b) || '{}');
+    if (!pad) return stuur(400, 'ongeldige opdracht');
+    natief.recent = natief.recent.filter(r => r.pad.toLowerCase() !== pad.toLowerCase());
+    if (route === 'recent') { if (!binnen(pad)) return stuur(403, 'pad buiten toegestane mappen'); natief.recent.unshift({ naam: path.basename(pad), pad, tijd: Date.now() }); natief.recent = natief.recent.slice(0, 8); }
+    stuur(204);
+  });
   if (route.startsWith('fs/schrijf/') && route !== 'fs/schrijf/start') {
     const id = q.get('id'), s = stromen.get(id);
     if (route === 'fs/schrijf/deel') { if (!s) return stuur(404, 'onbekende schrijfstroom'); return lees().then(b => {

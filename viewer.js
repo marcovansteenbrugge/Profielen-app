@@ -1479,6 +1479,7 @@
     return map.replace(/[\\/]+$/, '') + '\\' + naam;
   };
   const naamVan = (pad) => pad.replace(/[\\/]+$/, '').split(/[\\/]/).pop();
+  const mapVan = (pad) => pad.replace(/[\\/]+$/, '').replace(/[\\/][^\\/]*$/, '');
   const zelfdeEntry = (pad) => async (ander) => !!ander?.pvPad && ander.pvPad.toLowerCase() === pad.toLowerCase();
   /** Bytes die over alle schrijfstromen samen nog verstuurd moeten worden; boven de grens wacht write(). */
   const natiefOnderweg = { bytes: 0 }, NATIEF_MAX_ONDERWEG = 64 << 20;
@@ -9598,6 +9599,21 @@ ${r3d}
 
   document.getElementById('projectOpenKnop')?.addEventListener('click', () => toonProjectOpenen());
   async function openLosProjectbestand() {
+    if (natief) {   // eigen venster: Windows-kiezer van de exe
+      let pad;
+      try {
+        ({ pad } = await (await natiefVraag('kies', null, { methode: 'POST', kop: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ soort: 'open', titel: 'Project openen', filter: [{ naam: 'Profielviewer-project (*.pvproj, *.json)', patroon: '*.pvproj;*.json' }, { naam: 'Alle bestanden', patroon: '*.*' }] }) })).json());
+      } catch (err) { toonFout(`Bestand kiezen lukte niet: ${err.message}`); return; }
+      if (!pad) return;
+      // een .pvproj hoort bij een projectmap: die openen (met vakken, ondergrond en uitvoer)
+      if (/\.pvproj$/i.test(pad)) { await openProjectMap(natieveMap(mapVan(pad)), naamVan(pad)); return; }
+      const h = natiefBestand(pad), bestand = await h.getFile();
+      projectMap = null;
+      toonProjectBestand(bestand.name);
+      if (await laadProjectBestand(bestand)) projectHandle = h;
+      return;
+    }
     if (!window.showOpenFilePicker) { projectLadenVeld.click(); return; }
     let h;
     try {
@@ -9623,6 +9639,12 @@ ${r3d}
     });
   }
   async function bewaarRecentProject(map) {
+    // eigen venster: de exe houdt de lijst bij (paden, werkt ook na een herstart)
+    if (map?.pvPad) {
+      try { await natiefVraag('recent', null, { methode: 'POST', kop: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pad: map.pvPad }) }); }
+      catch (err) { console.warn('recente projecten bewaren mislukt:', err); }
+      return;
+    }
     try {
       const db = await recentDb();
       const lijst = await leesRecent(db);
@@ -9641,7 +9663,11 @@ ${r3d}
     const vak = document.getElementById('poRecent'), info = document.getElementById('poInfo');
     vak.innerHTML = ''; info.textContent = '';
     let lijst = [];
-    try { lijst = (await leesRecent(await recentDb())).sort((a, b) => b.tijd - a.tijd); } catch { /* */ }
+    if (natief) {
+      try { lijst = await (await natiefVraag('recent', null)).json(); } catch (err) { console.warn('recente projecten lezen mislukt:', err); }
+    } else {
+      try { lijst = (await leesRecent(await recentDb())).sort((a, b) => b.tijd - a.tijd); } catch { /* */ }
+    }
     document.getElementById('poGeenRecent').hidden = lijst.length > 0;
     for (const r of lijst) {
       const k = document.createElement('button');
@@ -9649,7 +9675,17 @@ ${r3d}
       k.innerHTML = `<b></b> <span class="zacht"></span>`;
       k.querySelector('b').textContent = r.naam;
       k.querySelector('span').textContent = '· ' + new Date(r.tijd).toLocaleString('nl-NL', { dateStyle: 'medium', timeStyle: 'short' });
+      if (r.pad) k.title = r.pad;
       k.onclick = async () => {
+        if (r.pad) {   // eigen venster: geen toestemming nodig
+          if (!r.bestaat) {
+            info.textContent = `${r.pad} is niet gevonden (verplaatst of verwijderd?). Hij is uit de lijst gehaald; kies de map opnieuw met "Projectmap kiezen".`;
+            k.remove();
+            natiefVraag('recent/weg', null, { methode: 'POST', kop: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pad: r.pad }) }).catch(() => {});
+            return;
+          }
+          dlg.close(); await openProjectMap(natieveMap(r.pad)); return;
+        }
         try {
           if (await r.handle.requestPermission({ mode: 'readwrite' }) !== 'granted') { info.textContent = 'Geen toestemming voor deze map.'; return; }
           dlg.close(); await openProjectMap(r.handle);
@@ -9668,11 +9704,13 @@ ${r3d}
     dlg.showModal();
   }
   /** Een projectmap openen: het .pvproj-bestand, de ondergrond en de vakken van de puntenwolk. */
-  async function openProjectMap(map) {
+  /** voorkeur: naam van het .pvproj dat geopend moet worden (bv. gekozen of gesleept), anders <map>.pvproj of het nieuwste. */
+  async function openProjectMap(map, voorkeur) {
     markeerBezig('project openen', map.name);
     try {
       let bestand = null;
-      try { bestand = await leesBestandUitMap(map, `${map.name}.pvproj`); } catch { /* andere naam? */ }
+      if (voorkeur) { try { bestand = await leesBestandUitMap(map, voorkeur); } catch { /* weg? */ } }
+      if (!bestand) { try { bestand = await leesBestandUitMap(map, `${map.name}.pvproj`); } catch { /* andere naam? */ } }
       if (!bestand) {
         for await (const [n, h] of map.entries()) if (h.kind === 'file' && n.toLowerCase().endsWith('.pvproj')) { const f = await h.getFile(); if (!bestand || f.lastModified > bestand.lastModified) bestand = f; }
       }
@@ -13483,6 +13521,45 @@ ${r3d}
   svgLangs.addEventListener('pointercancel', stopLangsSlepen);
 
   window.addEventListener('resize', () => { tekenLangs(); tekenDwarsVoorHuidigeStation(); });
+
+  /* Slepen op het venster (2.10.2): een puntenwolk opent als A, net als de knop; een .pvproj opent het
+     project. Gesleepte bestanden hebben geen pad, dus een .pvproj wordt in de recente projecten gezocht
+     (zelfde naam en grootte); anders opent hij als los project, zonder vakken. Slepen op een
+     bestandsveld blijft zoals het was. */
+  const isBestandsveld = (e) => e.target instanceof HTMLInputElement && e.target.type === 'file';
+  window.addEventListener('dragover', (e) => {
+    if (isBestandsveld(e) || !e.dataTransfer?.types?.includes('Files')) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
+  });
+  window.addEventListener('drop', async (e) => {
+    if (isBestandsveld(e) || !e.dataTransfer?.files?.length) return;
+    e.preventDefault();
+    const bestand = e.dataTransfer.files[0], naam = bestand.name.toLowerCase();
+    if (/\.(las|laz|pts)$/.test(naam)) { await openPuntenwolkA(bestand); return; }
+    if (naam.endsWith('.pvproj') && natief) {
+      try {
+        for (const r of await (await natiefVraag('recent', null)).json()) {
+          if (!r.bestaat) continue;
+          const i = await natiefInfo(padDeel(r.pad, bestand.name));
+          if (i.bestaat && i.grootte === bestand.size) { await openProjectMap(natieveMap(r.pad), bestand.name); return; }
+        }
+      } catch (err) { console.warn('gesleept project zoeken in recent mislukt:', err); }
+    }
+    if (/\.(pvproj|json)$/.test(naam)) {
+      projectMap = null; projectHandle = null;
+      toonProjectBestand(bestand.name);
+      if (await laadProjectBestand(bestand) && naam.endsWith('.pvproj'))
+        statusEl.textContent += ' · los geopend: open de projectmap met Project openen voor de vakken van de puntenwolk';
+      return;
+    }
+    statusEl.style.color = ''; statusEl.textContent = `${bestand.name}: sleep een puntenwolk (.las, .laz, .pts) of een project (.pvproj)`;
+  });
+
+  // eigen venster: project dat bij de start is meegegeven, en de tweede start met een project (exe roept dit aan)
+  if (natief) {
+    window.__pvOpenPad = (pad) => openProjectMap(natieveMap(pad));
+    if (natief.openen) setTimeout(() => openProjectMap(natieveMap(natief.openen)), 0);
+  }
   // klaar met opstarten: opstartscherm weg
   document.getElementById('opstartScherm')?.remove();
 })();

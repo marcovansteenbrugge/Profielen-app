@@ -134,7 +134,7 @@ func openWebView2(url string) bool {
 	// scripts; een gewone browser op deze pc heeft hem niet
 	if bestandsapi != nil {
 		if sl := bestandsapi.geefSleutel(); sl != "" {
-			natief, _ := json.Marshal(map[string]string{"sleutel": sl, "versie": appVersie})
+			natief, _ := json.Marshal(map[string]string{"sleutel": sl, "versie": appVersie, "openen": bestandsapi.openen})
 			w.Init("window.__pvNatief = Object.freeze(" + string(natief) + ");")
 		}
 	}
@@ -155,6 +155,13 @@ func openWebView2(url string) bool {
 			return u.pad, u.err
 		}
 		defer func() { bestandsapi.kiezer = nil }()
+		// tweede start met een project: in dit venster openen
+		open := func(pad string) {
+			p, _ := json.Marshal(pad)
+			w.Dispatch(func() { w.Eval("window.__pvOpenPad && window.__pvOpenPad(" + string(p) + ");") })
+		}
+		openInVenster.Store(&open)
+		defer openInVenster.Store(nil)
 		if kiezertestGevraagd() {
 			go kiezertest()
 		}

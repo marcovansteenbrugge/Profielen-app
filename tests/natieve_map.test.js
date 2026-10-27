@@ -15,7 +15,7 @@ const MAP = path.join(H.UIT, 'natief');
   const nieuwePagina = async (metNatief) => {
     const ctx = await b.newContext({ viewport: { width: 1600, height: 950 }, acceptDownloads: true });
     const p = await ctx.newPage(); p.setDefaultTimeout(120000);
-    p.on('pageerror', e => fouten.push(e.message)); p.on('console', m => { if (m.type() === 'error') fouten.push('console: ' + m.text().slice(0, 200)); });
+    p.on('pageerror', e => { fouten.push(e.message); console.log('!! pagina:', e.message); }); p.on('console', m => { if (m.type() === 'error') { fouten.push('console: ' + m.text().slice(0, 200)); console.log('!! console:', m.text().slice(0, 300)); } });
     p.on('dialog', d => d.accept());
     await p.route(/pdok\.nl/, r => r.abort());
     await p.route(/brk-kadastrale-kaart/, r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"type":"FeatureCollection","features":[]}' }));
@@ -38,6 +38,7 @@ const MAP = path.join(H.UIT, 'natief');
     await p.reload();
     return p;
   };
+  const st = async (pg) => (await pg.textContent('#status')).trim();
   const wachter = (p) => async (re, max = 960) => { for (let i = 0; i < max; i++) { const s = (await p.textContent('#status')).trim(); if (re.test(s) || fouten.length) return s; await p.waitForTimeout(250); } return (await p.textContent('#status')).trim(); };
   const lijst = (d, pad = '  ') => fs.readdirSync(d, { withFileTypes: true }).sort((a, c) => a.name.localeCompare(c.name)).flatMap(e => e.isDirectory()
     ? (e.name === 'tegels' ? [`${pad}tegels\\ (${fs.readdirSync(path.join(d, e.name)).length} vakken)`] : [`${pad}${e.name}\\`, ...lijst(path.join(d, e.name), pad + '  ')])
@@ -55,6 +56,8 @@ const MAP = path.join(H.UIT, 'natief');
   const tNatief = (Date.now() - t0) / 1000;
   await p.setInputFiles('#asBestand', U + '/as_begroeid.geojson'); await p.waitForTimeout(1500);
   console.log('2 alle punten uit de vakken:', (await wacht(/Profielen uit alle/)).slice(0, 140));
+  // eerst "alle punten" laten afmaken, anders overschrijft die melding "Opgeslagen"
+  await wacht(/Profielen uit alle [\d.]+ punten/);
   await p.keyboard.press('Control+S'); console.log('3 opslaan:', await wacht(/Opgeslagen|mislukt/));
   await p.waitForTimeout(1100);
   await p.click('#projectOpslaanKnop'); console.log('4 opnieuw (backup):', await wacht(/backup|mislukt/));
@@ -68,6 +71,45 @@ const MAP = path.join(H.UIT, 'natief');
   console.log('6 opnieuw geopend:', (await wacht(/driehoeken/)).slice(0, 160), '| as:', await p.textContent('#stationLabel'), '| maaiveld', await p.isChecked('#wolkAMaaiveld'));
   console.log('7 alle punten uit de vakken:', (await wacht(/Profielen uit alle/)).slice(0, 100));
   console.log('label:', await p.textContent('#projectBestandNaam'));
+  // 2b. recente projecten (bijgehouden door de exe): na herladen met één klik, zonder kiezer
+  // eerst wachten tot "alle punten" klaar is: herladen tijdens het lezen breekt verzoeken af
+  await wacht(/Profielen uit alle [\d.]+ punten/);
+  await p.reload(); await p.waitForTimeout(1000);
+  await p.click('#projectOpenKnop'); await p.waitForSelector('#projectOpenDialoog[open]');
+  const recent = await p.$$eval('#poRecent button', bs => bs.map(b => b.textContent.trim() + ' [' + b.title + ']'));
+  console.log('6b recent:', recent);
+  if (!recent.length || !/proj1/.test(recent[0])) fouten.push('proj1 staat niet in de recente projecten');
+  await p.click('#poRecent button');
+  console.log('6c via recent geopend:', (await wacht(/driehoeken/)).slice(0, 80), '| label:', await p.textContent('#projectBestandNaam'));
+  if (!/976\.185/.test(await st(p))) fouten.push('via recent niet geopend');
+  await wacht(/Profielen uit alle [\d.]+ punten/);
+  // 2c. los projectbestand kiezen (.pvproj): opent de projectmap eromheen
+  await p.reload(); await p.waitForTimeout(1000);
+  H.natief.kiesRij.push(path.join(MAP, 'proj1', 'proj1.pvproj'));
+  await p.click('#projectOpenKnop'); await p.waitForSelector('#projectOpenDialoog[open]');
+  await p.click('#poLos');
+  console.log('6d .pvproj gekozen:', (await wacht(/driehoeken/)).slice(0, 80), '| label:', await p.textContent('#projectBestandNaam'));
+  if (!/976\.185/.test(await st(p))) fouten.push('gekozen .pvproj niet geopend');
+  await wacht(/Profielen uit alle [\d.]+ punten/);
+  // 2d. slepen: een puntenwolk opent als A (in de projectmap omgezet naar vakken)
+  const sleep = (url, naam) => p.evaluate(async ({ url, naam }) => {
+    const b = await (await fetch(url)).blob(), dt = new DataTransfer();
+    dt.items.add(new File([b], naam));
+    const doel = document.querySelector('#bovenaanzicht, canvas') || document.body;
+    doel.dispatchEvent(new DragEvent('dragover', { dataTransfer: dt, bubbles: true, cancelable: true }));
+    doel.dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true }));
+  }, { url, naam });
+  await sleep('/testdata/doorvaart_test/bodem_multibeam.pts', 'bodem_multibeam.pts');
+  console.log('6e puntenwolk gesleept:', (await wacht(/bodem_multibeam.*(driehoeken|punten)|driehoeken/)).slice(0, 100));
+  await p.waitForTimeout(1500);
+  if (!fs.existsSync(path.join(MAP, 'proj1', 'puntenwolk', 'A - bodem_multibeam', 'info.json'))) fouten.push('gesleepte puntenwolk niet omgezet in de projectmap');
+  // 2e. slepen van een .pvproj: gevonden in de recente projecten, dus de hele projectmap
+  await p.evaluate(() => { document.getElementById('status').textContent = ''; });
+  await sleep('/tests/uit/natief/proj1/proj1.pvproj', 'proj1.pvproj');
+  await wacht(/Profielen uit alle [\d.]+ punten|driehoeken/);
+  console.log('6f .pvproj gesleept:', (await wacht(/driehoeken|los geopend/)).slice(0, 100), '| label:', await p.textContent('#projectBestandNaam'));
+  if (!/976\.185/.test(await st(p))) fouten.push('gesleept .pvproj opende niet het project met de vakken');
+
   // 3. geannuleerde kiezer: niets gebeurt
   await p.click('#projectOpenKnop'); await p.waitForSelector('#projectOpenDialoog[open]');
   await p.click('#poMap'); await p.waitForTimeout(500);
