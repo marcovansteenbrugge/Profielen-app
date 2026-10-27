@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 
-> **Nu van jou gevraagd:** niets; F4 wordt gebouwd. Daarna je controle van de handmatige lijst.
+> **Nu van jou gevraagd:** de controle van 2.10.2 (`dist\Lutrea-Profielviewer-2.10.2.exe`): puntenwolk openen (Wallach/Halsteren), projectmap, PDF en DXF opslaan, 3D, luchtfoto en BGT, en met `--browservenster` de projectmap zoals in 2.10.1.
 > **Later nodig:** niets.
 
 Nu vraagt de viewer bij elke sessie opnieuw toestemming voor je projectmap, omdat de browser dat bewaakt. Straks leest en schrijft het programma je bestanden zelf, zodat die vragen verdwijnen, recente projecten na een herstart gewoon werken en het programma later (fase E) grote scans zelf kan omzetten. Het werk gaat in vijf fasen, en elke fase start pas na jouw akkoord.
@@ -122,5 +122,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 14:31 | Marco bevestigt: "Ja: in een hele sessie (map kiezen, omzetten, opslaan, PDF, herstarten en via Recent openen) kwam geen toestemmingsvraag; een .pvproj als parameter opende, ook met de viewer al open; een gesleepte .las/.laz opende." | Marco van Steenbrugge, via chat |
 | 2026-10-27 14:31 | F3 gebouwd en per criterium getoetst | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 14:37 | Vrijgave F4 op planversie 1 | Marco van Steenbrugge, via chat |
+| 2026-10-27 14:44 | F4 uitgevoerd: versie 2.10.2, LEESMIJ, handleiding, alle tests groen, exe en zip gebouwd, tag v2.10.2; wacht op Marco's handmatige controle | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
