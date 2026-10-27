@@ -31,7 +31,7 @@ Marco komt daar los bij.
 | F3 oplevering 2.11.0 | S | ± 15.000 | ± 15 min | handmatige lijst | laag | 32 / 12.705 | 20:55–21:02 (7 min) |
 | F4 LAZ-proef | M | 30.000–70.000 | 30 min – 2 uur | niets | hoog | - | - |
 | F5 LAZ in de exe | L | 50.000–90.000 | 1–2 uur | B5; een echte LAZ en een test | hoog | - | - |
-| F6 oplevering 2.11.1 | S | ± 15.000 | ± 15 min | handmatige lijst | laag | - | - |
+| F6 oplevering 2.11.2 | S | ± 15.000 | ± 15 min | handmatige lijst | laag | - | - |
 
 Totaal ruwweg 250.000–400.000 uitvoer-tokens. 2.11.0 (F0 tot en met F3) is ongeveer een halve tot
 hele werkdag, plus de controles van Marco; groter dan fase C (eigen bestandstoegang).

@@ -1,7 +1,7 @@
 ---
 plan: omzetten-in-exe
 titel: Grote scans omzetten in het programma zelf (versie 2.11)
-versie: 1
+versie: 2
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ✅ · F4 ○ · F5 ⏳ · F6 ○           # berekend door de skill
 opgesteld: 2026-10-27
@@ -20,7 +20,7 @@ trefwoorden: [omzetten, vakken, tegels, las, laz, pts, go, wazero, laz-perf, 2.1
 1. Nu zet de viewer een puntenwolk in het venster om naar vakken: één processorkern, en alles gaat door het geheugen van het venster (± 4 GB).
 2. Straks doet de exe dat zelf, met het echte pad van de scan, op meerdere kernen en buiten het venster. De viewer toont alleen de voortgang en kan afbreken.
 3. Het resultaat is precies hetzelfde als nu: dezelfde vakken, byte voor byte. De rest van de viewer merkt er niets van, en oude projectmappen blijven gewoon werken.
-4. Eerst LAS en PTS (versie 2.11.0). Daarna LAZ, dat begint met een proef of de bestaande LAZ-decoder (laz-perf) in de exe kan draaien (versie 2.11.1).
+4. Eerst LAS en PTS (versie 2.11.0). Daarna LAZ, dat begint met een proef of de bestaande LAZ-decoder (laz-perf) in de exe kan draaien (versie 2.11.2; 2.11.1 werd een losse patch).
 5. Dit is fase E van `docs/PLAN-2.10-windows-programma.md` (deelfasen E1 en E2). E3 ("profielen uit alle punten" via de exe) zit hier niet in.
 
 ## 2. Aanleiding en doel
@@ -31,7 +31,7 @@ Nu (gelezen in `viewer.js`, basis_commit d052abc): `importeerNaarTegels` (rond r
 Gemeten op Marco's laptop (24 logische processors, 47 GB geheugen): `dijk_begroeid.las` (3 miljoen punten, 78 MB) omzetten kost 5 tot 7,5 s in het venster (meting bij F2 van plan eigen-bestandstoegang). Voor Wallach (79 mln) en voor LAZ is er nog geen meting; zie Open vragen.
 
 Geslaagd als:
-- de exe LAS en PTS (2.11.0) en daarna LAZ (2.11.1) omzet naar vakken die byte voor byte gelijk zijn aan wat de viewer nu maakt;
+- de exe LAS en PTS (2.11.0) en daarna LAZ (2.11.2) omzet naar vakken die byte voor byte gelijk zijn aan wat de viewer nu maakt;
 - het omzetten van een grote scan aantoonbaar sneller is dan in het venster, en het geheugen van het venster daarbij niet meegroeit met de scan;
 - voortgang en afbreken werken, en alle tests groen zijn.
 
@@ -97,7 +97,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | F3 | ✅ gebouwd | Oplevering 2.11.0: `zet_versie.py 2.11.0` (andere lengte: `.syso` opnieuw), LEESMIJ-blok "Nieuw in 2.11.0", handleiding, `tools/bouw.ps1`, tag `v2.11.0` | `node run_alle.js` en `go test ./...` groen; `dist\Lutrea-Profielviewer-2.11.0.exe` en de zip bestaan; Marco bevestigt de handmatige lijst: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT, en met `--browservenster` werkt alles zoals in 2.10.2 | F0, F1, F2 | S | Claude Code, medium | `F3:` en `2.11.0:` |
 | F4 | ○ niet vrijgegeven | Proef LAZ: laz-perf.wasm in wazero (pure Go) laten draaien en één LAZ volledig decoderen; een LAZ-testbestand maken uit `dijk_begroeid.las` (Python, laspy met lazrs) | Rapport in punt 11 met: werkt de module zonder JavaScript-lijm (ja/nee, met wat er nodig was); alle punten bit voor bit gelijk aan de viewer (zelfde x, y, z, klasse, kleur); snelheid per kern en met alle kernen, vergeleken met de viewer op dezelfde LAZ; build met `CGO_ENABLED=0` slaagt. Daarna B5 voorleggen | F0 | M | Claude Code, high | `F4:` |
 | F5 | ⏳ wacht op B5 | LAZ in de exe volgens B5 (`omzet_laz.go`): chunk-tabel, per kern een decoder, ordelijke uitvoer naar de schrijver; viewer gebruikt de exe-taak ook voor LAZ | `go test ./...` groen; `tests/omzetten_exe.test.js` vergelijkt de LAZ-testscan byte voor byte; `node run_alle.js` groen. Marco bevestigt op zijn laptop: een echte LAZ (bijvoorbeeld Wallach) zet om via de exe, sneller dan in 2.10.2 (tijd in de statusregel), en de profielen zien er hetzelfde uit | F4, B5 | L | Claude Code, high | `F5:` |
-| F6 | ○ niet vrijgegeven | Oplevering 2.11.1: versie, LEESMIJ-blok "Nieuw in 2.11.1", handleiding, bouwen, tag `v2.11.1` | `node run_alle.js` en `go test ./...` groen; exe en zip bestaan; Marco bevestigt de handmatige lijst zoals bij F3, nu ook met een LAZ | F5 | S | Claude Code, medium | `F6:` en `2.11.1:` |
+| F6 | ○ niet vrijgegeven | Oplevering 2.11.2: versie, LEESMIJ-blok "Nieuw in 2.11.2", handleiding, bouwen, tag `v2.11.2` | `node run_alle.js` en `go test ./...` groen; exe en zip bestaan; Marco bevestigt de handmatige lijst zoals bij F3, nu ook met een LAZ | F5 | S | Claude Code, medium | `F6:` en `2.11.2:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix. De opleveringscommits volgen de projectregel `X.Y.Z: <wat>` met tag `vX.Y.Z`.
 
@@ -106,7 +106,7 @@ Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-
 **Beveiliging.** De omzettaak leest een bron en schrijft een doelmap: zelfde sessiesleutel, Host- en Origin-controle en toegestane mappen als de bestands-API (B2 van plan eigen-bestandstoegang). De bron moet een gekozen bestand zijn of in een toegestane map staan. Een kapotte of kwaadaardige scan mag de exe niet laten crashen of buiten de doelmap laten schrijven: de lezers controleren lengtes en aantallen, en een fout stopt alleen de taak. Bij F5 draait laz-perf in wazero in een afgeschermde omgeving zonder toegang tot bestanden.
 **Gebruikers en handleiding.** In het eigen venster opent "Openen…" bij de puntenwolk de Windows-kiezer. Omzetten gaat sneller, met een knop Afbreken. Het resultaat en de projectmap blijven hetzelfde. Handleiding: sectie "Projectmap en vakken" en Stap 1 (puntenwolk inlezen).
 **Beheer en configuratie.** Geen nieuwe instellingen. De exe gebruikt tijdens het omzetten meer processorkernen en geheugen buiten het venster.
-**Releasenotes (kernpunten).** 2.11.0: grote LAS- en PTS-scans worden in het programma zelf omgezet, op alle kernen, met voortgang en afbreken. 2.11.1: hetzelfde voor LAZ.
+**Releasenotes (kernpunten).** 2.11.0: grote LAS- en PTS-scans worden in het programma zelf omgezet, op alle kernen, met voortgang en afbreken. 2.11.2: hetzelfde voor LAZ.
 
 ## 9. Risico's en terugweg
 - **Kleine verschillen in de vakken** (afronding, kleur, volgorde). Afgevangen met de byte-voor-byte-toets in F0 en F1. Terugweg: de viewer zet om zoals nu (B4).
@@ -202,6 +202,7 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
 |---|---|---|---|---|
 | 1 | 2026-10-27 16:30 | Eerste versie | - | Nog geen vrijgave |
+| 2 | 2026-10-27 21:16 | Versienummer van de LAZ-oplevering: 2.11.2 in plaats van 2.11.1 (2.11.1 werd een losse patch: kadaster in het dwarsprofiel aan/uit, op verzoek van Marco: "Lever het kadaster-vinkje nu op als patch 2.11.1; LAZ wordt dan 2.11.2.") | F6 | F6 was nog niet vrijgegeven; geen vrijgave vervalt |
 
 ## 14. Bronnen
 - `viewer.js` op d052abc: `maakUitdunner` (± 1004), `leesPts` (1111), `leesLasHeader` (1182), `leesLazPunten` (1258), `leesLasPunten` (1330), `dunUit` (1392), tegelformaat en `maakTegelSchrijver` (1800–1900), `importeerNaarTegels`, `tegelbronVoor`
