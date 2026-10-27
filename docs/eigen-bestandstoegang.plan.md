@@ -3,7 +3,7 @@ plan: eigen-bestandstoegang
 titel: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 versie: 1
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ✅ · F4 ○           # berekend door de skill
+voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ✅ · F4 ▶           # berekend door de skill
 opgesteld: 2026-10-27
 opgesteld_door: Claude Code, in opdracht van Marco van Steenbrugge
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
@@ -89,7 +89,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | F1 | ✅ gebouwd | Windows-kiezer vanuit de exe (`/__pv/kies`): map kiezen, bestand openen, bestand opslaan, via `IFileOpenDialog`/`IFileSaveDialog` zonder cgo, modaal voor het venster; gekozen pad wordt een toegestane map | Build slaagt, `go vet` schoon. Marco bevestigt op zijn laptop: de mapkiezer opent vóór het venster, een gekozen map geeft het pad terug (log), annuleren geeft niets terug en de viewer loopt door | F0 | M | Claude Code, high | `F1:` |
 | F2 | ✅ gebouwd | Tussenstuk in viewer.js (`natieveMap`/`natiefBestand`) en één kiezer-hulpfunctie voor alle plekken met `showDirectoryPicker`; `tests/hulp.js` krijgt dezelfde `/__pv/`-API met sleutel; browserroute blijft volgens B3 | Nieuwe test `tests/natieve_map.test.js` (met sleutel via `addInitScript`): projectmap aanmaken, puntenwolk omzetten naar vakken, project opslaan, viewer herladen, project opnieuw openen en vakken lezen, allemaal via de API; geen aanroep van `requestPermission` van de browser; "fouten: geen". `node run_alle.js` helemaal groen | F0, B3 | L | Claude Code, high | `F2:` |
 | F3 | ✅ gebouwd | Recente projecten volgens B1, PDF-uitvoermap en los projectbestand via de exe-kiezer, startparameter `.pvproj` (ook doorgegeven door een tweede start), slepen van puntenwolk en `.pvproj` op het venster | `node run_alle.js` groen. Marco bevestigt op zijn laptop: in een sessie met projectmap kiezen, puntenwolk omzetten, opslaan, PDF maken, viewer sluiten en via Recent opnieuw openen komt geen enkele toestemmingsvraag; `Lutrea-Profielviewer.exe "<pad>\x.pvproj"` opent dat project, ook als de viewer al open is; een gesleepte .las of .laz wordt geopend | F1, F2, B1 | M | Claude Code, medium | `F3:` |
-| F4 | ○ niet vrijgegeven | Oplevering 2.10.2: `zet_versie.py 2.10.2`, LEESMIJ-blok "Nieuw in 2.10.2", handleiding, `tools/bouw.ps1`, tag `v2.10.2` | `node run_alle.js` en `go test ./...` groen; `dist\Lutrea-Profielviewer-2.10.2.exe` en de zip bestaan; Marco bevestigt de handmatige lijst: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT (PDOK), en met `--browservenster` werkt de projectmap nog zoals in 2.10.1 | F0, F1, F2, F3 | S | Claude Code, medium | `F4:` en `2.10.2:` |
+| F4 | ▶ vrijgegeven | Oplevering 2.10.2: `zet_versie.py 2.10.2`, LEESMIJ-blok "Nieuw in 2.10.2", handleiding, `tools/bouw.ps1`, tag `v2.10.2` | `node run_alle.js` en `go test ./...` groen; `dist\Lutrea-Profielviewer-2.10.2.exe` en de zip bestaan; Marco bevestigt de handmatige lijst: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT (PDOK), en met `--browservenster` werkt de projectmap nog zoals in 2.10.1 | F0, F1, F2, F3 | S | Claude Code, medium | `F4:` en `2.10.2:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix; de opleveringscommit volgt de projectregel `2.10.2: <wat>` met tag `v2.10.2`.
 

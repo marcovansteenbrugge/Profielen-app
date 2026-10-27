@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Oct 27, 2026 · @Marco van Steenbrugge · versie 2.10.1
+Oct 27, 2026 · @Marco van Steenbrugge · versie 2.10.2
 
 ## Wat is de Profielviewer
 
@@ -10,12 +10,16 @@ Daarnaast zitten er twee toetsen in. De **doorvaartcontrole** kijkt of een schip
 
 **Starten**
 
-1. Dubbelklik `Lutrea-Profielviewer-2.10.1.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
+1. Dubbelklik `Lutrea-Profielviewer-2.10.2.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
 2. De eerste keer kan Windows "Windows heeft uw pc beschermd" tonen: kies **Meer informatie → Toch uitvoeren**. Het programma is (nog) niet digitaal ondertekend.
 3. De viewer opent in een eigen programmavenster (WebView2, zit in Windows 10 en 11; Chrome of Edge is niet nodig). Venster dicht = programma stopt. Het venster onthoudt plek en grootte.
-4. Controleer het versienummer naast de titel linksboven (nu **2.10.1**).
+4. Controleer het versienummer naast de titel linksboven (nu **2.10.2**).
 
 **Al open?** Start je de viewer nog een keer, dan komt het venster dat al open is naar voren; er komt geen tweede venster.
+
+**Project openen vanaf een pad.** Kies in de Verkenner bij een .pvproj **Openen met → Lutrea-Profielviewer.exe**, of start `Lutrea-Profielviewer.exe "D:\Projecten\Dijk\Profielviewer\Dijk.pvproj"` (een projectmap mag ook). Staat de viewer al open, dan opent het project in dat venster.
+
+**Slepen.** Sleep een .las, .laz of .pts op het venster: die opent als puntenwolk A. Een gesleept .pvproj opent het project als het in je recente projecten staat; anders opent het als los project, zonder de vakken.
 
 **Overstappen van een versie vóór 2.10.0.** Het eigen venster begint met lege instellingen. Neem ze één keer over:
 
@@ -445,12 +449,13 @@ Vanaf versie 2.9.0 staat alles van een project in één map die je zelf kiest, b
 
 **Zo werkt het**
 
+- **Geen toestemmingsvragen** (vanaf 2.10.2): in het eigen venster leest en schrijft het programma de projectmap zelf. Je kiest mappen en bestanden met de gewone Windows-kiezer; het programma komt alleen bij wat je zelf koos of wat in je recente projecten staat. In het oude venster (`--browservenster`) vraagt de browser nog wel om toestemming.
 - **Puntenwolk openen**: de eerste keer vraagt de viewer om de projectmap. Daarna leest hij de scan één keer helemaal door en zet hem om naar vakken. Dat duurt even (16 miljoen punten ± 1 minuut). Open je dezelfde scan later opnieuw, dan gebruikt hij de vakken meteen.
 - **Profielen**: die komen vanzelf uit alle punten. Na elke wijziging van de as leest de viewer alleen de vakken langs de as, dat duurt een paar seconden. De knop Alle punten staat dan vanzelf aan.
 - **Bovenaanzicht**: ver uitgezoomd zie je een overzicht van ± 2 miljoen punten. Zoom je in tot ongeveer 16 vakken in beeld, dan laadt hij de volle vakken met alle punten.
 - **Ook uit de vakken**: Detailstrook, de begroeiing van de snoeicheck en het vinkje maaiveld.
 - **Opslaan** (Ctrl+S) schrijft `<map>.pvproj`; de vorige versie gaat eerst naar `backup\`. **Opslaan als** kiest een andere map; de vakken gaan mee.
-- **Openen** (Ctrl+O): kies een projectmap, of klik op een recent project. Oude .json-projecten open je met **Los bestand (.json)**.
+- **Openen** (Ctrl+O): kies een projectmap, of klik op een recent project; dat werkt ook na herstarten met één klik. De lijst met recente projecten begint in 2.10.2 leeg: open elk project één keer opnieuw met **Projectmap kiezen**. Staat een map niet meer op zijn plek, dan meldt de viewer dat en haalt hij hem uit de lijst. Met **Los bestand** kies je een .pvproj (dan opent de hele projectmap) of een oud .json-project.
 - **Zonder projectmap** kan nog steeds. Dan werkt alles zoals in versie 2.8, met de uitgedunde puntenwolk.
 
 De originele scan blijft staan waar hij stond. Bewaar die zelf: de vakken zijn het eigen formaat van de viewer, geen LAS.
@@ -464,6 +469,8 @@ De originele scan blijft staan waar hij stond. Bewaar die zelf: de vakken zijn h
 | Ik zie oude knoppen of een ouder versienummer | Er draait nog een oude viewer. Sluit alle vensters en start de nieuwe exe; kijk of naast de titel 2.10.0 (of nieuwer) staat |
 | Mijn PDF-stempel en logo's zijn weg na de overstap naar 2.10.0 | Het eigen venster begint met lege instellingen. Neem ze over met **PROJECT → instellingen → Exporteren…/Importeren…** (zie Starten) |
 | Het eigen venster blijft leeg of start niet | Start de exe met `--browservenster`: dan opent het oude Chrome/Edge-venster |
+| Mijn recente projecten zijn weg na de overstap naar 2.10.2 | De lijst wordt nu door het programma zelf bijgehouden en begint leeg. Open elk project één keer met **Openen → Projectmap kiezen**; daarna staat het er weer, ook na herstarten |
+| Een recent project opent niet: "niet gevonden" | De map is verplaatst of hernoemd. Kies hem opnieuw met **Openen → Projectmap kiezen** |
 | Kleur blijft grijs bij een PTS | Kies **kleur → RGB (inmeting)**. Heeft de PTS geen kleurkolommen, dan is alleen "hoogte" mogelijk |
 | Een hek of smalle muur geeft een kam van pieken | Zet **randen strak** aan (alleen bij oppervlak bovenkant) |
 | Brugdek en waterbodem lopen door elkaar | Kies **oppervlak bovenkant** voor het dek of **onderkant** voor de bodem |

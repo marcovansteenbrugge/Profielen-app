@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 
-> **Nu van jou gevraagd:** de vrijgave van **F4** (oplevering 2.10.2: versie, LEESMIJ, handleiding, tests, exe en zip; daarna je controle van de handmatige lijst).
+> **Nu van jou gevraagd:** niets; F4 wordt gebouwd. Daarna je controle van de handmatige lijst.
 > **Later nodig:** niets.
 
 Nu vraagt de viewer bij elke sessie opnieuw toestemming voor je projectmap, omdat de browser dat bewaakt. Straks leest en schrijft het programma je bestanden zelf, zodat die vragen verdwijnen, recente projecten na een herstart gewoon werken en het programma later (fase E) grote scans zelf kan omzetten. Het werk gaat in vijf fasen, en elke fase start pas na jouw akkoord.
@@ -25,7 +25,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F1 | De gewone Windows-kiezer voor mappen en bestanden, vanuit het programma | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 11:07 | - | ✅ 2026-10-27 11:19 |
 | F2 | De viewer gebruikt die nieuwe toegang voor de projectmap; alles werkt verder zoals je gewend bent | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 11:20 | B3 | ✅ 2026-10-27 13:34 |
 | F3 | Recente projecten, PDF-map, los projectbestand, project openen vanaf een pad, puntenwolk op het venster slepen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 13:43 | B1 | ✅ 2026-10-27 14:31 |
-| F4 | Oplevering 2.10.2: versie, LEESMIJ, handleiding, tests, exe en zip | ○ nog niet | - | - | - |
+| F4 | Oplevering 2.10.2: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 14:37 | - | - |
 
 Letterlijk akkoord (F0, via chat): "Akkoord, bouw F0 van eigen-bestandstoegang op planversie 1."
 
@@ -34,6 +34,8 @@ Letterlijk akkoord (F1, via chat): "Akkoord, bouw F1 van eigen-bestandstoegang o
 Letterlijk akkoord (F2, via chat): "Akkoord, bouw F2 van eigen-bestandstoegang op planversie 1."
 
 Letterlijk akkoord (F3, via chat): "Akkoord, bouw F3 van eigen-bestandstoegang op planversie 1."
+
+Letterlijk akkoord (F4, via chat): "Akkoord, bouw F4 van eigen-bestandstoegang op planversie 1."
 
 ## Overzicht besluiten
 | | # | Onderwerp | Besluit | Nodig vóór |
@@ -119,5 +121,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 14:31 | Marco meldt: "ik heb net F3 getest.. .geen problemen"; in het log op de ontwikkel-pc staat die test niet (één run 14:26–14:28 zonder kiezer of project). Per controlepunt nagevraagd | Marco van Steenbrugge, via chat |
 | 2026-10-27 14:31 | Marco bevestigt: "Ja: in een hele sessie (map kiezen, omzetten, opslaan, PDF, herstarten en via Recent openen) kwam geen toestemmingsvraag; een .pvproj als parameter opende, ook met de viewer al open; een gesleepte .las/.laz opende." | Marco van Steenbrugge, via chat |
 | 2026-10-27 14:31 | F3 gebouwd en per criterium getoetst | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 14:37 | Vrijgave F4 op planversie 1 | Marco van Steenbrugge, via chat |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

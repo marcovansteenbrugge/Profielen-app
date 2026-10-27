@@ -1,4 +1,4 @@
-Lutrea Profielviewer 2.10.1 (voorheen PTS-viewer)
+Lutrea Profielviewer 2.10.2 (voorheen PTS-viewer)
 ================================================
 Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
 De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
@@ -31,6 +31,26 @@ Mapversie (alternatief)
 
 Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
 adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.10.2 — Geen toestemmingsvragen meer
+------------------------------------------------
+- In het eigen venster leest en schrijft het programma je projectmap zelf. De vraag
+  "Deze site toestemming geven om bestanden te bewerken?" komt niet meer, ook niet na
+  herstarten.
+- Mappen en bestanden kies je met de gewone Windows-kiezer. Het programma komt alleen bij
+  mappen en bestanden die je zelf koos of die in je recente projecten staan.
+- Recente projecten (Openen, Ctrl+O) werken nu ook na herstarten met één klik. De lijst
+  begint leeg: open elk project één keer opnieuw met "Projectmap kiezen". Staat een map
+  niet meer op zijn plek, dan zegt de viewer dat en haalt hij hem uit de lijst.
+- Openen > Los bestand: kies je een .pvproj, dan opent de hele projectmap (met vakken,
+  ondergrond en uitvoer).
+- Een project openen vanaf een pad: "Openen met" de exe, of
+    Lutrea-Profielviewer.exe "D:\Projecten\Dijk\Profielviewer\Dijk.pvproj"
+  (een projectmap mag ook). Staat de viewer al open, dan opent het project daarin.
+- Slepen: een .las, .laz of .pts op het venster slepen opent de puntenwolk (als A). Een
+  gesleept .pvproj opent het project als het in je recente projecten staat, anders als
+  los project zonder de vakken van de puntenwolk.
+- Het oude venster (--browservenster) werkt zoals in 2.10.1, met toestemmingsvragen.
 
 Nieuw in 2.10.1 — Kleine reparaties
 ------------------------------------
