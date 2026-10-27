@@ -116,5 +116,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 13:34 | F2 gebouwd en per criterium getoetst (alle 15 tests groen; omzetten via de nieuwe toegang 0,96 tot 1,37 keer de tijd van de oude, binnen de grens 1,5) | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 13:43 | Vrijgave F3 op planversie 1 | Marco van Steenbrugge, via chat |
 | 2026-10-27 14:28 | F3 uitgevoerd en automatisch getoetst (alle tests groen; startparameter en tweede start in de echte exe gecontroleerd); wacht op Marco's controle op zijn laptop | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 14:31 | Marco meldt: "ik heb net F3 getest.. .geen problemen"; in het log op de ontwikkel-pc staat die test niet (één run 14:26–14:28 zonder kiezer of project). Per controlepunt nagevraagd | Marco van Steenbrugge, via chat |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
