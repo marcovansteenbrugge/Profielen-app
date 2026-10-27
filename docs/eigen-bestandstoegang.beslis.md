@@ -11,8 +11,8 @@ status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 
-> **Nu van jou gevraagd:** besluit **B2** (waar mag het programma lezen en schrijven) en, als je wilt, meteen **B3** en **B1**; daarna de vrijgave van **F0**.
-> **Later nodig:** B3 vóór F2, B1 vóór F3; vrijgave van F1 tot en met F4.
+> **Nu van jou gevraagd:** de vrijgave van **F0** (en, als je wilt, meteen meer fasen).
+> **Later nodig:** vrijgave van F1 tot en met F4.
 
 Nu vraagt de viewer bij elke sessie opnieuw toestemming voor je projectmap, omdat de browser dat bewaakt. Straks leest en schrijft het programma je bestanden zelf, zodat die vragen verdwijnen, recente projecten na een herstart gewoon werken en het programma later (fase E) grote scans zelf kan omzetten. Het werk gaat in vijf fasen, en elke fase start pas na jouw akkoord.
 
@@ -30,13 +30,13 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 ## Overzicht besluiten
 | | # | Onderwerp | Besluit | Nodig vóór |
 |---|---|---|---|---|
-| ⏳ | B2 | Waar mag het programma lezen en schrijven | **Nog niet beoordeeld** | F0 |
-| ⏳ | B3 | Blijft de oude manier bestaan | **Nog niet beoordeeld** | F2 |
-| ⏳ | B1 | Wat gebeurt er met je lijst recente projecten | **Nog niet beoordeeld** | F3 |
+| ✅ | B2 | Waar mag het programma lezen en schrijven | Ons voorstel | F0 |
+| ✅ | B3 | Blijft de oude manier bestaan | Ons voorstel | F2 |
+| ✅ | B1 | Wat gebeurt er met je lijst recente projecten | Ons voorstel | F3 |
 
 ## Besluiten
 
-### ⏳ B2 · Waar mag het programma lezen en schrijven
+### ✅ B2 · Waar mag het programma lezen en schrijven
 **Je beslist:** of het programma overal op je schijf bij mag, of alleen bij de mappen en bestanden die jij zelf hebt gekozen.
 
 | | Ons voorstel | Alternatief |
@@ -46,15 +46,15 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | **Nadeel** | Iets meer werk om bij te houden welke mappen gekozen zijn | Een fout of kwaadaardig bestand kan in principe overal bij |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-10-27 09:35 · **nodig vóór** F0
+**Besloten door** Marco van Steenbrugge · **op** 2026-10-27 10:58 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B2
 
-### ⏳ B3 · Blijft de oude manier bestaan
+### ✅ B3 · Blijft de oude manier bestaan
 **Je beslist:** of het oude venster (`--browservenster`) zijn projectmap nog op de oude manier mag openen, met toestemmingsvragen, als terugvaloptie.
 
 | | Ons voorstel | Alternatief |
@@ -64,15 +64,15 @@ Meer uitleg: plan, punt 6, B2
 | **Nadeel** | Twee manieren naast elkaar in de code | Geen terugval meer; alle tests moeten om |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-10-27 09:35 · **nodig vóór** F2
+**Besloten door** Marco van Steenbrugge · **op** 2026-10-27 10:58 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B3
 
-### ⏳ B1 · Wat gebeurt er met je lijst recente projecten
+### ✅ B1 · Wat gebeurt er met je lijst recente projecten
 **Je beslist:** of je huidige lijst recente projecten mee moet naar de nieuwe manier.
 
 | | Ons voorstel | Alternatief |
@@ -82,11 +82,11 @@ Meer uitleg: plan, punt 6, B3
 | **Nadeel** | De lijst begint leeg | Kan niet zonder voor elke map nog één keer toestemming te vragen, dus voor jou niet sneller |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-10-27 09:35 · **nodig vóór** F3
+**Besloten door** Marco van Steenbrugge · **op** 2026-10-27 10:58 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B1
 
@@ -96,5 +96,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | Datum en tijd | Wat | Door |
 |---|---|---|
 | 2026-10-27 09:35 | Plan opgesteld en voorgelegd (Marco is een uur weg: "je hebt alle controle"; besluiten en vrijgave wachten op hem) | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 10:58 | Marco van Steenbrugge als beslisser bevestigd in deze sessie (eerder: "Ja ik ben Marco"), via chat | Marco van Steenbrugge, via chat |
+| 2026-10-27 10:58 | B1, B2 en B3 akkoord met voorstel ("B1, B2 en B3 akkoord met jullie voorstel.") | Marco van Steenbrugge, via chat |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
