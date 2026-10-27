@@ -1,6 +1,6 @@
 # Plan 2.10 — de Profielviewer als echt Windows-programma
 
-Vastgelegd op 26 oktober 2026 (Marco en Claude). Status: **nog niet begonnen**. Werk dit plan bij
+Vastgelegd op 26 oktober 2026 (Marco en Claude). Status: **fase A klaar (2.10.0, patch 2.10.1); volgende: fase C**. Werk dit plan bij
 als een fase klaar is of als er iets verandert (vink af, noteer beslissingen onderaan).
 
 ## Waarom
@@ -23,10 +23,29 @@ Doelplatform: Windows 10/11 x64. Marco test op zijn Windows 11-laptop.
 
 ## Fasen
 
+**Volgorde (vastgelegd 27-10-2026):** A ✅ → **C** → **E** (E1, E2, E3) → B → D; ondertekenen los.
+Waarom zo:
+- **C vóór E**: de exe kan grote scans pas zelf omzetten als hij het echte pad van het bronbestand en de
+  projectmap kent; de browser geeft alleen een handvat zonder pad. C maakt dat pad beschikbaar.
+- **E zo vroeg mogelijk**: hier zit de winst voor de data (geen browsergeheugen, alle kernen). Opgeknipt:
+  E1 LAS en PTS (eenvoudig), E2 LAZ (onzeker: begint met een haalbaarheidsproef), E3 optioneel
+  "profielen uit alle punten" via de exe.
+- **B na C**: `.pvproj` dubbelklikken werkt pas met eigen bestandstoegang; verder is B gemak, geen data.
+- **D na B**: bijwerken heeft een vaste installatieplek nodig, en de plek voor updates is nog open.
+
+Versienummers schuiven op: 2.10.1 werd een patch (log, foutmelding, bouwscript). Voorlopig: C = 2.10.2,
+E1 = 2.11.0, E2/E3 = 2.11.x, B en D daarna. Elke fase krijgt een eigen plan- en beslisdocument
+(`docs/<naam>.plan.md` en `.beslis.md`, skill brbnt-plan); dit bestand blijft het overzicht.
+
+Grootte, vergeleken met fase A (vier kleine deelfasen, gebouwd en getoetst op één avond); geen
+tijdsinschatting, de werkelijke meting staat per fase in het plan:
+C 2 à 3 × A · E1 ± 2 × A · E2 onbekend (mogelijk het grootste stuk) · E3 ± A · B ± A · D ± A.
+
 Elke fase wordt een eigen (patch)versie met LEESMIJ-blok, handleiding-update en groene tests.
 Houd de oude manier (Chrome/Edge-app-venster) als **terugvaloptie** zolang WebView2 nieuw is.
 
-### Fase A — eigen venster (2.10.0)
+### Fase A — eigen venster (2.10.0) ✅
+Gebouwd en getoetst 26–27 oktober 2026: zie `docs/webview2-venster.plan.md` en `.beslis.md`.
 - [ ] Go-binding voor WebView2 kiezen en uitproberen, bij voorkeur zonder cgo (zodat `CGO_ENABLED=0` blijft):
       `github.com/jchv/go-webview2` (eigen loader in Go, geen DLL nodig) of `github.com/wailsapp/go-webview2`.
 - [ ] Bestaande http-server houden (127.0.0.1:8017) en WebView2 daarheen laten navigeren: zelfde origin,
@@ -43,7 +62,7 @@ Houd de oude manier (Chrome/Edge-app-venster) als **terugvaloptie** zolang WebVi
 - Klaar als: start < 3 s zonder Chrome-profiel, sluiten stopt het proces, alle tests groen,
   handmatig: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT (PDOK).
 
-### Fase B — installatie en bestandskoppeling (2.10.1)
+### Fase B — installatie en bestandskoppeling (na E)
 - [ ] Zelfinstallatie zonder beheerdersrechten: bij de eerste start vanuit Downloads aanbieden om te
       installeren in `%LOCALAPPDATA%\Programs\Lutrea Profielviewer\`.
 - [ ] Startmenu-snelkoppeling (en optioneel bureaublad).
@@ -54,6 +73,7 @@ Houd de oude manier (Chrome/Edge-app-venster) als **terugvaloptie** zolang WebVi
 - Klaar als: installeren, starten via startmenu, verwijderen en opnieuw installeren werken op Marco's laptop.
 
 ### Fase C — eigen bestandstoegang, geen toestemmingsvragen meer (2.10.2)
+Plan: `docs/eigen-bestandstoegang.plan.md` en `.beslis.md`.
 - [ ] In de exe: `/__pv/fs/…` (lijst, lees met bereik, schrijf atomair via tijdelijk bestand + hernoemen,
       map maken, verwijderen, info). **Beveiliging**: sessietoken dat de exe in de WebView2-pagina zet
       (bv. `AddScriptToExecuteOnDocumentCreated`) en dat elk verzoek als header meestuurt, plus Origin-controle.
@@ -68,7 +88,7 @@ Houd de oude manier (Chrome/Edge-app-venster) als **terugvaloptie** zolang WebVi
 - Klaar als: geen enkele toestemmingsvraag meer, .pvproj dubbelklikken werkt, alle tests groen
   (tests kunnen de adapter testen met de testserver in tests/hulp.js uitgebreid met dezelfde `/__pv/fs`-API).
 
-### Fase D — automatisch bijwerken (2.10.3)
+### Fase D — automatisch bijwerken (na B)
 - [ ] Update-adres instelbaar (standaard ingebakken bij het bouwen): een JSON
       `{ "versie": "2.10.4", "url": "…/Lutrea-Profielviewer-2.10.4.exe", "sha256": "…", "notities": "…" }`.
 - [ ] Bij het starten (hooguit 1× per dag) controleren; in de viewer een balk "Versie x beschikbaar — Bijwerken".
@@ -77,7 +97,7 @@ Houd de oude manier (Chrome/Edge-app-venster) als **terugvaloptie** zolang WebVi
 - [ ] **Open**: waar komen de updates te staan? (SharePoint/OneDrive van Lutrea, een website, GitHub Releases.)
       SharePoint-links zijn vaak geen directe downloads; even uitzoeken.
 
-### Fase E — omzetten van grote scans in de exe (2.11)
+### Fase E — omzetten van grote scans in de exe (2.11, direct na C)
 - [ ] `importeerNaarTegels` naar Go: LAS en PTS eerst (eenvoudig), daarna LAZ (geen kant-en-klare Go-bibliotheek:
       laz-perf als WASM in wazero draaien, of een port). Zelfde formaat `pv-tegels-1` (zie ARCHITECTUUR.md).
 - [ ] Voortgang naar de viewer (polling of server-sent events), afbreken mogelijk.
@@ -99,4 +119,5 @@ Houd de oude manier (Chrome/Edge-app-venster) als **terugvaloptie** zolang WebVi
 ## Beslissingen en open vragen
 - 26-10-2026: optie 2 gekozen (WebView2-venster, viewer-code blijft). Eigen tegelformaat i.p.v. COPC (2.9.0).
 - 26-10-2026: verder werken in Claude Code op Marco's Windows 11-laptop, met git.
+- 27-10-2026: fase A klaar (2.10.0); patch 2.10.1. Volgorde voor de rest: C → E → B → D (zie Fasen).
 - Open: plek voor updates (fase D); certificaat (los); .las/.laz ook koppelen (fase B, optioneel).
