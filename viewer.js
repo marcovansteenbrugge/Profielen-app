@@ -4360,7 +4360,7 @@
     let inhoud;
     try { inhoud = JSON.parse(await f.text()); } catch { inhoud = null; }
     if (inhoud?.soort !== INSTELLINGEN_SOORT || !inhoud.sleutels || typeof inhoud.sleutels !== 'object') {
-      toonFout(`${f.name} is geen instellingenbestand van de Profielviewer (maak er een met Instellingen → Exporteren).`);
+      toonFout(`${f.name} is geen instellingenbestand van de Profielviewer (maak er een met Project → instellingen → Exporteren…).`);
       return;
     }
     const over = Object.entries(inhoud.sleutels).filter(([k, v]) => isInstelling(k) && typeof v === 'string');

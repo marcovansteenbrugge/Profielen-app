@@ -36,7 +36,7 @@ const (
 	dichtPad     = "/__ptsviewer/dicht"
 	voorgrondPad = "/__ptsviewer/voorgrond"
 	pingAntwoord = "pts-viewer-lutrea"
-	appVersie    = "2.10.0"
+	appVersie    = "2.10.1"
 	stilteGrens  = 3 * time.Minute
 	// valt de pagina weg zonder "dicht" (crash, bv. te weinig geheugen), dan nog zo lang
 	// blijven draaien dat Vernieuwen in het venster werkt
@@ -54,16 +54,25 @@ var (
 )
 
 // Logbestand in %LOCALAPPDATA%\Lutrea\PTS-viewer\log.txt — handig als het
-// opstarten ergens blijft hangen (wordt per start overschreven).
+// opstarten ergens blijft hangen. Elke start schrijft erachter (een tweede start
+// mag het log van een draaiende viewer niet overschrijven), met het procesnummer
+// voor elke regel. Boven 1 MB gaat het oude log naar log.vorige.txt; lukt dat
+// niet omdat een draaiende viewer het open heeft, dan gewoon erachter.
 func startLog() {
 	map_ := filepath.Join(lokaleAppData(), "Lutrea", "PTS-viewer")
 	os.MkdirAll(map_, 0o755)
-	f, err := os.Create(filepath.Join(map_, "log.txt"))
+	pad := filepath.Join(map_, "log.txt")
+	if st, err := os.Stat(pad); err == nil && st.Size() > 1<<20 {
+		os.Rename(pad, filepath.Join(map_, "log.vorige.txt"))
+	}
+	f, err := os.OpenFile(pad, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 	if err != nil {
 		log.SetOutput(os.Stderr)
 		return
 	}
+	fmt.Fprintf(f, "\n=== %s ===\n", time.Now().Format("2006-01-02 15:04:05"))
 	log.SetOutput(f)
+	log.SetPrefix(fmt.Sprintf("[%d] ", os.Getpid()))
 	log.SetFlags(log.Ltime | log.Lmicroseconds)
 }
 

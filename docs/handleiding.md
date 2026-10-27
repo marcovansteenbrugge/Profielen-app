@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Oct 27, 2026 · @Marco van Steenbrugge · versie 2.10.0
+Oct 27, 2026 · @Marco van Steenbrugge · versie 2.10.1
 
 ## Wat is de Profielviewer
 
@@ -10,10 +10,10 @@ Daarnaast zitten er twee toetsen in. De **doorvaartcontrole** kijkt of een schip
 
 **Starten**
 
-1. Dubbelklik `Lutrea-Profielviewer-2.10.0.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
+1. Dubbelklik `Lutrea-Profielviewer-2.10.1.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
 2. De eerste keer kan Windows "Windows heeft uw pc beschermd" tonen: kies **Meer informatie → Toch uitvoeren**. Het programma is (nog) niet digitaal ondertekend.
 3. De viewer opent in een eigen programmavenster (WebView2, zit in Windows 10 en 11; Chrome of Edge is niet nodig). Venster dicht = programma stopt. Het venster onthoudt plek en grootte.
-4. Controleer het versienummer naast de titel linksboven (nu **2.10.0**).
+4. Controleer het versienummer naast de titel linksboven (nu **2.10.1**).
 
 **Al open?** Start je de viewer nog een keer, dan komt het venster dat al open is naar voren; er komt geen tweede venster.
 
@@ -39,7 +39,7 @@ Mee gaan: PDF-stempel en titelblok, logo's, puntdichtheid en weergave-instelling
 | Tweede puntenwolk om te vergelijken | Snoeilijst als CSV (opent in Excel) |
 | Scans van de onder- en bovenzijde van een brug |  |
 
-Vastgelopen of een leeg venster? Start dan het oude venster met `--browservenster`, en stuur het logbestand mee: `%LOCALAPPDATA%\Lutrea\PTS-viewer\log.txt` (plak het pad in de adresbalk van de Verkenner).
+Vastgelopen of een leeg venster? Start dan het oude venster met `--browservenster`, en stuur het logbestand mee: `%LOCALAPPDATA%\Lutrea\PTS-viewer\log.txt` (plak het pad in de adresbalk van de Verkenner). Elke start schrijft erachter; boven 1 MB staat het oudere deel in `log.vorige.txt`.
 
 ## Het scherm
 
