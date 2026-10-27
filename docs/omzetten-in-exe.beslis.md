@@ -11,8 +11,8 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** de controle van F2 nog één keer, met een **lege** projectmap: Openen… → Halsteren → bij de projectmap een nieuwe, lege map kiezen; kijken of de voortgang loopt, de tijd in de statusregel staat, en één keer Afbreken proberen.
-> **Later nodig:** B5 vóór F5 (na de proef in F4); vrijgave van F3 tot en met F6.
+> **Nu van jou gevraagd:** de vrijgave van **F3** (oplevering 2.11.0); F4 (de LAZ-proef) kan los daarvan.
+> **Later nodig:** B5 vóór F5 (na de proef in F4); vrijgave van F4 tot en met F6.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.1), dat begint met een proef. Elke fase start pas na jouw akkoord.
 
@@ -23,7 +23,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 |---|---|---|---|---|---|
 | F0 | Het programma kan een LAS omzetten naar vakken, precies zoals de viewer dat nu doet (nog zonder knop in de viewer) | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 16:49 | B1, B2 | ✅ 2026-10-27 17:05 |
 | F1 | Hetzelfde voor PTS | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 17:06 | - | ✅ 2026-10-27 17:16 |
-| F2 | De viewer laat het programma omzetten: scan kiezen met de Windows-kiezer, voortgang, knop Afbreken; lukt het niet, dan zoals nu | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 17:18 | B3, B4 | - |
+| F2 | De viewer laat het programma omzetten: scan kiezen met de Windows-kiezer, voortgang, knop Afbreken; lukt het niet, dan zoals nu | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 17:18 | B3, B4 | ✅ 2026-10-27 20:54 |
 | F3 | Oplevering 2.11.0: versie, LEESMIJ, handleiding, tests, exe en zip | ○ nog niet | - | - | - |
 | F4 | Proef: kan de LAZ-decoder van de viewer ook in het programma draaien, en hoe snel | ○ nog niet | - | - | - |
 | F5 | LAZ omzetten in het programma | ○ nog niet | - | B5 | - |
@@ -152,5 +152,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 17:49 | F2 uitgevoerd en automatisch getoetst (alle tests groen; 16 mln punten in ± 10 s tegen ± 37 s in de viewer); proefversie klaar, wacht op Marco's controle | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 18:22 | Marco meldt: "de test app werkt naar behoren"; in zijn test zijn de bestaande vakken van Halsteren hergebruikt, dus het omzetten zelf is nog niet bekeken. Nieuwe controle met een lege projectmap gevraagd. Gemeten: Halsteren in 11,1 s door het programma (2.9.1: 37 s), vakken gelijk | Marco van Steenbrugge, via chat; meting Claude Code |
 | 2026-10-27 20:50 | Marco bevestigt: "Ja: met een lege projectmap zag ik de voortgang, de omzettijd stond in de statusregel, en Afbreken werkte." Het log laat zien dat er geen scan is omgezet maar een project is gekopieerd (Opslaan als); opnieuw nagevraagd, met de stappen erbij | Marco van Steenbrugge, via chat; controle log Claude Code |
+| 2026-10-27 20:54 | Marco bevestigt: "Ja, volgens de stappen: na Nieuw en Openen… bij de puntenwolk zag ik de voortgang, de omzettijd stond in de statusregel, en Afbreken werkte." en "heb het alleen om gedraaid"; het log bevestigt het (afgebroken na 7,5 s, daarna omgezet in 9,7 en 9,5 s) | Marco van Steenbrugge, via chat |
+| 2026-10-27 20:54 | F2 gebouwd en per criterium getoetst: Halsteren (52,5 mln punten) in ± 10 s door het programma, tegen 37 s in de viewer | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
