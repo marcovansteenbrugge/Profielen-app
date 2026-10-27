@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** besluiten **B3** (scan kiezen in het eigen venster) en **B4** (terugval); daarna de vrijgave van **F2**.
+> **Nu van jou gevraagd:** de vrijgave van **F2** (de viewer laat het programma omzetten).
 > **Later nodig:** B5 vóór F5 (na de proef in F4); vrijgave van F3 tot en met F6.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.1), dat begint met een proef. Elke fase start pas na jouw akkoord.
@@ -38,8 +38,8 @@ Letterlijk akkoord (F1, via chat): "F1 vrijgegeven"
 |---|---|---|---|---|
 | ✅ | B1 | Waar het omzetten draait | Ons voorstel | F0 |
 | ✅ | B2 | Dezelfde vakken als nu | Ons voorstel | F0 |
-| ⏳ | B3 | Scan kiezen in het eigen venster | **Nog niet beoordeeld** | F2 |
-| ⏳ | B4 | Terugval als het programma niet kan omzetten | **Nog niet beoordeeld** | F2 |
+| ✅ | B3 | Scan kiezen in het eigen venster | Ons voorstel | F2 |
+| ✅ | B4 | Terugval als het programma niet kan omzetten | Ons voorstel | F2 |
 | ⏳ | B5 | Hoe LAZ in het programma komt | **Nog niet beoordeeld** | F5 |
 
 ## Besluiten
@@ -80,7 +80,7 @@ Meer uitleg: plan, punt 6, B1
 
 Meer uitleg: plan, punt 6, B2
 
-### ⏳ B3 · Scan kiezen in het eigen venster
+### ✅ B3 · Scan kiezen in het eigen venster
 **Je beslist:** hoe je in het eigen venster een puntenwolk kiest, zodat het programma weet waar het bestand staat.
 
 | | Ons voorstel | Alternatief |
@@ -90,15 +90,15 @@ Meer uitleg: plan, punt 6, B2
 | **Nadeel** | De kiezer ziet er net iets anders uit dan nu (de gewone Windows-kiezer) | Bijna geen scan gaat via de snelle route |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-10-27 16:35 · **nodig vóór** F2
+**Besloten door** Marco van Steenbrugge · **op** 2026-10-27 17:17 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B3
 
-### ⏳ B4 · Terugval als het programma niet kan omzetten
+### ✅ B4 · Terugval als het programma niet kan omzetten
 **Je beslist:** wat er gebeurt als het programma een scan niet kan omzetten (onbekend formaat, fout).
 
 | | Ons voorstel | Alternatief |
@@ -108,11 +108,11 @@ Meer uitleg: plan, punt 6, B3
 | **Nadeel** | Het omzetten in de viewer moet blijven bestaan en getest worden | Een scan die nu werkt, kan ineens niet meer |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-10-27 16:35 · **nodig vóór** F2
+**Besloten door** Marco van Steenbrugge · **op** 2026-10-27 17:17 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B4
 
@@ -145,5 +145,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 17:05 | F0 gebouwd en per criterium getoetst: de vakken van het programma zijn byte voor byte gelijk aan die van de viewer; 3 mln punten in ± 2,5 s | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 17:06 | Vrijgave F1 op planversie 1 ("F1 vrijgegeven") | Marco van Steenbrugge, via chat |
 | 2026-10-27 17:16 | F1 gebouwd en per criterium getoetst: ook PTS-bestanden geven byte voor byte dezelfde vakken als de viewer, ook bij lastige bestanden | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 17:17 | B3 en B4 akkoord met voorstel ("B3 en B4 akkoord met jullie voorstel.") | Marco van Steenbrugge, via chat |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
