@@ -4,14 +4,14 @@ titel: Eigen programmavenster met WebView2 (versie 2.10.0)
 plan: webview2-venster.plan.md
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
 voorgelegd: 2026-10-26 22:06          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
-status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+status: gebouwd        # berekend door de skill, nooit met de hand gezet
 ---
 
 > Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
 
 # Beslisdocument: Eigen programmavenster met WebView2 (versie 2.10.0)
 
-> **Nu van jou gevraagd:** controleer 2.10.0 (`dist\Lutrea-Profielviewer-2.10.0.exe`): puntenwolk openen (Wallach of Halsteren), projectmap, PDF en DXF opslaan, 3D, luchtfoto en BGT (PDOK). Zeg daarna of alles werkt.
+> **Nu van jou gevraagd:** niets; het plan is klaar. 2.10.0 staat in `dist\` en als tag v2.10.0.
 > **Later nodig:** niets.
 
 De Profielviewer opent straks in een eigen Windows-venster in plaats van in een kaal Chrome- of Edge-venster, zonder welkomstschermen of een apart browserprofiel. De viewer zelf blijft hetzelfde; het werk gaat in vier fasen, en elke fase start pas na jouw akkoord.
@@ -24,7 +24,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F0 | Eigen venster: openen, sluiten, Afsluiten-knop, noodroute naar het oude venster | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 22:09 | B1, B2 | ✅ 2026-10-26 23:28 |
 | F1 | Eén venster tegelijk, en het venster onthoudt plek en grootte | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 22:09 | - | ✅ 2026-10-26 23:43 |
 | F2 | Instellingen meenemen uit het oude venster | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-26 23:46 | B3 | ✅ 2026-10-27 08:56 |
-| F3 | Oplevering 2.10.0: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 08:57 | - | - |
+| F3 | Oplevering 2.10.0: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 08:57 | - | ✅ 2026-10-27 09:07 |
 
 Letterlijk akkoord (F0 tot en met F1, via chat): "akkoord voor bouwen F0 en F1"
 
@@ -113,5 +113,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 08:56 | F2 gebouwd en per criterium getoetst | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 08:57 | Vrijgave F3 op planversie 1 ("F3 vrijgegeven") | Marco van Steenbrugge, via chat |
 | 2026-10-27 09:02 | F3 uitgevoerd: versie 2.10.0, LEESMIJ, handleiding, alle tests groen, exe en zip gebouwd, tag v2.10.0; wacht op Marco's handmatige controle | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 09:07 | Marco bevestigt: "Ja, in 2.10.0 werkt alles: puntenwolk openen, projectmap, PDF en DXF opslaan, 3D, luchtfoto en BGT." | Marco van Steenbrugge, via chat |
+| 2026-10-27 09:07 | F3 gebouwd en per criterium getoetst; plan afgerond | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
