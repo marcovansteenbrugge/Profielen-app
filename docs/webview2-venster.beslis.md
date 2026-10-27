@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen programmavenster met WebView2 (versie 2.10.0)
 
-> **Nu van jou gevraagd:** niets; F3 wordt gebouwd. Daarna vraag ik je de handmatige controle van 2.10.0.
+> **Nu van jou gevraagd:** controleer 2.10.0 (`dist\Lutrea-Profielviewer-2.10.0.exe`): puntenwolk openen (Wallach of Halsteren), projectmap, PDF en DXF opslaan, 3D, luchtfoto en BGT (PDOK). Zeg daarna of alles werkt.
 > **Later nodig:** niets.
 
 De Profielviewer opent straks in een eigen Windows-venster in plaats van in een kaal Chrome- of Edge-venster, zonder welkomstschermen of een apart browserprofiel. De viewer zelf blijft hetzelfde; het werk gaat in vier fasen, en elke fase start pas na jouw akkoord.
@@ -112,5 +112,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 08:55 | Marco bevestigt: "Ja, mijn PDF-stempel staat na importeren in het nieuwe venster." | Marco van Steenbrugge, via chat |
 | 2026-10-27 08:56 | F2 gebouwd en per criterium getoetst | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 08:57 | Vrijgave F3 op planversie 1 ("F3 vrijgegeven") | Marco van Steenbrugge, via chat |
+| 2026-10-27 09:02 | F3 uitgevoerd: versie 2.10.0, LEESMIJ, handleiding, alle tests groen, exe en zip gebouwd, tag v2.10.0; wacht op Marco's handmatige controle | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
