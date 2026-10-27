@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 
-> **Nu van jou gevraagd:** niets; F3 wordt gebouwd. Daarna een controle op je laptop.
+> **Nu van jou gevraagd:** de controle van F3 op je laptop met `dist\proef\Lutrea-Profielviewer-F3-proef.exe`: een hele sessie zonder toestemmingsvraag (ook via Recent na herstarten), een project openen vanaf een pad (viewer dicht en open), een .las of .laz op het venster slepen.
 > **Later nodig:** vrijgave van F4.
 
 Nu vraagt de viewer bij elke sessie opnieuw toestemming voor je projectmap, omdat de browser dat bewaakt. Straks leest en schrijft het programma je bestanden zelf, zodat die vragen verdwijnen, recente projecten na een herstart gewoon werken en het programma later (fase E) grote scans zelf kan omzetten. Het werk gaat in vijf fasen, en elke fase start pas na jouw akkoord.
@@ -115,5 +115,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 11:20 | Vrijgave F2 op planversie 1 | Marco van Steenbrugge, via chat |
 | 2026-10-27 13:34 | F2 gebouwd en per criterium getoetst (alle 15 tests groen; omzetten via de nieuwe toegang 0,96 tot 1,37 keer de tijd van de oude, binnen de grens 1,5) | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 13:43 | Vrijgave F3 op planversie 1 | Marco van Steenbrugge, via chat |
+| 2026-10-27 14:28 | F3 uitgevoerd en automatisch getoetst (alle tests groen; startparameter en tweede start in de echte exe gecontroleerd); wacht op Marco's controle op zijn laptop | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
