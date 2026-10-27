@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** de controle van 2.11.0 (`dist\Lutrea-Profielviewer-2.11.0.exe`): puntenwolk openen (Wallach/Halsteren), projectmap, PDF en DXF opslaan, 3D, luchtfoto en BGT, en met `--browservenster` alles zoals in 2.10.2.
+> **Nu van jou gevraagd:** niets voor 2.11.0; die is klaar. Voor LAZ: de vrijgave van **F4** (de proef) wanneer je wilt.
 > **Later nodig:** B5 vóór F5 (na de proef in F4); vrijgave van F4 tot en met F6.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.1), dat begint met een proef. Elke fase start pas na jouw akkoord.
@@ -24,7 +24,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F0 | Het programma kan een LAS omzetten naar vakken, precies zoals de viewer dat nu doet (nog zonder knop in de viewer) | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 16:49 | B1, B2 | ✅ 2026-10-27 17:05 |
 | F1 | Hetzelfde voor PTS | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 17:06 | - | ✅ 2026-10-27 17:16 |
 | F2 | De viewer laat het programma omzetten: scan kiezen met de Windows-kiezer, voortgang, knop Afbreken; lukt het niet, dan zoals nu | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 17:18 | B3, B4 | ✅ 2026-10-27 20:54 |
-| F3 | Oplevering 2.11.0: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 20:55 | - | - |
+| F3 | Oplevering 2.11.0: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 20:55 | - | ✅ 2026-10-27 21:08 |
 | F4 | Proef: kan de LAZ-decoder van de viewer ook in het programma draaien, en hoe snel | ○ nog niet | - | - | - |
 | F5 | LAZ omzetten in het programma | ○ nog niet | - | B5 | - |
 | F6 | Oplevering 2.11.1: versie, LEESMIJ, handleiding, tests, exe en zip | ○ nog niet | - | - | - |
@@ -158,5 +158,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 20:54 | F2 gebouwd en per criterium getoetst: Halsteren (52,5 mln punten) in ± 10 s door het programma, tegen 37 s in de viewer | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 20:55 | Vrijgave F3 op planversie 1 ("F3 vrijgegeven") | Marco van Steenbrugge, via chat |
 | 2026-10-27 21:02 | F3 uitgevoerd: versie 2.11.0, LEESMIJ, handleiding, alle tests groen, exe en zip gebouwd, tag v2.11.0; wacht op Marco's handmatige controle | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 21:08 | Marco bevestigt: "Ja, in 2.11.0 werkt alles: puntenwolk openen (Wallach/Halsteren), projectmap, PDF en DXF opslaan, 3D, luchtfoto en BGT; met --browservenster werkt alles zoals in 2.10.2." | Marco van Steenbrugge, via chat |
+| 2026-10-27 21:08 | F3 gebouwd en per criterium getoetst; 2.11.0 opgeleverd | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
