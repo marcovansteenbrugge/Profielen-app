@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Eigen bestandstoegang, geen toestemmingsvragen meer (versie 2.10.2)
 
-> **Nu van jou gevraagd:** niets; F1 wordt gebouwd. Daarna een korte controle op je laptop.
+> **Nu van jou gevraagd:** de controle van F1 op je laptop: `dist\proef\Lutrea-Profielviewer-F1-proef.exe --kiezertest`, een map kiezen en melden wat je zag.
 > **Later nodig:** vrijgave van F2 tot en met F4.
 
 Nu vraagt de viewer bij elke sessie opnieuw toestemming voor je projectmap, omdat de browser dat bewaakt. Straks leest en schrijft het programma je bestanden zelf, zodat die vragen verdwijnen, recente projecten na een herstart gewoon werken en het programma later (fase E) grote scans zelf kan omzetten. Het werk gaat in vijf fasen, en elke fase start pas na jouw akkoord.
@@ -105,5 +105,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 10:59 | Vrijgave F0 op planversie 1 | Marco van Steenbrugge, via chat |
 | 2026-10-27 11:06 | F0 gebouwd en per criterium getoetst (alle Go-tests groen, ook een extra controle op snelkoppelingen naar buiten de projectmap) | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 11:07 | Vrijgave F1 op planversie 1 | Marco van Steenbrugge, via chat |
+| 2026-10-27 11:11 | F1 uitgevoerd en automatisch getoetst (kiezers modaal, annuleren werkt); wacht op Marco's controle met een echte keuze | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
