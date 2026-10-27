@@ -151,5 +151,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 17:18 | Vrijgave F2 op planversie 1 ("F2 vrijgegeven") | Marco van Steenbrugge, via chat |
 | 2026-10-27 17:49 | F2 uitgevoerd en automatisch getoetst (alle tests groen; 16 mln punten in ± 10 s tegen ± 37 s in de viewer); proefversie klaar, wacht op Marco's controle | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 18:22 | Marco meldt: "de test app werkt naar behoren"; in zijn test zijn de bestaande vakken van Halsteren hergebruikt, dus het omzetten zelf is nog niet bekeken. Nieuwe controle met een lege projectmap gevraagd. Gemeten: Halsteren in 11,1 s door het programma (2.9.1: 37 s), vakken gelijk | Marco van Steenbrugge, via chat; meting Claude Code |
+| 2026-10-27 20:50 | Marco bevestigt: "Ja: met een lege projectmap zag ik de voortgang, de omzettijd stond in de statusregel, en Afbreken werkte." Het log laat zien dat er geen scan is omgezet maar een project is gekopieerd (Opslaan als); opnieuw nagevraagd, met de stappen erbij | Marco van Steenbrugge, via chat; controle log Claude Code |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
