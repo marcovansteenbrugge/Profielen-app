@@ -1,4 +1,4 @@
-Lutrea Profielviewer 2.9.5 (voorheen PTS-viewer)
+Lutrea Profielviewer 2.10.0 (voorheen PTS-viewer)
 ================================================
 Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
 De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
@@ -6,16 +6,18 @@ De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
 Makkelijkst: Lutrea-Profielviewer.exe
 -------------------------------------
 Dubbelklik Lutrea-Profielviewer.exe. Alles zit erin (geen Python, geen losse map nodig).
-De viewer opent in een eigen venster; venster dicht = programma stopt.
+De viewer opent in een eigen programmavenster (WebView2, zit in Windows 10/11):
+geen Chrome of Edge meer nodig, niets te installeren. Venster dicht = programma stopt.
 Zet het bestand waar je wilt (bijv. bureaublad of C:\Tools) en maak er
 eventueel een snelkoppeling van / maak hem vast aan de taakbalk.
 Eerste keer: Windows kan "Windows heeft uw pc beschermd" tonen omdat het
 programma niet digitaal ondertekend is -> "Meer informatie" -> "Toch uitvoeren".
 
-Blijft het venster bij de eerste start leeg/donker?
-De exe start het venster na 30 seconden vanzelf opnieuw. Gebeurt het vaker, stuur
-dan het logbestand mee: %LOCALAPPDATA%\Lutrea\PTS-viewer\log.txt
-(plak dat pad in de adresbalk van de Verkenner).
+Blijft het venster leeg, of werkt het eigen venster niet op deze pc?
+Start dan het oude Chrome/Edge-venster: maak een snelkoppeling naar de exe en zet
+achter het doel  --browservenster  (met een spatie ervoor). Stuur ook het logbestand
+mee: %LOCALAPPDATA%\Lutrea\PTS-viewer\log.txt (plak dat pad in de adresbalk van de
+Verkenner).
 
 Mapversie (alternatief)
 -----------------------
@@ -29,6 +31,26 @@ Mapversie (alternatief)
 
 Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
 adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.10.0 — Eigen programmavenster
+-----------------------------------------
+- De viewer opent in een eigen Windows-venster in plaats van in een kaal Chrome- of
+  Edge-venster: geen welkomstschermen, geen apart browserprofiel, geen Chrome of Edge nodig.
+  Het venster gebruikt WebView2, dat in Windows 10 en 11 zit. Ontbreekt dat, dan opent
+  vanzelf het oude venster.
+- Venster dicht (kruisje of Afsluiten) = programma stopt meteen.
+- Start je de viewer nog een keer terwijl hij al open is, dan komt het bestaande venster
+  naar voren (ook als het geminimaliseerd was) in plaats van een tweede venster.
+- Het venster onthoudt plek en grootte. Valt die plek buiten beeld (ander scherm
+  losgekoppeld), dan opent het gemaximaliseerd.
+- Eén keer je instellingen overnemen: het nieuwe venster begint met lege instellingen.
+  Start de nieuwe exe met --browservenster (het oude venster, met je oude instellingen),
+  kies PROJECT > instellingen > Exporteren… en bewaar het bestand. Start de viewer gewoon
+  en kies PROJECT > instellingen > Importeren… met dat bestand. Mee gaan: PDF-stempel en
+  titelblok, logo's, puntdichtheid en weergave-instellingen. Recente projectmappen niet:
+  open die één keer opnieuw.
+- Noodroute: --browservenster achter de exe (in een snelkoppeling) opent het oude
+  Chrome/Edge-venster.
 
 Nieuw in 2.9.5 — Links en rechts los, as uit het NWB
 -----------------------------------------------------

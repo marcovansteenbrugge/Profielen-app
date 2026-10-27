@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Oct 24, 2026 · @Marco van Steenbrugge · versie 2.9.5
+Oct 27, 2026 · @Marco van Steenbrugge · versie 2.10.0
 
 ## Wat is de Profielviewer
 
@@ -10,10 +10,21 @@ Daarnaast zitten er twee toetsen in. De **doorvaartcontrole** kijkt of een schip
 
 **Starten**
 
-1. Dubbelklik `Lutrea-Profielviewer-2.5.1.exe`. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
+1. Dubbelklik `Lutrea-Profielviewer-2.10.0.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
 2. De eerste keer kan Windows "Windows heeft uw pc beschermd" tonen: kies **Meer informatie → Toch uitvoeren**. Het programma is (nog) niet digitaal ondertekend.
-3. De viewer opent in een eigen venster. Venster dicht = programma stopt.
-4. Controleer het versienummer naast de titel linksboven (nu **2.5.1**).
+3. De viewer opent in een eigen programmavenster (WebView2, zit in Windows 10 en 11; Chrome of Edge is niet nodig). Venster dicht = programma stopt. Het venster onthoudt plek en grootte.
+4. Controleer het versienummer naast de titel linksboven (nu **2.10.0**).
+
+**Al open?** Start je de viewer nog een keer, dan komt het venster dat al open is naar voren; er komt geen tweede venster.
+
+**Overstappen van een versie vóór 2.10.0.** Het eigen venster begint met lege instellingen. Neem ze één keer over:
+
+1. Start de exe met `--browservenster` (zet dat in een snelkoppeling achter het doel). Dan opent het oude Chrome/Edge-venster, met je oude instellingen.
+2. Kies in het lint **PROJECT → instellingen → Exporteren…** en bewaar het bestand.
+3. Sluit de viewer en start hem gewoon.
+4. Kies **PROJECT → instellingen → Importeren…** met dat bestand. De viewer start opnieuw met je instellingen.
+
+Mee gaan: PDF-stempel en titelblok, logo's, puntdichtheid en weergave-instellingen. Recente projectmappen gaan niet mee; open die één keer opnieuw.
 
 **Oude versie nog actief?** Een nieuwe exe sluit een oudere versie die nog op de achtergrond draait vanzelf af. Zie je toch oude knoppen, sluit dan alle vensters van de viewer en start de nieuwe exe opnieuw.
 
@@ -28,7 +39,7 @@ Daarnaast zitten er twee toetsen in. De **doorvaartcontrole** kijkt of een schip
 | Tweede puntenwolk om te vergelijken | Snoeilijst als CSV (opent in Excel) |
 | Scans van de onder- en bovenzijde van een brug |  |
 
-Vastgelopen of een leeg venster? Stuur het logbestand mee: `%LOCALAPPDATA%\Lutrea\PTS-viewer\log.txt` (plak het pad in de adresbalk van de Verkenner).
+Vastgelopen of een leeg venster? Start dan het oude venster met `--browservenster`, en stuur het logbestand mee: `%LOCALAPPDATA%\Lutrea\PTS-viewer\log.txt` (plak het pad in de adresbalk van de Verkenner).
 
 ## Het scherm
 
@@ -223,6 +234,8 @@ Vul projectnaam, projectnummer, opdrachtgever, omschrijving, getekend, gecontrol
 | **Opslaan als…** | Ctrl+Shift+S | Vraagt altijd om een nieuw bestand. Daarna is dat het projectbestand waar Opslaan in schrijft |
 
 Overschrijven is veilig: er wordt eerst naar een tijdelijk bestand geschreven, en pas als alles erin staat vervangt dat het oude project.
+
+**Instellingen** (onder de projectknoppen) bewaart met **Exporteren…** je eigen instellingen in een los bestand: PDF-stempel en titelblok, logo's, puntdichtheid en weergave. Met **Importeren…** zet je ze op een andere pc of in een nieuwe versie terug. Een projectbestand neemt deze instellingen niet mee.
 
 - Met puntenwolk wordt het bestand groter: bij 2 miljoen punten met kleur ongeveer 38 MB, bij 10 miljoen ongeveer 200 MB.
 - Na opslaan via "Vragen waar ik opsla" toont de statusregel de grootte, bv. "Opgeslagen: … (38.2 MB)". Mislukt het, dan krijg je een melding en gaat het bestand naar Downloads.
@@ -448,7 +461,9 @@ De originele scan blijft staan waar hij stond. Bewaar die zelf: de vakken zijn h
 
 | Probleem of vraag | Oplossing |
 | --- | --- |
-| Ik zie oude knoppen of een ouder versienummer | Er draait nog een oude viewer. Sluit alle vensters en start de nieuwe exe; kijk of naast de titel 2.5.1 (of nieuwer) staat |
+| Ik zie oude knoppen of een ouder versienummer | Er draait nog een oude viewer. Sluit alle vensters en start de nieuwe exe; kijk of naast de titel 2.10.0 (of nieuwer) staat |
+| Mijn PDF-stempel en logo's zijn weg na de overstap naar 2.10.0 | Het eigen venster begint met lege instellingen. Neem ze over met **PROJECT → instellingen → Exporteren…/Importeren…** (zie Starten) |
+| Het eigen venster blijft leeg of start niet | Start de exe met `--browservenster`: dan opent het oude Chrome/Edge-venster |
 | Kleur blijft grijs bij een PTS | Kies **kleur → RGB (inmeting)**. Heeft de PTS geen kleurkolommen, dan is alleen "hoogte" mogelijk |
 | Een hek of smalle muur geeft een kam van pieken | Zet **randen strak** aan (alleen bij oppervlak bovenkant) |
 | Brugdek en waterbodem lopen door elkaar | Kies **oppervlak bovenkant** voor het dek of **onderkant** voor de bodem |
