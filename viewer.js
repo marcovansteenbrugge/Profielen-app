@@ -4766,6 +4766,13 @@
       try { localStorage.setItem('ptsviewer-bgt-in-profiel', bgtProfielVeld.value); } catch { /* */ }
       tekenDwarsVoorHuidigeStation();
     });
+    // kadastrale perceelgrenzen in het dwarsprofiel aan/uit (ook PDF en DXF), net als de BGT
+    const kadProfielVeld = document.getElementById('kadasterInProfiel');
+    try { const k = localStorage.getItem('ptsviewer-kadaster-in-profiel'); if (k && kadProfielVeld) kadProfielVeld.checked = k !== 'uit'; } catch { /* */ }
+    kadProfielVeld?.addEventListener('change', () => {
+      try { localStorage.setItem('ptsviewer-kadaster-in-profiel', kadProfielVeld.checked ? 'aan' : 'uit'); } catch { /* */ }
+      tekenDwarsVoorHuidigeStation();
+    });
   }
 
   document.getElementById('volleDichtheidKnop')?.addEventListener('click', async () => {
@@ -6592,6 +6599,7 @@
 
   /** Kadastrale grenzen in een dwarsprofiel: offsets waar de profiellijn een perceelgrens snijdt + het perceel per vak. */
   function kadVoorGrafiek(reeks, isDwars) {
+    if (document.getElementById('kadasterInProfiel')?.checked === false) return null;   // uitgezet bij het dwarsprofiel
     if (!percelen.length || !isDwars || reeks.station == null || reeks.maatgevend || asPunten.length < 2 || !reeks.length) return null;
     const o0 = reeks[0].offset, o1 = reeks[reeks.length - 1].offset;
     const a = puntOpStationOffset(reeks.station, o0), b = puntOpStationOffset(reeks.station, o1);

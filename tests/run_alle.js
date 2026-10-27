@@ -6,7 +6,7 @@ const tests = [
   ['dxf_bladen.test.js', 'brug', 'A3'], ['project_losbestand.test.js'], ['lagen_aanuit.test.js'],
   ['maaiveld.test.js'], ['projectmap.test.js'], ['projectmap_bospad.test.js'], ['links_rechts.test.js'],
   ['nwb.test.js'], ['zoom_vakken.test.js'], ['instellingen.test.js'], ['natieve_map.test.js'],
-  ['omzetten_exe.test.js'], ['omzetten_viewer.test.js'],
+  ['omzetten_exe.test.js'], ['omzetten_viewer.test.js'], ['kadaster_dwars.test.js'],
 ];
 if (process.argv.includes('groot')) tests.push(['groot_import.test.js']);
 let fout = 0;
