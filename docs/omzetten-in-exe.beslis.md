@@ -11,7 +11,7 @@ status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** besluiten **B1** (waar het omzetten draait) en **B2** (dezelfde vakken als nu); daarna de vrijgave van **F0**.
+> **Nu van jou gevraagd:** de vrijgave van **F0** (en, als je wilt, meteen F1).
 > **Later nodig:** B3 en B4 vóór F2; B5 vóór F5 (na de proef in F4); vrijgave van F1 tot en met F6.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.1), dat begint met een proef. Elke fase start pas na jouw akkoord.
@@ -32,15 +32,15 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 ## Overzicht besluiten
 | | # | Onderwerp | Besluit | Nodig vóór |
 |---|---|---|---|---|
-| ⏳ | B1 | Waar het omzetten draait | **Nog niet beoordeeld** | F0 |
-| ⏳ | B2 | Dezelfde vakken als nu | **Nog niet beoordeeld** | F0 |
+| ✅ | B1 | Waar het omzetten draait | Ons voorstel | F0 |
+| ✅ | B2 | Dezelfde vakken als nu | Ons voorstel | F0 |
 | ⏳ | B3 | Scan kiezen in het eigen venster | **Nog niet beoordeeld** | F2 |
 | ⏳ | B4 | Terugval als het programma niet kan omzetten | **Nog niet beoordeeld** | F2 |
 | ⏳ | B5 | Hoe LAZ in het programma komt | **Nog niet beoordeeld** | F5 |
 
 ## Besluiten
 
-### ⏳ B1 · Waar het omzetten draait
+### ✅ B1 · Waar het omzetten draait
 **Je beslist:** of het programma zelf de scan omzet, of dat de viewer het blijft doen, maar dan op meerdere kernen.
 
 | | Ons voorstel | Alternatief |
@@ -50,15 +50,15 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | **Nadeel** | Het omzetten bestaat dan twee keer (exe en viewer), dus een test moet bewaken dat ze gelijk blijven | Het geheugen blijft in het venster; het wegschrijven blijft op één kern |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-10-27 16:35 · **nodig vóór** F0
+**Besloten door** Marco van Steenbrugge · **op** 2026-10-27 16:33 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B1
 
-### ⏳ B2 · Dezelfde vakken als nu
+### ✅ B2 · Dezelfde vakken als nu
 **Je beslist:** of het programma precies dezelfde vakken moet maken als de viewer nu, tot op de byte, of dat "gelijkwaardig" genoeg is.
 
 | | Ons voorstel | Alternatief |
@@ -68,11 +68,11 @@ Meer uitleg: plan, punt 6, B1
 | **Nadeel** | Meer zorg in het nabouwen (bijvoorbeeld hoe halve millimeters worden afgerond) | Geen harde toets; een project kan er na opnieuw omzetten net anders uitzien |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-10-27 16:35 · **nodig vóór** F0
+**Besloten door** Marco van Steenbrugge · **op** 2026-10-27 16:33 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B2
 
@@ -136,5 +136,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | Datum en tijd | Wat | Door |
 |---|---|---|
 | 2026-10-27 16:35 | Plan opgesteld en voorgelegd | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-27 16:33 | B1 en B2 akkoord met voorstel ("B1 en B2 akkoord met jullie voorstel.") | Marco van Steenbrugge, via chat |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
