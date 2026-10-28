@@ -2,8 +2,8 @@
 plan: omzetten-in-exe
 titel: Grote scans omzetten in het programma zelf (versie 2.11)
 versie: 3
-status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ✅ · F4 ✅ · F5 ✅ · F6 ▶           # berekend door de skill
+status: gebouwd        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ✅ · F4 ✅ · F5 ✅ · F6 ✅           # berekend door de skill
 opgesteld: 2026-10-27
 opgesteld_door: Claude Code, in opdracht van Marco van Steenbrugge
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
@@ -97,7 +97,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | F3 | ✅ gebouwd | Oplevering 2.11.0: `zet_versie.py 2.11.0` (andere lengte: `.syso` opnieuw), LEESMIJ-blok "Nieuw in 2.11.0", handleiding, `tools/bouw.ps1`, tag `v2.11.0` | `node run_alle.js` en `go test ./...` groen; `dist\Lutrea-Profielviewer-2.11.0.exe` en de zip bestaan; Marco bevestigt de handmatige lijst: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT, en met `--browservenster` werkt alles zoals in 2.10.2 | F0, F1, F2 | S | Claude Code, medium | `F3:` en `2.11.0:` |
 | F4 | ✅ gebouwd | Proef LAZ: laz-perf.wasm in wazero (pure Go) laten draaien en één LAZ volledig decoderen; een LAZ-testbestand maken uit `dijk_begroeid.las` (Python, laspy met lazrs) | Rapport in punt 11 met: werkt de module zonder JavaScript-lijm (ja/nee, met wat er nodig was); alle punten bit voor bit gelijk aan de viewer (zelfde x, y, z, klasse, kleur); snelheid per kern en met alle kernen, vergeleken met de viewer op dezelfde LAZ; build met `CGO_ENABLED=0` slaagt. Daarna B5 voorleggen | F0 | M | Claude Code, high | `F4:` |
 | F5 | ✅ gebouwd | LAZ in de exe volgens B5 (`omzet_laz.go`): chunk-tabel, per kern een decoder, ordelijke uitvoer naar de schrijver; viewer gebruikt de exe-taak ook voor LAZ | `go test ./...` groen; `tests/omzetten_parity.test.js` vergelijkt de LAZ-testscan byte voor byte; `node run_alle.js` groen. Marco bevestigt op zijn laptop: een echte LAZ (bijvoorbeeld Wallach) zet om via de exe, sneller dan in 2.10.2 (tijd in de statusregel), en de profielen zien er hetzelfde uit | F4, B5 | L | Claude Code, high | `F5:` |
-| F6 | ▶ vrijgegeven | Oplevering 2.11.2: versie, LEESMIJ-blok "Nieuw in 2.11.2", handleiding, bouwen, tag `v2.11.2` | `node run_alle.js` en `go test ./...` groen; exe en zip bestaan; Marco bevestigt de handmatige lijst zoals bij F3, nu ook met een LAZ | F5 | S | Claude Code, medium | `F6:` en `2.11.2:` |
+| F6 | ✅ gebouwd | Oplevering 2.11.2: versie, LEESMIJ-blok "Nieuw in 2.11.2", handleiding, bouwen, tag `v2.11.2` | `node run_alle.js` en `go test ./...` groen; exe en zip bestaan; Marco bevestigt de handmatige lijst zoals bij F3, nu ook met een LAZ | F5 | S | Claude Code, medium | `F6:` en `2.11.2:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix. De opleveringscommits volgen de projectregel `X.Y.Z: <wat>` met tag `vX.Y.Z`.
 
@@ -135,6 +135,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 | F3 | 2026-10-27 20:55 | 2026-10-27 21:08 | Marco van Steenbrugge ("F3 vrijgegeven") | Claude Code, claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | medium | 32 / 12.705 | b5e219c, be42c3f | transcript (Claude Code 2.1.308) |
 | F4 | 2026-10-28 17:37 | 2026-10-28 17:50 | Marco van Steenbrugge ("Test en naam, dan F4") | Claude Code, claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | medium | 58 / 38.500 | a5b3bbd | transcript (Claude Code 2.1.309) |
 | F5 | 2026-10-28 19:16 | 2026-10-28 20:08 | Marco van Steenbrugge ("Ja, B5 en F5–F6") | Claude Code, claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | medium | 104 / 35.864 | 9c203e9, 2fc6ee9 | transcript (Claude Code 2.1.309) |
+| F6 | 2026-10-28 20:08 | 2026-10-28 20:21 | Marco van Steenbrugge ("Ja, B5 en F5–F6") | Claude Code, claude-opus-5-5, sessie 7adc2aac-c45a-4d30-8ce9-d77758bd19f5 | medium | 24 / 8.157 (tot 20:16) | a62f1e8, 196fb28 | transcript (Claude Code 2.1.309) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -195,6 +196,9 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F6 | 2026-10-28 20:16 | `node run_alle.js` en `go test ./...` groen | `node run_alle.js` op 2.11.2 (20:10): 18 van 18 OK, "Alle tests geslaagd". `toolsouw.ps1` draaide `go vet` en `go test`: "ok ptsviewer", "ok ptsviewer/omzet" | gehaald |
 | F6 | 2026-10-28 20:16 | exe en zip bestaan | `dist\Lutrea-Profielviewer-2.11.2.exe` 13.447.680 bytes en `dist\Lutrea-Profielviewer_compleet_2.11.2.zip` 6.488.035 bytes; commit a62f1e8, tag v2.11.2 gepusht | gehaald |
 | F6 | 2026-10-28 20:16 | Marco bevestigt de handmatige lijst zoals bij F3, nu ook met een LAZ | Nog niet gedaan: wacht op Marco | niet toetsbaar |
+| F6 | 2026-10-28 20:21 | `node run_alle.js` en `go test ./...` groen | Ongewijzigd sinds 20:16 (commit a62f1e8): 18 van 18 OK; go test groen in bouw.ps1 | gehaald |
+| F6 | 2026-10-28 20:21 | exe en zip bestaan | Ongewijzigd sinds 20:16: beide in `dist\`, tag v2.11.2 gepusht | gehaald |
+| F6 | 2026-10-28 20:21 | Marco bevestigt de handmatige lijst zoals bij F3, nu ook met een LAZ | Marco van Steenbrugge, via chat: 20:16 "Ja, 2.11.2 werkt" (antwoord op de vraag "Werkt alles in 2.11.2, ook met een LAZ en met --browservenster?"); het log liet toen nog geen start van 2.11.2 zien, dus nagevraagd; 20:21 "2.11.2 werkt incl pdf export". Log: 20:18 "Lutrea Profielviewer gestart, versie 2.11.2", Halsteren (LAS) via de kiezer geopend. De LAZ (Wallach, 1,64 mld punten in 197 s) is getoetst met de proefversie, dezelfde code als 2.11.2 op het versienummer na | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
@@ -222,6 +226,7 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 | F5 | Geen apart bestand `omzet_laz.go` in de hoofdmap maar `omzet/laz.go`; het parallel en geordend lezen is uit de LAS-lezer gehaald (`leesGeordend`) en wordt door LAS en LAZ gedeeld | Eén pijplijn voor beide; de LAS-tests en de gelijkheidstest bewaken dat LAS niet veranderde |
 | F5 | Ook `tests/omzetten_viewer.test.js` hersteld: de melding bij de terugval werd soms gemist (wisselvallig, al van vóór F5) | Anders was `run_alle` niet betrouwbaar groen |
 | F5 | Marco toetste op een LAZ van 1,64 miljard punten (Wallach, 197 s), niet de 79 miljoen uit de open vraag | Dat was de LAZ die hij heeft |
+| F6 | De LAZ is in de handmatige controle getoetst met de proefversie (zelfde code), niet opnieuw met de exe van 2.11.2; in 2.11.2 opende Marco Halsteren (LAS) en maakte een PDF | Wallach omzetten duurt ruim 3 minuten; de code is op het versienummer na gelijk |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |

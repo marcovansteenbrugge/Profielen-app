@@ -1,6 +1,6 @@
 # Plan 2.10 — de Profielviewer als echt Windows-programma
 
-Vastgelegd op 26 oktober 2026 (Marco en Claude). Status: **fase A klaar (2.10.0, patch 2.10.1), fase C klaar (2.10.2), fase E1 klaar (2.11.0); volgende: E2 (LAZ)**. Werk dit plan bij
+Vastgelegd op 26 oktober 2026 (Marco en Claude). Status: **fase A klaar (2.10.0, patch 2.10.1), fase C klaar (2.10.2), fase E klaar (2.11.0, LAZ in 2.11.2); volgende: B**. Werk dit plan bij
 als een fase klaar is of als er iets verandert (vink af, noteer beslissingen onderaan).
 
 ## Waarom
@@ -122,4 +122,5 @@ Plan: `docs/eigen-bestandstoegang.plan.md` en `.beslis.md`.
 - 27-10-2026: fase A klaar (2.10.0); patch 2.10.1. Volgorde voor de rest: C → E → B → D (zie Fasen).
 - 27-10-2026: fase C klaar (2.10.2), door Marco gecontroleerd. De exe kent nu de echte paden van de projectmap: de basis voor fase E.
 - 27-10-2026: fase E1 klaar (2.11.0, plan `omzetten-in-exe`), door Marco gecontroleerd: LAS en PTS worden in de exe omgezet, byte voor byte gelijk aan de viewer; Halsteren (52 mln punten) ± 10 s i.p.v. ± 37 s. E2 (LAZ) begint met de proef F4 van dat plan.
+- 28-10-2026: fase E2 klaar (2.11.2): ook LAZ wordt in de exe omgezet, met laz-perf in wazero (pure Go, één decoder per kern), byte voor byte gelijk aan de viewer. Door Marco gecontroleerd op Wallach (1,64 miljard punten uit één LAZ in 197 s).
 - Open: plek voor updates (fase D); certificaat (los); .las/.laz ook koppelen (fase B, optioneel).

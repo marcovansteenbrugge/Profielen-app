@@ -4,14 +4,14 @@ titel: Grote scans omzetten in het programma zelf (versie 2.11)
 plan: omzetten-in-exe.plan.md
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer (Lutrea Group B.V.)
 voorgelegd: 2026-10-27 16:35          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
-status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+status: gebouwd        # berekend door de skill, nooit met de hand gezet
 ---
 
 > Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** de controle van 2.11.2 op je laptop: dezelfde lijst als bij 2.11.0, nu ook met een LAZ.
+> **Nu van jou gevraagd:** niets; het plan is af.
 > **Later nodig:** niets.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.2), dat begint met een proef. Elke fase start pas na jouw akkoord.
@@ -27,7 +27,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F3 | Oplevering 2.11.0: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 20:55 | - | ✅ 2026-10-27 21:08 |
 | F4 | Proef: kan de LAZ-decoder van de viewer ook in het programma draaien, en hoe snel | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-10-28 17:37 | - | ✅ 2026-10-28 17:50 |
 | F5 | LAZ omzetten in het programma | ✅ ja, op planversie 3 | Marco van Steenbrugge · 2026-10-28 19:16 | B5 | ✅ 2026-10-28 20:08 |
-| F6 | Oplevering 2.11.2: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 3 | Marco van Steenbrugge · 2026-10-28 19:16 | - | - |
+| F6 | Oplevering 2.11.2: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 3 | Marco van Steenbrugge · 2026-10-28 19:16 | - | ✅ 2026-10-28 20:21 |
 
 Letterlijk akkoord (F0, via chat): "F0 vrijgegeven"
 
@@ -174,5 +174,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-28 20:08 | Marco bevestigt: "Ja, LAZ werkt"; het log bevestigt het (Wallach, 1,64 miljard punten uit een LAZ, in 197 s door het programma omgezet) | Marco van Steenbrugge, via chat |
 | 2026-10-28 20:08 | F5 gebouwd en per criterium getoetst | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-28 20:16 | F6 uitgevoerd: versie 2.11.2, LEESMIJ, handleiding, alle tests groen, exe en zip gebouwd, tag v2.11.2; wacht op Marco's handmatige controle | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-28 20:21 | Marco bevestigt: "Ja, 2.11.2 werkt" en, na navraag, "2.11.2 werkt incl pdf export"; het log toont 2.11.2 gestart om 20:18 | Marco van Steenbrugge, via chat |
+| 2026-10-28 20:21 | F6 gebouwd en per criterium getoetst; 2.11.2 opgeleverd | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
