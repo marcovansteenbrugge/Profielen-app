@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** niets; F6 (2.11.2) wordt gebouwd. Daarna je controle van 2.11.2.
+> **Nu van jou gevraagd:** de controle van 2.11.2 op je laptop: dezelfde lijst als bij 2.11.0, nu ook met een LAZ.
 > **Later nodig:** niets.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.2), dat begint met een proef. Elke fase start pas na jouw akkoord.
@@ -173,5 +173,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-28 19:40 | F5 uitgevoerd en automatisch getoetst: het programma zet LAZ om met dezelfde vakken als de viewer; 3 mln punten in ± 2 s (viewer ± 10 s), 16 mln in 7,6 s. Proefversie klaar, wacht op Marco's controle | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-28 20:08 | Marco bevestigt: "Ja, LAZ werkt"; het log bevestigt het (Wallach, 1,64 miljard punten uit een LAZ, in 197 s door het programma omgezet) | Marco van Steenbrugge, via chat |
 | 2026-10-28 20:08 | F5 gebouwd en per criterium getoetst | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-28 20:16 | F6 uitgevoerd: versie 2.11.2, LEESMIJ, handleiding, alle tests groen, exe en zip gebouwd, tag v2.11.2; wacht op Marco's handmatige controle | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

@@ -192,6 +192,9 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F5 | 2026-10-28 20:08 | `tests/omzetten_parity.test.js` vergelijkt de LAZ-testscan byte voor byte | Ongewijzigd sinds 19:40: LAZ boven en onder 16 van 16 vakken, overzichten en info.json gelijk, "fouten: geen" | gehaald |
 | F5 | 2026-10-28 20:08 | `node run_alle.js` groen | Ongewijzigd sinds 19:40: 18 van 18 OK, "Alle tests geslaagd" | gehaald |
 | F5 | 2026-10-28 20:08 | Marco bevestigt op zijn laptop: een echte LAZ (bijvoorbeeld Wallach) zet om via de exe, sneller dan in 2.10.2 (tijd in de statusregel), en de profielen zien er hetzelfde uit | Marco van Steenbrugge, 20:07, via chat: "Ja, LAZ werkt" (antwoord op de vraag "Werkt een echte LAZ met de proefexe zoals beschreven?", met de stappen: voortgang "(programma)", "omgezet in … s door het programma" in de statusregel, sneller dan 2.10.2, profielen hetzelfde). Het log van de proefexe op zijn laptop: 19:58 "omzetten gestart: …\Wallach puntenwolk.laz → …\006-Wallach\puntenwolk\A - Wallach puntenwolk (boven)", 20:01 "omzetten klaar: 1639866771 punten in 773 vakken, 197.0 s" | gehaald |
+| F6 | 2026-10-28 20:16 | `node run_alle.js` en `go test ./...` groen | `node run_alle.js` op 2.11.2 (20:10): 18 van 18 OK, "Alle tests geslaagd". `toolsouw.ps1` draaide `go vet` en `go test`: "ok ptsviewer", "ok ptsviewer/omzet" | gehaald |
+| F6 | 2026-10-28 20:16 | exe en zip bestaan | `dist\Lutrea-Profielviewer-2.11.2.exe` 13.447.680 bytes en `dist\Lutrea-Profielviewer_compleet_2.11.2.zip` 6.488.035 bytes; commit a62f1e8, tag v2.11.2 gepusht | gehaald |
+| F6 | 2026-10-28 20:16 | Marco bevestigt de handmatige lijst zoals bij F3, nu ook met een LAZ | Nog niet gedaan: wacht op Marco | niet toetsbaar |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
