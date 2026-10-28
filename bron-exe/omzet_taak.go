@@ -1,6 +1,6 @@
 package main
 
-// Omzettaak (plan omzetten-in-exe, F2): de viewer laat de exe een scan omzetten naar vakken
+// Omzettaak (plan omzetten-in-exe, F2; LAZ sinds F5): de viewer laat de exe een scan omzetten naar vakken
 // (package omzet), met voortgang en afbreken. Eén taak tegelijk. Zelfde afscherming als de
 // bestands-API: sessiesleutel, Host/Origin en alleen toegestane plekken (bron en doel).
 //
@@ -163,7 +163,8 @@ func (t *omzetTaak) draai(ctx context.Context, onder bool) {
 	t0 := time.Now()
 	info, err := omzet.Omzet(ctx, omzet.Opdracht{
 		Bron: t.bron, Doel: t.tijdelijk, Onder: onder, Viewer: "Lutrea Profielviewer " + appVersie + " (exe)",
-		Fase: func(f string) { t.zet(func() { t.fase = f }) },
+		LazWasm: lazWasm(),
+		Fase:    func(f string) { t.zet(func() { t.fase = f }) },
 	}, func(gelezen, totaal int64) { t.zet(func() { t.gelezen, t.totaal = gelezen, totaal }) })
 	if err == nil {
 		// klaar: het oude doel weg, de tijdelijke map op zijn plek
@@ -186,6 +187,16 @@ func (t *omzetTaak) draai(ctx context.Context, onder bool) {
 	}
 	t.zet(func() { t.fase, t.info = "klaar", info })
 	log.Printf("omzetten klaar: %d punten in %d vakken, %.1f s", info.Aantal, len(info.Tegels), time.Since(t0).Seconds())
+}
+
+// lazWasm: laz-perf.wasm uit de app in de exe (dezelfde als de viewer gebruikt); nil als
+// hij ontbreekt (dan meldt het omzetten van een LAZ dat, en zet de viewer om).
+func lazWasm() []byte {
+	b, err := appBestanden.ReadFile("app/vendor/laz-perf/laz-perf.wasm")
+	if err != nil {
+		return nil
+	}
+	return b
 }
 
 // stopOmzetten breekt een lopende omzetting af en wacht tot de tijdelijke map weg is

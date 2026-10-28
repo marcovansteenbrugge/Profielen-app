@@ -1748,7 +1748,7 @@
     } catch { /* nog niet omgezet */ }
     // eigen venster, scan met pad: het programma zet om (op alle kernen, buiten het venster); lukt dat
     // niet, dan hieronder zoals voorheen (besluit B4)
-    if (natief && bestand.pvPad && wolkMap.pvPad && /\.(las|pts|txt)$/i.test(bestand.name)) {
+    if (natief && bestand.pvPad && wolkMap.pvPad && /\.(las|laz|pts|txt)$/i.test(bestand.name)) {
       markeerBezig('omzetten naar vakken', bestand.name);
       try {
         const info = await omzettenDoorProgramma(bestand, wolkMap);

@@ -1,12 +1,14 @@
 package omzet
 
-// Proef LAZ (plan omzetten-in-exe, F4): laz-perf in wazero decodeert dijk_begroeid.laz
-// (gemaakt met testdata/groot/maak_laz.py) tot precies dezelfde records als dijk_begroeid.las.
+// LAZ (plan omzetten-in-exe, F4 en F5): laz-perf in wazero decodeert dijk_begroeid.laz
+// (gemaakt met testdata/groot/maak_laz.py) tot precies dezelfde records als dijk_begroeid.las,
+// en Omzet maakt uit de LAZ dezelfde vakken en overzichten als uit de LAS.
 
 import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -157,5 +159,94 @@ func TestLazChunkTabelKapot(t *testing.T) {
 	}
 	if _, err := ChunkTabel([]byte{1, 0, 0, 0, 0, 0, 0, 0}, 100, false); err == nil {
 		t.Fatal("onbekende versie moet een fout geven")
+	}
+}
+
+// TestOmzetLazGelijkAanLas: Omzet van de LAZ en van de LAS geeft byte voor byte dezelfde vakken
+// en overzichten (info.json verschilt alleen in de bron en de tijden).
+func TestOmzetLazGelijkAanLas(t *testing.T) {
+	lazPad, lasPad, wasmPad := lazTestbestanden(t)
+	wasm, err := os.ReadFile(wasmPad)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := context.Background()
+	tmp := t.TempDir()
+	t0 := time.Now()
+	iLaz, err := Omzet(ctx, Opdracht{Bron: lazPad, Doel: filepath.Join(tmp, "laz"), LazWasm: wasm}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("LAZ omgezet: %d punten, %d vakken in %v", iLaz.Aantal, len(iLaz.Tegels), time.Since(t0).Round(time.Millisecond))
+	t1 := time.Now()
+	iLas, err := Omzet(ctx, Opdracht{Bron: lasPad, Doel: filepath.Join(tmp, "las")}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("LAS omgezet in %v", time.Since(t1).Round(time.Millisecond))
+	if iLaz.Aantal != iLas.Aantal || len(iLaz.Tegels) != len(iLas.Tegels) {
+		t.Fatalf("LAZ %d punten in %d vakken, LAS %d in %d", iLaz.Aantal, len(iLaz.Tegels), iLas.Aantal, len(iLas.Tegels))
+	}
+	vergelijk := func(rel string) {
+		a, e1 := os.ReadFile(filepath.Join(tmp, "laz", rel))
+		b, e2 := os.ReadFile(filepath.Join(tmp, "las", rel))
+		if e1 != nil || e2 != nil || !bytes.Equal(a, b) {
+			t.Errorf("%s verschilt (%v, %v)", rel, e1, e2)
+		}
+	}
+	vergelijk("overzicht.pvt")
+	vergelijk("overzicht_maaiveld.pvt")
+	items, _ := os.ReadDir(filepath.Join(tmp, "las", "tegels"))
+	for _, it := range items {
+		vergelijk(filepath.Join("tegels", it.Name()))
+	}
+	// zonder laz-perf: een nette fout, geen crash
+	if _, err := Omzet(ctx, Opdracht{Bron: lazPad, Doel: filepath.Join(tmp, "zonder")}, nil); err == nil {
+		t.Error("LAZ zonder laz-perf moet een fout geven")
+	}
+	// afbreken midden in een LAZ
+	ctx2, stop := context.WithCancel(ctx)
+	_, err = Omzet(ctx2, Opdracht{Bron: lazPad, Doel: filepath.Join(tmp, "af"), LazWasm: wasm}, func(g, _ int64) {
+		if g > 500000 {
+			stop()
+		}
+	})
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("afbreken: %v", err)
+	}
+}
+
+// TestLazKapot: een afgekapte of beschadigde LAZ geeft een fout, geen crash.
+func TestLazKapot(t *testing.T) {
+	lazPad, _, wasmPad := lazTestbestanden(t)
+	wasm, _ := os.ReadFile(wasmPad)
+	heel, err := os.ReadFile(lazPad)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmp := t.TempDir()
+	kapot := map[string][]byte{
+		"afgekapt": heel[:len(heel)/2],
+		"geknoeid": func() []byte {
+			b := bytes.Clone(heel)
+			kop, _ := LeesLasKop(bytes.NewReader(b))
+			for i := int(kop.PuntDataOffset) + 1000; i < int(kop.PuntDataOffset)+1100; i++ { // in de eerste chunk
+				b[i] ^= 0x5a
+			}
+			return b
+		}(),
+	}
+	for naam, b := range kapot {
+		pad := filepath.Join(tmp, naam+".laz")
+		os.WriteFile(pad, b, 0o644)
+		t0 := time.Now()
+		info, err := Omzet(context.Background(), Opdracht{Bron: pad, Doel: filepath.Join(tmp, naam), LazWasm: wasm}, nil)
+		if info != nil {
+			t.Logf("%s: %d punten, %d vakken, %v", naam, info.Aantal, len(info.Tegels), time.Since(t0))
+		}
+		t.Logf("%s: %v", naam, err)
+		if naam == "afgekapt" && err == nil {
+			t.Error("afgekapte LAZ moet een fout geven")
+		}
 	}
 }

@@ -23,6 +23,8 @@ type Opdracht struct {
 	Doel   string // de puntenwolkmap, bv. <projectmap>\puntenwolk\A - <naam>
 	Onder  bool   // oppervlak onderkant (anders bovenkant)
 	Viewer string // komt in info.json als "viewer"
+	// LazWasm: laz-perf.wasm (dezelfde als in de viewer); alleen nodig voor LAZ
+	LazWasm []byte
 	// Fase krijgt "afronden" als alle punten gelezen zijn (overzichten en info.json); mag nil zijn
 	Fase func(fase string)
 }
@@ -51,12 +53,18 @@ func Omzet(ctx context.Context, o Opdracht, voortgang Voortgang) (*Info, error) 
 	s := NieuweSchrijver(tegelMap, o.Onder)
 	defer s.Stop()
 	switch strings.ToLower(filepath.Ext(o.Bron)) {
-	case ".las":
+	case ".las", ".laz":
+		// zoals de viewer: de header zegt of het gecomprimeerd is, niet de extensie
 		kop, err := LeesLasKop(f)
 		if err != nil {
 			return nil, err
 		}
-		if err := LeesLas(ctx, f, kop, s, voortgang); err != nil {
+		if kop.Gecomprimeerd {
+			err = LeesLaz(ctx, f, kop, o.LazWasm, s, voortgang)
+		} else {
+			err = LeesLas(ctx, f, kop, s, voortgang)
+		}
+		if err != nil {
 			return nil, err
 		}
 	case ".pts", ".txt":

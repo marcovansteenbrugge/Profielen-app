@@ -1,4 +1,4 @@
-// Omzetten door het programma vanuit de viewer (2.11.0, plan omzetten-in-exe F2): in het eigen
+// Omzetten door het programma vanuit de viewer (2.11.0, plan omzetten-in-exe F2; LAZ sinds 2.11.2, F5): in het eigen
 // venster kiest "Openen…" de scan met de Windows-kiezer (B3), het programma zet om met voortgang en
 // Afbreken, en lukt het niet dan zet de viewer zelf om (B4). De testserver (hulp.js) doet de
 // omzettaak van de exe na met pvomzet (dezelfde Go-code).
@@ -26,6 +26,12 @@ const UIT = path.join(H.UIT, 'omzetten_viewer');
     window.__veldGeklikt = 0;
     const klik = HTMLInputElement.prototype.click;
     HTMLInputElement.prototype.click = function () { if (this.id === 'ptsBestand') window.__veldGeklikt++; return klik.call(this); };
+    // elke statusregel bijhouden, ook een die maar even in beeld staat (zoals de melding bij de terugval)
+    window.__statussen = [];
+    document.addEventListener('DOMContentLoaded', () => {
+      const el = document.getElementById('status');
+      if (el) new MutationObserver(() => window.__statussen.push(el.textContent.trim())).observe(el, { childList: true, characterData: true, subtree: true });
+    });
   }, H.natief.sleutel);
   await p.goto(H.URL);
   await p.evaluate(() => { localStorage.setItem('ptsviewer-puntdichtheid', '1000000'); });
@@ -86,7 +92,7 @@ const UIT = path.join(H.UIT, 'omzetten_viewer');
   await openen(scan('dijk3.las'), proj3);
   gezien = await volg(s => /driehoeken/.test(s));
   H.natief.omzetFout = null;
-  const melding = gezien.find(s => /het programma kon niet omzetten/.test(s));
+  const melding = [...gezien, ...await p.evaluate(() => window.__statussen)].find(s => /het programma kon niet omzetten/.test(s));
   const info3 = JSON.parse(fs.readFileSync(path.join(proj3, 'puntenwolk', 'A - dijk3', 'info.json'), 'utf8'));
   console.log('3 melding:', melding?.slice(0, 120));
   console.log('3 info.json: aantal', info3.aantal, '| gemaakt door', info3.viewer, '|', (await st()).match(/· omgezet in .*$/)?.[0]);
@@ -95,6 +101,23 @@ const UIT = path.join(H.UIT, 'omzetten_viewer');
   // de vakken van de terugval zijn gelijk aan die van het programma (B2)
   const vak = (proj, n) => fs.readFileSync(path.join(proj, 'puntenwolk', n, 'tegels', '1640_7780.pvt'));
   if (!vak(proj3, 'A - dijk3').equals(vak(proj1, 'A - dijk1'))) fouten.push('vakken van de terugval wijken af');
+
+  // 4. een LAZ zet het programma ook om (2.11.2), met dezelfde vakken als de LAS
+  const laz = H.data('groot', 'dijk_begroeid.laz');
+  if (fs.existsSync(laz)) {
+    await p.reload(); await p.waitForTimeout(800);
+    const scan4 = path.join(UIT, 'scans', 'dijk4.laz'); fs.copyFileSync(laz, scan4);
+    const proj4 = path.join(UIT, 'proj4');
+    n0 = H.natief.omzettingen;
+    await openen(scan4, proj4);
+    gezien = await volg(s => /driehoeken/.test(s));
+    const pad4 = path.join(proj4, 'puntenwolk', 'A - dijk4', 'info.json');
+    if (!fs.existsSync(pad4)) { console.log('4 statusregels:', JSON.stringify(gezien.slice(-8)), '| fouten:', fouten.join(' | ')); throw new Error('LAZ: geen info.json'); }
+    const info4 = JSON.parse(fs.readFileSync(pad4, 'utf8'));
+    console.log('4 LAZ:', (await st()).slice(0, 50), '…', (await st()).match(/· omgezet in .*$/)?.[0], '| gemaakt door', info4.viewer, '| omzettaken', H.natief.omzettingen - n0);
+    if (H.natief.omzettingen - n0 !== 1 || !/pvomzet/.test(info4.viewer) || info4.aantal !== 3000000) fouten.push('LAZ niet omgezet door het programma');
+    if (!vak(proj4, 'A - dijk4').equals(vak(proj1, 'A - dijk1'))) fouten.push('vakken van de LAZ wijken af van die van de LAS');
+  } else console.log('4 LAZ overgeslagen: draai testdata/groot/maak_laz.py');
 
   const veld = await p.evaluate(() => window.__veldGeklikt);
   console.log('bestandsveld van de browser gebruikt:', veld);

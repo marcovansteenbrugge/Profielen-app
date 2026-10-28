@@ -101,13 +101,26 @@ func LeesLas(ctx context.Context, f *os.File, kop *LasKop, s *Schrijver, voortga
 	}
 	// zelfde blokgrootte als de viewer bij volledig inlezen (LAS_BLOK_PUNTEN * 25)
 	const blokPunten = 100000
-	werkers := max(1, runtime.NumCPU()-1)
 	rgbOff, metKleur := lasRGBOffset[kop.PuntFormaat]
 	nieuwFormaat := kop.PuntFormaat >= 6
+	aantal := int((kop.AantalPunten + blokPunten - 1) / blokPunten)
+	werker := func() (func(i int) *lasBlok, func(), error) {
+		return func(i int) *lasBlok {
+			start := int64(i) * blokPunten
+			return leesLasBlok(f, kop, start, min(kop.AantalPunten, start+blokPunten), rgbOff, metKleur, nieuwFormaat)
+		}, func() {}, nil
+	}
+	return leesGeordend(ctx, aantal, max(1, runtime.NumCPU()-1), werker, metKleur, kop.AantalPunten, s, voortgang)
+}
 
+// leesGeordend laat werkers de blokken 0..aantal-1 parallel lezen en geeft de punten in de
+// volgorde van het bestand aan s. maakWerker maakt per werker een leesfunctie (en wat er na
+// afloop op te ruimen is).
+func leesGeordend(ctx context.Context, aantal, werkers int, maakWerker func() (func(i int) *lasBlok, func(), error), metKleur bool, totaal int64, s *Schrijver, voortgang Voortgang) error {
+	werkers = max(1, min(werkers, aantal))
 	type taak struct {
-		start, eind int64
-		uit         chan *lasBlok
+		i   int
+		uit chan *lasBlok
 	}
 	ctx, stop := context.WithCancel(ctx)
 	defer stop()
@@ -117,8 +130,8 @@ func LeesLas(ctx context.Context, f *os.File, kop *LasKop, s *Schrijver, voortga
 	go func() {
 		defer close(volgorde)
 		defer close(taken)
-		for start := int64(0); start < kop.AantalPunten; start += blokPunten {
-			t := taak{start, min(kop.AantalPunten, start+blokPunten), make(chan *lasBlok, 1)}
+		for i := 0; i < aantal; i++ {
+			t := taak{i, make(chan *lasBlok, 1)}
 			select {
 			case volgorde <- t.uit:
 			case <-ctx.Done():
@@ -133,8 +146,16 @@ func LeesLas(ctx context.Context, f *os.File, kop *LasKop, s *Schrijver, voortga
 	}()
 	for w := 0; w < werkers; w++ {
 		go func() {
+			lees, klaar, err := maakWerker()
+			if err != nil {
+				for t := range taken {
+					t.uit <- &lasBlok{err: err}
+				}
+				return
+			}
+			defer klaar()
 			for t := range taken {
-				t.uit <- leesLasBlok(f, kop, t.start, t.eind, rgbOff, metKleur, nieuwFormaat)
+				t.uit <- lees(t.i)
 			}
 		}()
 	}
@@ -161,7 +182,7 @@ func LeesLas(ctx context.Context, f *os.File, kop *LasKop, s *Schrijver, voortga
 			return err
 		}
 		if voortgang != nil {
-			voortgang(gelezen, kop.AantalPunten)
+			voortgang(gelezen, totaal)
 		}
 		if err := ctx.Err(); err != nil {
 			return err
@@ -177,6 +198,12 @@ func leesLasBlok(f io.ReaderAt, kop *LasKop, start, eind int64, rgbOff int, metK
 	if _, err := f.ReadAt(buf, int64(kop.PuntDataOffset)+start*rl); err != nil {
 		return &lasBlok{err: fmt.Errorf("LAS lezen bij punt %d: %w", start, err)}
 	}
+	return ontleedLasRecords(buf, n, kop, rgbOff, metKleur, nieuwFormaat)
+}
+
+// ontleedLasRecords zet n LAS-records om naar punten (zoals leesLasPunten/leesLazPunten).
+func ontleedLasRecords(buf []byte, n int, kop *LasKop, rgbOff int, metKleur, nieuwFormaat bool) *lasBlok {
+	rl := int64(kop.PuntRecordLengte)
 	b := &lasBlok{x: make([]float64, n), y: make([]float64, n), z: make([]float64, n), k: make([]uint8, n)}
 	if metKleur {
 		b.r, b.g, b.b = make([]uint16, n), make([]uint16, n), make([]uint16, n)
