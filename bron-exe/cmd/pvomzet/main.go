@@ -1,5 +1,5 @@
 // pvomzet: zet een scan om naar een puntenwolkmap met dezelfde code als de exe
-// (package omzet). Voor de tests (tests/hulp.js, tests/omzetten_exe.test.js) en om te
+// (package omzet). Voor de tests (tests/hulp.js, tests/omzetten_parity.test.js) en om te
 // meten; de gebruiker gebruikt het niet.
 //
 //	pvomzet -bron <scan.las> -doel <map> [-modus boven|onder]

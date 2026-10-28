@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** niets voor 2.11.0; die is klaar. Voor LAZ: de vrijgave van **F4** (de proef) wanneer je wilt.
+> **Nu van jou gevraagd:** niets; F4 (de LAZ-proef) wordt gedaan. Daarna besluit B5.
 > **Later nodig:** B5 vóór F5 (na de proef in F4); vrijgave van F4 tot en met F6.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.2), dat begint met een proef. Elke fase start pas na jouw akkoord.
@@ -25,7 +25,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F1 | Hetzelfde voor PTS | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 17:06 | - | ✅ 2026-10-27 17:16 |
 | F2 | De viewer laat het programma omzetten: scan kiezen met de Windows-kiezer, voortgang, knop Afbreken; lukt het niet, dan zoals nu | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 17:18 | B3, B4 | ✅ 2026-10-27 20:54 |
 | F3 | Oplevering 2.11.0: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 20:55 | - | ✅ 2026-10-27 21:08 |
-| F4 | Proef: kan de LAZ-decoder van de viewer ook in het programma draaien, en hoe snel | ○ nog niet | - | - | - |
+| F4 | Proef: kan de LAZ-decoder van de viewer ook in het programma draaien, en hoe snel | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-10-28 17:37 | - | - |
 | F5 | LAZ omzetten in het programma | ○ nog niet | - | B5 | - |
 | F6 | Oplevering 2.11.2: versie, LEESMIJ, handleiding, tests, exe en zip | ○ nog niet | - | - | - |
 
@@ -36,6 +36,8 @@ Letterlijk akkoord (F1, via chat): "F1 vrijgegeven"
 Letterlijk akkoord (F2, via chat): "F2 vrijgegeven"
 
 Letterlijk akkoord (F3, via chat): "F3 vrijgegeven"
+
+Letterlijk akkoord (F4, via chat): "Test en naam, dan F4" (antwoord op de vraag wat er gebouwd moet worden, met als keuze "F4 vrijgegeven")
 
 ## Overzicht besluiten
 | | # | Onderwerp | Besluit | Nodig vóór |
@@ -161,5 +163,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-27 21:08 | Marco bevestigt: "Ja, in 2.11.0 werkt alles: puntenwolk openen (Wallach/Halsteren), projectmap, PDF en DXF opslaan, 3D, luchtfoto en BGT; met --browservenster werkt alles zoals in 2.10.2." | Marco van Steenbrugge, via chat |
 | 2026-10-27 21:08 | F3 gebouwd en per criterium getoetst; 2.11.0 opgeleverd | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-27 21:16 | Planversie 2: de LAZ-oplevering (F6) wordt 2.11.2, omdat 2.11.1 een losse patch wordt ("Lever het kadaster-vinkje nu op als patch 2.11.1; LAZ wordt dan 2.11.2."); geen vrijgave vervalt | Marco van Steenbrugge, via chat; verwerkt door Claude Code |
+| 2026-10-28 17:37 | Vrijgave F4 op planversie 2 ("Test en naam, dan F4") | Marco van Steenbrugge, via chat |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

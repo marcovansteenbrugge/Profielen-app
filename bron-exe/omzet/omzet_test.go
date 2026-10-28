@@ -1,7 +1,7 @@
 package omzet
 
 // Tests voor het omzetten in de exe (plan omzetten-in-exe, F0). De vergelijking met de
-// viewer zelf staat in tests/omzetten_exe.test.js.
+// viewer zelf staat in tests/omzetten_parity.test.js.
 
 import (
 	"context"

@@ -1,7 +1,7 @@
 // Omzetten in de exe (2.11, plan omzetten-in-exe, besluit B2): de exe-code (bron-exe/omzet, via
 // pvomzet) maakt byte voor byte dezelfde vakken, overzichten en info.json als de viewer.
 // De viewer zet om via de eigen bestandstoegang (zoals in het eigen venster), in modus boven en onder.
-// Gebruik: node omzetten_exe.test.js [scan ...]   (standaard dijk_begroeid.las, twee PTS uit testdata en drie lastige PTS)
+// Gebruik: node omzetten_parity.test.js [scan ...]   (standaard dijk_begroeid.las, twee PTS uit testdata en drie lastige PTS)
 const fs = require('fs'), path = require('path'), { spawnSync } = require('child_process');
 const H = require('./hulp');
 const { chromium } = H;

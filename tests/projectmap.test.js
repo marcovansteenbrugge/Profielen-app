@@ -29,6 +29,8 @@ const U = H.data('groot'), D = H.data('snoei_test');
   console.log('1 laden:', (await wacht(/driehoeken/)).slice(0, 160));
   await p.setInputFiles('#asBestand', U + '/as_begroeid.geojson'); await p.waitForTimeout(1500);
   console.log('2 alle punten vanzelf:', (await wacht(/Profielen uit alle/)).slice(0, 140));
+  // eerst "alle punten" laten afmaken, anders overschrijft die melding "Opgeslagen" (en wacht de test tot zijn grens)
+  await wacht(/Profielen uit alle [\d.]+ punten/);
   await p.keyboard.press('Control+S'); console.log('3 opslaan:', await wacht(/Opgeslagen|mislukt/));
   await p.waitForTimeout(1100);
   await p.click('#projectOpslaanKnop'); console.log('4 opnieuw:', await wacht(/backup/));
@@ -41,6 +43,7 @@ const U = H.data('groot'), D = H.data('snoei_test');
   await p.click('#poRecent button');
   console.log('7 geopend:', (await wacht(/driehoeken/)).slice(0, 160), '| as:', await p.textContent('#stationLabel'), '| maaiveld', await p.isChecked('#wolkAMaaiveld'));
   console.log('8 alle punten:', (await wacht(/Profielen uit alle/)).slice(0, 100));
+  await wacht(/Profielen uit alle [\d.]+ punten/);
   // opslaan als naar proj2
   await p.evaluate(() => { window.__volgendeMap = 'proj2'; });
   await p.click('#projectOpslaanAlsKnop'); await p.waitForSelector('#projectMapDialoog[open]'); await p.click('#pmKies');
