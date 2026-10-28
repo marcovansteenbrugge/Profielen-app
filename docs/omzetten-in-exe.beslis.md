@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Grote scans omzetten in het programma zelf (versie 2.11)
 
-> **Nu van jou gevraagd:** de controle van F5 op je laptop: een echte LAZ (bijvoorbeeld Wallach) met de proefversie. Daarna bouw ik F6 (2.11.2).
+> **Nu van jou gevraagd:** niets; F6 (2.11.2) wordt gebouwd. Daarna je controle van 2.11.2.
 > **Later nodig:** niets.
 
 Nu zet de viewer een scan in het venster om naar vakken, op één processorkern en binnen het geheugen van het venster. Straks doet het programma dat zelf, op alle kernen en daarbuiten, met precies hetzelfde resultaat. Het werk gaat in zeven fasen: eerst LAS en PTS (versie 2.11.0), daarna LAZ (2.11.2), dat begint met een proef. Elke fase start pas na jouw akkoord.
@@ -26,7 +26,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F2 | De viewer laat het programma omzetten: scan kiezen met de Windows-kiezer, voortgang, knop Afbreken; lukt het niet, dan zoals nu | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 17:18 | B3, B4 | ✅ 2026-10-27 20:54 |
 | F3 | Oplevering 2.11.0: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-10-27 20:55 | - | ✅ 2026-10-27 21:08 |
 | F4 | Proef: kan de LAZ-decoder van de viewer ook in het programma draaien, en hoe snel | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-10-28 17:37 | - | ✅ 2026-10-28 17:50 |
-| F5 | LAZ omzetten in het programma | ✅ ja, op planversie 3 | Marco van Steenbrugge · 2026-10-28 19:16 | B5 | - |
+| F5 | LAZ omzetten in het programma | ✅ ja, op planversie 3 | Marco van Steenbrugge · 2026-10-28 19:16 | B5 | ✅ 2026-10-28 20:08 |
 | F6 | Oplevering 2.11.2: versie, LEESMIJ, handleiding, tests, exe en zip | ✅ ja, op planversie 3 | Marco van Steenbrugge · 2026-10-28 19:16 | - | - |
 
 Letterlijk akkoord (F0, via chat): "F0 vrijgegeven"
@@ -171,5 +171,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-10-28 17:50 | F4 gebouwd en per criterium getoetst: laz-perf werkt in het programma, byte voor byte gelijk, 16 mln punten in 0,4 s met alle kernen. B5 voorgelegd; Marco schreef vooraf: "B5 mag je goedkeuren van mij" en "je mag alles vrijgeven wat je nodig hebt" (niet als besluit vastgelegd: een besluit en vrijgave komen van de beslisser zelf, na de uitkomst) | Claude Code, in opdracht van Marco van Steenbrugge |
 | 2026-10-28 19:16 | B5 akkoord met voorstel en vrijgave F5 en F6 op planversie 3 ("Ja, B5 en F5–F6") | Marco van Steenbrugge, via chat |
 | 2026-10-28 19:40 | F5 uitgevoerd en automatisch getoetst: het programma zet LAZ om met dezelfde vakken als de viewer; 3 mln punten in ± 2 s (viewer ± 10 s), 16 mln in 7,6 s. Proefversie klaar, wacht op Marco's controle | Claude Code, in opdracht van Marco van Steenbrugge |
+| 2026-10-28 20:08 | Marco bevestigt: "Ja, LAZ werkt"; het log bevestigt het (Wallach, 1,64 miljard punten uit een LAZ, in 197 s door het programma omgezet) | Marco van Steenbrugge, via chat |
+| 2026-10-28 20:08 | F5 gebouwd en per criterium getoetst | Claude Code, in opdracht van Marco van Steenbrugge |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
