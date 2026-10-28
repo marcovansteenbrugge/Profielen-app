@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Oct 27, 2026 · @Marco van Steenbrugge · versie 2.11.1
+Oct 28, 2026 · @Marco van Steenbrugge · versie 2.11.2
 
 ## Wat is de Profielviewer
 
@@ -10,10 +10,10 @@ Daarnaast zitten er twee toetsen in. De **doorvaartcontrole** kijkt of een schip
 
 **Starten**
 
-1. Dubbelklik `Lutrea-Profielviewer-2.11.1.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
+1. Dubbelklik `Lutrea-Profielviewer-2.11.2.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
 2. De eerste keer kan Windows "Windows heeft uw pc beschermd" tonen: kies **Meer informatie → Toch uitvoeren**. Het programma is (nog) niet digitaal ondertekend.
 3. De viewer opent in een eigen programmavenster (WebView2, zit in Windows 10 en 11; Chrome of Edge is niet nodig). Venster dicht = programma stopt. Het venster onthoudt plek en grootte.
-4. Controleer het versienummer naast de titel linksboven (nu **2.11.1**).
+4. Controleer het versienummer naast de titel linksboven (nu **2.11.2**).
 
 **Al open?** Start je de viewer nog een keer, dan komt het venster dat al open is naar voren; er komt geen tweede venster.
 
@@ -454,8 +454,8 @@ Vanaf versie 2.9.0 staat alles van een project in één map die je zelf kiest, b
 
 - **Geen toestemmingsvragen** (vanaf 2.10.2): in het eigen venster leest en schrijft het programma de projectmap zelf. Je kiest mappen en bestanden met de gewone Windows-kiezer; het programma komt alleen bij wat je zelf koos of wat in je recente projecten staat. In het oude venster (`--browservenster`) vraagt de browser nog wel om toestemming.
 - **Puntenwolk openen**: de eerste keer vraagt de viewer om de projectmap. Daarna wordt de scan één keer helemaal doorgelezen en omgezet naar vakken. Open je dezelfde scan later opnieuw, dan gebruikt hij de vakken meteen.
-- **Omzetten door het programma** (vanaf 2.11.0): in het eigen venster zet het programma een LAS of PTS zelf om, op alle processorkernen en buiten het geheugen van het venster. Halsteren (52 miljoen punten) duurt ± 10 s (gemeten op een laptop met 24 processorkernen; minder kernen = langer). De voortgang staat in de statusregel, met een knop **Afbreken**; na afbreken blijft er niets achter. Na het laden staat de tijd achteraan de statusregel. De vakken zijn precies dezelfde als wanneer de viewer zelf omzet.
-- **Omzetten in de viewer** gebeurt nog bij LAZ, bij een scan die je op het venster sleept, in het oude venster (`--browservenster`), en als het programma het niet kan (dat meldt de viewer). Dat duurt langer (Halsteren ± 37 s) en gebruikt het geheugen van het venster.
+- **Omzetten door het programma** (LAS en PTS vanaf 2.11.0, LAZ vanaf 2.11.2): in het eigen venster zet het programma een LAS, LAZ of PTS zelf om, op alle processorkernen en buiten het geheugen van het venster. Halsteren (52 miljoen punten) duurt ± 10 s (gemeten op een laptop met 24 processorkernen; minder kernen = langer). De voortgang staat in de statusregel, met een knop **Afbreken**; na afbreken blijft er niets achter. Na het laden staat de tijd achteraan de statusregel. De vakken zijn precies dezelfde als wanneer de viewer zelf omzet; voor LAZ gebruikt het programma dezelfde decoder (laz-perf) als de viewer.
+- **Omzetten in de viewer** gebeurt nog bij een scan die je op het venster sleept, in het oude venster (`--browservenster`), en als het programma het niet kan (dat meldt de viewer). Dat duurt langer (Halsteren ± 37 s) en gebruikt het geheugen van het venster.
 - **Profielen**: die komen vanzelf uit alle punten. Na elke wijziging van de as leest de viewer alleen de vakken langs de as, dat duurt een paar seconden. De knop Alle punten staat dan vanzelf aan.
 - **Bovenaanzicht**: ver uitgezoomd zie je een overzicht van ± 2 miljoen punten. Zoom je in tot ongeveer 16 vakken in beeld, dan laadt hij de volle vakken met alle punten.
 - **Ook uit de vakken**: Detailstrook, de begroeiing van de snoeicheck en het vinkje maaiveld.
