@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Oct 28, 2026 · @Marco van Steenbrugge · versie 2.11.2
+Oct 28, 2026 · @Marco van Steenbrugge · versie 2.11.3
 
 ## Wat is de Profielviewer
 
@@ -10,10 +10,10 @@ Daarnaast zitten er twee toetsen in. De **doorvaartcontrole** kijkt of een schip
 
 **Starten**
 
-1. Dubbelklik `Lutrea-Profielviewer-2.11.2.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
+1. Dubbelklik `Lutrea-Profielviewer-2.11.3.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
 2. De eerste keer kan Windows "Windows heeft uw pc beschermd" tonen: kies **Meer informatie → Toch uitvoeren**. Het programma is (nog) niet digitaal ondertekend.
 3. De viewer opent in een eigen programmavenster (WebView2, zit in Windows 10 en 11; Chrome of Edge is niet nodig). Venster dicht = programma stopt. Het venster onthoudt plek en grootte.
-4. Controleer het versienummer naast de titel linksboven (nu **2.11.2**).
+4. Controleer het versienummer naast de titel linksboven (nu **2.11.3**).
 
 **Al open?** Start je de viewer nog een keer, dan komt het venster dat al open is naar voren; er komt geen tweede venster.
 
@@ -217,9 +217,9 @@ Klik **PDF…** in de bovenste balk. Rechtsonder zie je meteen een voorbeeld van
 
 **Titelblok (stempel)**
 
-Vul projectnaam, projectnummer, opdrachtgever, omschrijving, getekend, gecontroleerd, status, revisie en datum in. Ze worden onthouden voor de volgende keer.
+Vul projectnaam, projectnummer, opdrachtgever, omschrijving, getekend, gecontroleerd, status, revisie en datum in. Ze worden onthouden voor de volgende keer en gaan mee in het project: open je het project later (of op een andere pc), dan staan ze er weer.
 
-- **Logo opdrachtgever**: kies een PNG, JPG of SVG; witte randen worden weggesneden en het logo komt groot bovenin de stempel. Het Lutrea-logo staat apart onder "Opgesteld door". Met × haal je het logo weg.
+- **Logo opdrachtgever**: kies een PNG, JPG of SVG; witte randen worden weggesneden en het logo komt groot bovenin de stempel. Het Lutrea-logo staat apart onder "Opgesteld door". Met × haal je het logo weg. Beide logo's gaan mee in het project (vanaf 2.11.3); een ouder project zonder logo's laat de logo's staan die je hebt.
 - **Tekeningnummer**: eindigt het op cijfers (LUT-DO-DKT-0001), dan telt het per blad door.
 - **Opmerkingen**: eigen regels, onder de vaste opmerkingen (maten in meters, hoogtes t.o.v. NAP, RD-coördinaten, bron van de puntenwolk, waterpeil).
 
@@ -242,7 +242,7 @@ Vul projectnaam, projectnummer, opdrachtgever, omschrijving, getekend, gecontrol
 
 Overschrijven is veilig: er wordt eerst naar een tijdelijk bestand geschreven, en pas als alles erin staat vervangt dat het oude project.
 
-**Instellingen** (onder de projectknoppen) bewaart met **Exporteren…** je eigen instellingen in een los bestand: PDF-stempel en titelblok, logo's, puntdichtheid en weergave. Met **Importeren…** zet je ze op een andere pc of in een nieuwe versie terug. Een projectbestand neemt deze instellingen niet mee.
+**Instellingen** (onder de projectknoppen) bewaart met **Exporteren…** je eigen instellingen in een los bestand: PDF-stempel en titelblok, logo's, puntdichtheid en weergave. Met **Importeren…** zet je ze op een andere pc of in een nieuwe versie terug. Een project neemt van deze instellingen alleen het stempel en de logo's mee (vanaf 2.11.3); de rest blijft per pc.
 
 - Met puntenwolk wordt het bestand groter: bij 2 miljoen punten met kleur ongeveer 38 MB, bij 10 miljoen ongeveer 200 MB.
 - Na opslaan via "Vragen waar ik opsla" toont de statusregel de grootte, bv. "Opgeslagen: … (38.2 MB)". Mislukt het, dan krijg je een melding en gaat het bestand naar Downloads.

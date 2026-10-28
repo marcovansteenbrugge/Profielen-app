@@ -5013,6 +5013,8 @@
     { const wv = document.getElementById('waterpeil'); if (wv) wv.value = inst.waterpeil != null ? String(inst.waterpeil) : ''; }
     { const wk = document.getElementById('waterKant'); if (wk) wk.value = inst.waterKant || 'beide'; }
     if (inst.pdf) zetPdfInstellingen?.(inst.pdf);
+    // een project van vóór 2.11.3 heeft geen logo's: dan blijven de huidige staan
+    if (inst.logos) zetProjectLogos(inst.logos);
     doorvaart = { ...DV_STANDAARD, ...(inst.doorvaart || {}) };
     delete doorvaart.gecontroleerd;
     snoei = { ...SN_STANDAARD, ...(inst.snoei || {}) };
@@ -9546,6 +9548,8 @@ ${r3d}
         doorvaart: { ...doorvaart, gecontroleerd: !!dvResultaat },
         snoei: { ...snoei, gecontroleerd: !!snResultaat },
         pdf: leesPdfInstellingen?.() ?? null,
+        // logo's van de stempel (2.11.3): horen bij het project, niet alleen bij de pc; null = geen klantlogo / standaard makerlogo
+        logos: { klant: klantLogo, maker: makerLogo },
       },
     };
     if (opties.inMap) {
@@ -11941,7 +11945,8 @@ ${r3d}
   }
 
   // ── logo van de opdrachtgever (links in de stempel) ──
-  // Wordt in de browser onthouden (localStorage), net als de andere stempelvelden.
+  // Wordt in de browser onthouden (localStorage), net als de andere stempelvelden, en gaat sinds
+  // 2.11.3 mee in het project (instellingen.logos; zetProjectLogos bij openen).
   const KLANTLOGO_OPSLAG = 'ptsviewer-klantlogo';
   let klantLogo = null;   // { data: dataURL (PNG), w, h }
   function toonKlantLogo() {
@@ -12029,6 +12034,14 @@ ${r3d}
       toonMakerLogo(); planVoorbeeld(100);
     });
     toonMakerLogo();
+  }
+
+  /** Logo's uit een project overnemen (pasProjectToe): { klant, maker }, null = geen klantlogo / standaard makerlogo. */
+  function zetProjectLogos(l) {
+    const geldig = (b) => b && typeof b.data === 'string' && b.data.startsWith('data:image/') ? b : null;
+    if ('klant' in l) klantLogo = geldig(l.klant);
+    if ('maker' in l) makerLogo = geldig(l.maker);
+    toonKlantLogo(); toonMakerLogo();
   }
 
   function tekenTitelblok(doc, W, H, marge, titelH, inst, logo, info, blad, totaal) {

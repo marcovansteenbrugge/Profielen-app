@@ -30,6 +30,7 @@ Uitvoer (screenshots, PDF, DXF, …) komt in `tests/uit/` — handig om te bekij
 | project_losbestand | oude manier: project als los .json (Nieuw, Opslaan, Opslaan als, Openen) — gebruikt `uit/paal_project.json` van stationering_snoei |
 | lagen_aanuit | BGT/bomen/kadaster aan-uit in het bovenaanzicht |
 | kadaster_dwars | kadaster in het dwarsprofiel aan/uit (vinkje naast BGT): perceelgrenzen in het dwarsprofiel en op PV_PROF_KADASTER in de DXF, keuze onthouden na herladen |
+| project_logos | klant- en makerlogo gaan mee in het project (2.11.3): na openen staan de logo's en het stempel van het project er weer; een project van vóór 2.11.3 laat de huidige logo's staan |
 | maaiveld | vinkje maaiveld (klasse 2), Alle punten, Detailstrook |
 | projectmap | projectmap: omzetten naar vakken, opslaan + backup, uitvoer\, recent openen, Opslaan als |
 | projectmap_bospad | projectmap met .pts, kadaster, snoeicheck uit de vakken, inzoomen |

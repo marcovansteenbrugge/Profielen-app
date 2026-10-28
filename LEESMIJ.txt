@@ -1,4 +1,4 @@
-Lutrea Profielviewer 2.11.2 (voorheen PTS-viewer)
+Lutrea Profielviewer 2.11.3 (voorheen PTS-viewer)
 ================================================
 Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
 De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
@@ -31,6 +31,15 @@ Mapversie (alternatief)
 
 Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
 adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.11.3 — Logo's gaan mee in het project
+-------------------------------------------------
+- Het logo van de opdrachtgever en het logo onder "Opgesteld door" worden nu met het
+  project opgeslagen, net als de stempelgegevens (projectnaam, opdrachtgever, getekend,
+  enz.). Open je een project, dan staan stempel en logo's er weer zoals ze waren, ook
+  bij een collega op een andere pc.
+- Een project van vóór 2.11.3 heeft nog geen logo's: dan blijven de logo's staan die je
+  nu hebt. Sla het project één keer op, dan gaan ze voortaan mee.
 
 Nieuw in 2.11.2 — Ook LAZ sneller omzetten
 ------------------------------------------
