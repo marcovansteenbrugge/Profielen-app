@@ -38,7 +38,7 @@ stationering (dijkpalen/hectometrering). Gebruikers: Marco en collega's; klanten
 | Externe data | PDOK: BGT, bomen, luchtfoto, kadaster (BRK), NWB |
 | Tests | Playwright (`playwright-core`) in Microsoft Edge, Node |
 | CI/CD | {{nog geen: tests draaien lokaal op Windows}} |
-| Distributie | `dist\Lutrea-Profielviewer-X.Y.Z.exe` + `_compleet_X.Y.Z.zip` via `tools\bouw.ps1` |
+| Distributie | `dist\Lutrea-Profielviewer-X.Y.Z-setup.exe` (Inno Setup 6, per gebruiker) + `dist\Lutrea-Profielviewer-X.Y.Z.exe` + `_compleet_X.Y.Z.zip`, alle drie via `tools\bouw.ps1` |
 
 ## Architectuur
 - Alles draait client-side in de viewer; de exe embedt de app (`//go:embed all:app`), serveert hem op
@@ -81,7 +81,9 @@ Elke test print aan het eind `fouten: geen` als alles goed ging. Testwolk van 16
 2. Bovenaan in LEESMIJ.txt een blok `Nieuw in X.Y.Z — <titel>` (stijl: zie de bestaande blokken).
 3. `docs/handleiding.md` bijwerken (versieregel bovenaan + de betreffende sectie).
 4. `tests`: `node run_alle.js` moet helemaal groen zijn (zie tests/README.md).
-5. Bouwen: `.\tools\bouw.ps1` → `dist\Lutrea-Profielviewer-X.Y.Z.exe` en `dist\Lutrea-Profielviewer_compleet_X.Y.Z.zip`.
+5. Bouwen: `.\tools\bouw.ps1` → `dist\Lutrea-Profielviewer-X.Y.Z.exe`, `dist\Lutrea-Profielviewer_compleet_X.Y.Z.zip`
+   en `dist\Lutrea-Profielviewer-X.Y.Z-setup.exe` (nodig: Inno Setup 6). Installatietoets: `.\tools\bouw_installer.ps1 -Toets`
+   moet eindigen met `fouten: geen` (eigen AppId, raakt een echte installatie niet).
 6. Git: commit met `X.Y.Z: <wat>` en tag `vX.Y.Z`.
 
 Patchversie (2.9.x) voor fixes en kleine features; minor (2.10.0) voor een nieuw hoofdstuk.
