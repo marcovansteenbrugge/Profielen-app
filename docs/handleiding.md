@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Oct 28, 2026 · @Marco van Steenbrugge · versie 2.11.3
+Oct 30, 2026 · @Marco van Steenbrugge · versie 2.11.4
 
 ## Wat is de Profielviewer
 
@@ -10,14 +10,18 @@ Daarnaast zitten er twee toetsen in. De **doorvaartcontrole** kijkt of een schip
 
 **Starten**
 
-1. Dubbelklik `Lutrea-Profielviewer-2.11.3.exe`. Er is niets te installeren. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling.
+1. Dubbelklik `Lutrea-Profielviewer-2.11.4-setup.exe` en volg de stappen. Er zijn geen beheerdersrechten nodig: de viewer komt in `%LOCALAPPDATA%\Programs\Lutrea Profielviewer`. Start hem daarna via het **startmenu → Lutrea Profielviewer** (een bureaublad-snelkoppeling kun je in de setup aanvinken).
 2. De eerste keer kan Windows "Windows heeft uw pc beschermd" tonen: kies **Meer informatie → Toch uitvoeren**. Het programma is (nog) niet digitaal ondertekend.
 3. De viewer opent in een eigen programmavenster (WebView2, zit in Windows 10 en 11; Chrome of Edge is niet nodig). Venster dicht = programma stopt. Het venster onthoudt plek en grootte.
-4. Controleer het versienummer naast de titel linksboven (nu **2.11.3**).
+4. Controleer het versienummer naast de titel linksboven (nu **2.11.4**).
+
+**Bijwerken en verwijderen.** Een nieuwe versie installeer je door de nieuwe setup te draaien; sluit eerst de viewer (staat hij nog open, dan vraagt de setup je dat). Verwijderen gaat via **Windows-instellingen → Apps → Lutrea Profielviewer**. Je instellingen, stempel, logo's en recente projecten blijven bewaard, en je projectmappen worden nooit aangeraakt.
+
+**Zonder installeren.** Mag of kun je niet installeren, dubbelklik dan de losse `Lutrea-Profielviewer-2.11.4.exe`. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling. Instellingen zijn dezelfde als bij de geïnstalleerde viewer.
 
 **Al open?** Start je de viewer nog een keer, dan komt het venster dat al open is naar voren; er komt geen tweede venster.
 
-**Project openen vanaf een pad.** Kies in de Verkenner bij een .pvproj **Openen met → Lutrea-Profielviewer.exe**, of start `Lutrea-Profielviewer.exe "D:\Projecten\Dijk\Profielviewer\Dijk.pvproj"` (een projectmap mag ook). Staat de viewer al open, dan opent het project in dat venster.
+**Project openen vanaf een pad.** Met de geïnstalleerde viewer dubbelklik je een .pvproj in de Verkenner. Met de losse exe kies je bij een .pvproj **Openen met → Lutrea-Profielviewer.exe**, of start je `Lutrea-Profielviewer.exe "D:\Projecten\Dijk\Profielviewer\Dijk.pvproj"` (een projectmap mag ook). Staat de viewer al open, dan opent het project in dat venster.
 
 **Slepen.** Sleep een .las, .laz of .pts op het venster: die opent als puntenwolk A. Een gesleept .pvproj opent het project als het in je recente projecten staat; anders opent het als los project, zonder de vakken.
 

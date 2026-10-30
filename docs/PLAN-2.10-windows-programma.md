@@ -1,6 +1,6 @@
 # Plan 2.10 — de Profielviewer als echt Windows-programma
 
-Vastgelegd op 26 oktober 2026 (Marco en Claude). Status: **fase A klaar (2.10.0, patch 2.10.1), fase C klaar (2.10.2), fase E klaar (2.11.0, LAZ in 2.11.2); B en D voorlopig geparkeerd, 2.11.2 wordt als losse exe uitgerold**. Werk dit plan bij
+Vastgelegd op 26 oktober 2026 (Marco en Claude). Status: **fase A klaar (2.10.0, patch 2.10.1), fase C klaar (2.10.2), fase E klaar (2.11.0, LAZ in 2.11.2), fase B klaar (2.11.4, installer met Inno Setup); D geparkeerd**. Werk dit plan bij
 als een fase klaar is of als er iets verandert (vink af, noteer beslissingen onderaan).
 
 ## Waarom
@@ -62,7 +62,8 @@ Gebouwd en getoetst 26–27 oktober 2026: zie `docs/webview2-venster.plan.md` en
 - Klaar als: start < 3 s zonder Chrome-profiel, sluiten stopt het proces, alle tests groen,
   handmatig: puntenwolk openen (Wallach/Halsteren), projectmap, PDF/DXF opslaan, 3D, luchtfoto/BGT (PDOK).
 
-### Fase B — installatie en bestandskoppeling (na E)
+### Fase B — installatie en bestandskoppeling (2.11.4) ✅
+Gebouwd en door Marco gecontroleerd op 30/31-10-2026, met Inno Setup in plaats van zelfinstallatie: zie `docs/installatie.plan.md` en `.beslis.md`.
 - [ ] Zelfinstallatie zonder beheerdersrechten: bij de eerste start vanuit Downloads aanbieden om te
       installeren in `%LOCALAPPDATA%\Programs\Lutrea Profielviewer\`.
 - [ ] Startmenu-snelkoppeling (en optioneel bureaublad).
@@ -124,4 +125,5 @@ Plan: `docs/eigen-bestandstoegang.plan.md` en `.beslis.md`.
 - 27-10-2026: fase E1 klaar (2.11.0, plan `omzetten-in-exe`), door Marco gecontroleerd: LAS en PTS worden in de exe omgezet, byte voor byte gelijk aan de viewer; Halsteren (52 mln punten) ± 10 s i.p.v. ± 37 s. E2 (LAZ) begint met de proef F4 van dat plan.
 - 28-10-2026: fase E2 klaar (2.11.2): ook LAZ wordt in de exe omgezet, met laz-perf in wazero (pure Go, één decoder per kern), byte voor byte gelijk aan de viewer. Door Marco gecontroleerd op Wallach (1,64 miljard punten uit één LAZ in 197 s).
 - 28-10-2026: Marco: "uiteindelijk willen we dat klanten de viewer gaan gebruiken en zal er een echt tool van worden gemaakt.. maar laat voor nu de exe maar uitrollen.. die werkt nu goed". Fase B (installatie) en D (bijwerken) zijn daarmee geparkeerd, niet vervallen: ze komen terug zodra de viewer naar klanten gaat. Dan ook het certificaat (los) regelen en vroeg testen op een streng beveiligde laptop.
+- 30-10-2026: fase B heropend en gebouwd (2.11.4, plan `installatie`): setup per gebruiker zonder beheerdersrechten (Inno Setup), startmenu, verwijderen via Windows, .pvproj dubbelklikken. Marco: "Alles werkt". Puntenwolken koppelen bewust niet (B2).
 - Open: plek voor updates (fase D); certificaat (los); .las/.laz ook koppelen (fase B, optioneel).

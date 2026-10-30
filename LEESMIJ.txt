@@ -1,11 +1,28 @@
-Lutrea Profielviewer 2.11.3 (voorheen PTS-viewer)
+Lutrea Profielviewer 2.11.4 (voorheen PTS-viewer)
 ================================================
 Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
 De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
 
-Makkelijkst: Lutrea-Profielviewer.exe
--------------------------------------
-Dubbelklik Lutrea-Profielviewer.exe. Alles zit erin (geen Python, geen losse map nodig).
+Installeren (gewone manier): Lutrea-Profielviewer-2.11.4-setup.exe
+------------------------------------------------------------------
+Dubbelklik de setup en volg de stappen. Je hebt geen beheerdersrechten nodig: de viewer
+komt in je eigen programmamap (%LOCALAPPDATA%\Programs\Lutrea Profielviewer).
+- Starten: startmenu -> Lutrea Profielviewer (een snelkoppeling op het bureaublad kun je
+  in de setup aanvinken).
+- Dubbelklik op een .pvproj opent het project in de viewer.
+- Nieuwe versie: draai gewoon de nieuwe setup. Sluit eerst de viewer; staat hij nog open,
+  dan vraagt de setup je dat te doen.
+- Verwijderen: Windows-instellingen -> Apps -> Lutrea Profielviewer -> Verwijderen. Je
+  instellingen, stempel, logo's en recente projecten blijven bewaard; je projectmappen
+  worden nooit aangeraakt.
+- Eerste keer kan Windows "Windows heeft uw pc beschermd" tonen omdat de setup niet
+  digitaal ondertekend is -> "Meer informatie" -> "Toch uitvoeren".
+Gebruikte je eerst de losse exe? Die (en zijn snelkoppeling) mag weg; je instellingen
+blijven werken.
+
+Zonder installeren: Lutrea-Profielviewer.exe
+--------------------------------------------
+Mag of kun je niet installeren? Dubbelklik Lutrea-Profielviewer.exe. Alles zit erin (geen Python, geen losse map nodig).
 De viewer opent in een eigen programmavenster (WebView2, zit in Windows 10/11):
 geen Chrome of Edge meer nodig, niets te installeren. Venster dicht = programma stopt.
 Zet het bestand waar je wilt (bijv. bureaublad of C:\Tools) en maak er
@@ -31,6 +48,16 @@ Mapversie (alternatief)
 
 Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
 adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.11.4 — Installer
+-----------------------------
+- De Profielviewer heeft een setup: Lutrea-Profielviewer-2.11.4-setup.exe. Installeren
+  zonder beheerdersrechten, starten via het startmenu, verwijderen via de
+  Windows-instellingen.
+- Dubbelklikken op een .pvproj opent het project; de .pvproj-bestanden krijgen het
+  icoon van de viewer.
+- De viewer zelf is niet veranderd. De losse exe en de zip blijven er, voor wie niet kan
+  of mag installeren.
 
 Nieuw in 2.11.3 — Logo's gaan mee in het project
 -------------------------------------------------

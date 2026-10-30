@@ -8,17 +8,17 @@
     "#1": {
       "0000": {
         "fixed": {
-          "file_version": "2.11.3.0",
-          "product_version": "2.11.3.0"
+          "file_version": "2.11.4.0",
+          "product_version": "2.11.4.0"
         },
         "info": {
           "0409": {
             "FileDescription": "Lutrea Profielviewer",
-            "FileVersion": "2.11.3",
+            "FileVersion": "2.11.4",
             "LegalCopyright": "Lutrea Group B.V.",
             "OriginalFilename": "Lutrea-Profielviewer.exe",
             "ProductName": "Lutrea Profielviewer",
-            "ProductVersion": "2.11.3"
+            "ProductVersion": "2.11.4"
           }
         }
       }

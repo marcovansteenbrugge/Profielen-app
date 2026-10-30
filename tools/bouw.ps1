@@ -43,4 +43,7 @@ Probeer {
   Compress-Archive -Path ($mee | ForEach-Object { "$hoofd\$_" }) -DestinationPath $zip -ErrorAction Stop
 } 'Zip maken'
 if (-not (Test-Path $zip)) { throw "Zip ontbreekt: $zip" }
-Write-Host "Klaar: dist\Lutrea-Profielviewer-$versie.exe en dist\Lutrea-Profielviewer_compleet_$versie.zip"
+# de installer (Inno Setup 6) uit dezelfde exe, zie tools\bouw_installer.ps1
+& "$PSScriptRoot\bouw_installer.ps1"
+if ($LASTEXITCODE -ne 0) { throw "Installer maken mislukt (exitcode $LASTEXITCODE)" }
+Write-Host "Klaar: dist\Lutrea-Profielviewer-$versie.exe, dist\Lutrea-Profielviewer_compleet_$versie.zip en dist\Lutrea-Profielviewer-$versie-setup.exe"
