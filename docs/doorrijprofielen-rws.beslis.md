@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Doorrijprofielen volgens RWS (profiel 1 en 2, meetpunten, doorrijbreedte)
 
-> **Nu van jou gevraagd:** niets tot F3: dan je controle op LoZ.laz (Bergstraat).
+> **Nu van jou gevraagd:** je controle van 2.14.0 op LoZ.laz (F3): profiel 1 en 2 bij de Bergstraat, met de BGT erbij. Daarna volgen de tags.
 > **Later nodig:** niets.
 
 De doorrijhoogte uit 2.13.0 wordt uitgebreid tot een doorrijprofiel zoals Rijkswaterstaat het vraagt: twee profielen aan de voor- en achterkant van het kunstwerk, hoogtes op vaste meetpunten, de minimale doorrijhoogte per rijbaan, de doorrijbreedte, en een PDF-blad per profiel met drie decimalen en een tekstvak. Het werk is verdeeld in vier fasen.
@@ -177,5 +177,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-06 23:31 | F0 gebouwd: profiel 1 en 2, meetpunten (BGT en aanklikken), hoogtes uit de ruwe punten, minimale doorrijhoogte per rijbaan | Claude Opus 5.5 (agent) |
 | 2026-11-06 23:33 | F1 gebouwd: doorrijbreedte op 0,5–1,0 m in de profielen en van 30 m voor tot 30 m na het dak | Claude Opus 5.5 (agent) |
 | 2026-11-06 23:35 | F2 gebouwd: PDF-blad per profiel in RWS-stijl met tekstvak | Claude Opus 5.5 (agent) |
+| 2026-11-06 23:46 | F3: 2.14.0 gebouwd (alle tests en installatietoets groen), commit f186711; tag wacht op je controle | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

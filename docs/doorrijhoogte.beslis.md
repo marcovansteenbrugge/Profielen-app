@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Doorrijhoogte: vrije hoogte onder een dak of kunstwerk toetsen
 
-> **Nu van jou gevraagd:** niets tot F3: dan je controle op LoZ.laz.
+> **Nu van jou gevraagd:** je controle op LoZ.laz (F3), nu met 2.14.0 (bevat 2.13.0). Daarna volgt de tag.
 > **Later nodig:** niets.
 
 Onder TOETS komt een eigen knop **Doorrijhoogte…**, naast Doorvaart en Snoeien; de doorvaart blijft zoals hij is. De as ligt op de weg, een box van breedte × hoogte staat op het wegdek, en de tool laat zien hoeveel ruimte er tussen de box en het dak zit, ook als bodem en dak in één puntenwolk zitten. Het werk is verdeeld in vier fasen.

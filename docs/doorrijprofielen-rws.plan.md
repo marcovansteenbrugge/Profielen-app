@@ -133,6 +133,10 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F1 | 2026-11-06 23:33 | 2. Zonder obstakel: kant verharding als begrenzing | zelfde test: profiel 2 (geen rail rechts na st. 50) 8,600 m, rechts "kant verharding" op 4,00 m (BGT) | gehaald |
 | F2 | 2026-11-06 23:35 | 1. Test maakt de PDF: per profiel een blad, maten met drie decimalen en punt, minimale doorrijhoogte rood in het tekstvak | `node doorrijprofiel_rws.test.js` stap 5 (PyMuPDF): 2 bladen "Doorrijprofiel 1/2 - Testviaduct"; "3.894", "3.696", "9.000", "7.450"; tekstvak met "Teststraat", "06-11-2026", "Minimale doorrijhoogte: rijbaan 3.353"; "fouten: geen" | gehaald |
 | F2 | 2026-11-06 23:35 | 2. Render bekeken (schermafdruk) | `tests/uit/doorrijprofiel_rws_blad_1.png`: profiel op 1:100, pijlen 3.894 en 3.696 (rood), "b 9.000", tabel met meetpunten, wit tekstvak met minimale doorrijhoogte in rood; na vergroten van de grafiekhoogte valt niets meer af | gehaald |
+| F3 | 2026-11-06 23:46 | 1. `node run_alle.js` eindigt met "Alle tests geslaagd" | 23 tests "OK", eindregel "Alle tests geslaagd" | gehaald |
+| F3 | 2026-11-06 23:46 | 2. `.	oolsouw_installer.ps1 -Toets` eindigt met `fouten: geen` | "geïnstalleerde exe is de gebouwde exe van 2.14.0", "versie in Windows-instellingen is 2.14.0", "fouten: geen" | gehaald |
+| F3 | 2026-11-06 23:46 | 3. Exe, zip en setup in `dist` | `Lutrea-Profielviewer-2.14.0.exe` (13.581.312 bytes), `_compleet_2.14.0.zip` (6.556.004), `-2.14.0-setup.exe` (6.119.682); commit f186711 | gehaald |
+| F3 | 2026-11-06 23:46 | 4. Marco bevestigt dat profiel 1 en 2 bij de Bergstraat kloppen | nog niet beoordeeld: wacht op Marco | niet toetsbaar |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
