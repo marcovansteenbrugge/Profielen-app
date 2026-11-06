@@ -2,8 +2,8 @@
 plan: doorrijprofielen-rws
 titel: Doorrijprofielen volgens RWS (profiel 1 en 2, meetpunten, doorrijbreedte)
 versie: 1
-status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ⏳ · F1 ⏳ · F2 ⏳ · F3 ⏳           # berekend door de skill
+status: vrijgegeven        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ▶ · F1 ▶ · F2 ▶ · F3 ▶           # berekend door de skill
 opgesteld: 2026-11-06
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -82,10 +82,10 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ⏳ wacht op B1, B2, B3 | Profiel 1 en 2, meetpunten (BGT + aanklikken), hoogtes uit ruwe punten met aantal en spreiding, minimale doorrijhoogte per rijbaan, tabel en pijlen in het dwarsprofiel | 1. Nieuwe test met gemaakte wolk (weg met helling, dak met bekende onderkant, BGT-randen): profiel 1 en 2 op de dakranden (± 0,25 m), hoogtes op de meetpunten < 1 cm van de bekende waarden. 2. Een aangeklikt meetpunt verschijnt in de tabel en verdwijnt na verwijderen. 3. Minimale doorrijhoogte per rijbaan gelijk aan de kleinste vrije hoogte uit 2.13.0. 4. Schermafdruk op LoZ.laz. | B1, B2, B3 | L | Opus 5.5, medium | `F0:` |
-| F1 | ⏳ wacht op B4 | Doorrijbreedte op 0,5–1,0 m in de profielen en tot 30 m ervoor en erna | 1. Test met twee "geleiderails" op bekende afstand en een kolom 15 m voor het dak: breedte < 1 cm van de bekende, de kolom bepaalt de kleinste breedte. 2. Zonder obstakel: kant verharding als begrenzing. | F0, B4 | M | Opus 5.5, medium | `F1:` |
-| F2 | ⏳ wacht op B5, B6 | PDF-blad per profiel per rijbaan in RWS-stijl, met tekstvak | 1. Test maakt de PDF: per profiel een blad, maten met drie decimalen en punt, minimale doorrijhoogte rood in het tekstvak. 2. Render bekeken (schermafdruk). | F1, B5, B6 | M | Opus 5.5, medium | `F2:` |
-| F3 | ⏳ wacht op B7 | Opleveren 2.14.0: LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met "Alle tests geslaagd". 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat profiel 1 en 2 bij de Bergstraat kloppen. | F2, B7 | S | Opus 5.5, medium | `F3:` |
+| F0 | ▶ vrijgegeven | Profiel 1 en 2, meetpunten (BGT + aanklikken), hoogtes uit ruwe punten met aantal en spreiding, minimale doorrijhoogte per rijbaan, tabel en pijlen in het dwarsprofiel | 1. Nieuwe test met gemaakte wolk (weg met helling, dak met bekende onderkant, BGT-randen): profiel 1 en 2 op de dakranden (± 0,25 m), hoogtes op de meetpunten < 1 cm van de bekende waarden. 2. Een aangeklikt meetpunt verschijnt in de tabel en verdwijnt na verwijderen. 3. Minimale doorrijhoogte per rijbaan gelijk aan de kleinste vrije hoogte uit 2.13.0. 4. Schermafdruk op LoZ.laz. | B1, B2, B3 | L | Opus 5.5, medium | `F0:` |
+| F1 | ▶ vrijgegeven, na F0 | Doorrijbreedte op 0,5–1,0 m in de profielen en tot 30 m ervoor en erna | 1. Test met twee "geleiderails" op bekende afstand en een kolom 15 m voor het dak: breedte < 1 cm van de bekende, de kolom bepaalt de kleinste breedte. 2. Zonder obstakel: kant verharding als begrenzing. | F0, B4 | M | Opus 5.5, medium | `F1:` |
+| F2 | ▶ vrijgegeven, na F1 | PDF-blad per profiel per rijbaan in RWS-stijl, met tekstvak | 1. Test maakt de PDF: per profiel een blad, maten met drie decimalen en punt, minimale doorrijhoogte rood in het tekstvak. 2. Render bekeken (schermafdruk). | F1, B5, B6 | M | Opus 5.5, medium | `F2:` |
+| F3 | ▶ vrijgegeven, na F2 | Opleveren 2.14.0: LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met "Alle tests geslaagd". 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat profiel 1 en 2 bij de Bergstraat kloppen. | F2, B7 | S | Opus 5.5, medium | `F3:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
 
