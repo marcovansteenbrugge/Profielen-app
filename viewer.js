@@ -3028,6 +3028,10 @@
       boxen: r.boxen.map(b => ({ B: b.B, H: b.H, c: b.c, vrijMin: b.vrijMin, speling: b.speling, ok: b.ok, krap: b.krap, nConflict: b.nConflict, kritiek: b.kritiek })) } : null; },
     doorrijWeg: (s, o) => drResultaat ? drResultaat.wegOp(s, o) : null,
     doorrijInst: () => JSON.parse(JSON.stringify(doorrij)),
+    rwsMeten: async () => { const d = await rwsMeten(); toonRwsResultaat(); return d.profielen.map(p => ({ nr: p.nr, station: p.station, n: p.punten.o.length, min: p.min ? { offset: p.min.offset, h: p.min.h } : null, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, weg: m.weg, dak: m.dak, h: m.h, nW: m.nW, nD: m.nD, sW: m.sW, sD: m.sD })) })); },
+    rws: () => drRws ? drRws.profielen.map(p => ({ nr: p.nr, station: p.station, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, h: m.h })) })) : null,
+    rwsToon: (nr) => rwsToon(nr),
+    dwarsKlikX: (o) => { const a = svgDwars.__pvX, rect = svgDwars.getBoundingClientRect(); return rect.left + (a.zX + a.zS * (a.margeL + (o - a.xMin) * a.xSchaal)) * rect.width / a.breed; },
     projectRondje: async () => { const blob = maakProjectBlob(); doorrij = JSON.parse(JSON.stringify(DR_STANDAARD)); await laadProjectBestand(new File([blob], 'rondje.json')); return JSON.parse(JSON.stringify(doorrij)); },
     profielPunten: () => { const st = dwarsStations[huidigeStationIndex]; const q = volleProfielenGeldig() && volleProfielen.punten?.get(st); return q ? { station: st, strook: volleProfielen.strook, o: Array.from(q.o), z: Array.from(q.z), k: Array.from(q.k) } : null; } };
 
@@ -7667,7 +7671,8 @@
        de breedte; speling = vrije hoogte − H. Losse punten tellen niet mee.
      ──────────────────────────────────────────────────────────────── */
   let drWolk = null, drDak = null;   // { naam, xs, ys, zs, idx, half, asSleutel }
-  const DR_STANDAARD = { boxen: [{ voorwaarde: 'weg', naam: 'rijbaan', breedte: 3.5, hoogte: 4.2, verschuiving: 0 }], marge: 0.1, minHoogte: 0.5, stVan: '', stTot: '', minPunten: 3, tonen: true };
+  const DR_STANDAARD = { boxen: [{ voorwaarde: 'weg', naam: 'rijbaan', breedte: 3.5, hoogte: 4.2, verschuiving: 0 }], marge: 0.1, minHoogte: 0.5, stVan: '', stTot: '', minPunten: 3, tonen: true,
+    rws: { p1: '', p2: '', meetpunten: [], weg: '', object: '', rijbaan: '', meetdatum: '', bijzonderheden: '' } };
   let doorrij = JSON.parse(JSON.stringify(DR_STANDAARD));
   /** Voorwaarden (besluit B3): gangbare maten als voorstel, geen norm. Kies "eigen maten" voor de eis van de opdrachtgever. */
   const DR_VOORWAARDEN = {
@@ -7791,7 +7796,7 @@
         for (let j = j0; j <= j1; j++) { const v = weg[i * no + j]; if (!Number.isNaN(v) && v > m) m = v; }
         if (m > -Infinity) bodem[i] = m;
       }
-      return { ...bx, bodem, vrijLangs: new Float32Array(ns).fill(NaN), vrijMin: null, kritiek: null, nConflict: 0 };
+      return { ...bx, bodem, vrijLangs: new Float32Array(ns).fill(NaN), vrijMin: null, kritiek: null, nConflict: 0, dakVan: Infinity, dakTot: -Infinity };
     });
     // 6. dak: alles boven de weg (meer dan minH), met ruisfilter in 3D; de wegpunten zelf (voor het tekenen)
     const PS = [], PO = [], PZ = [], PC = [], PX = [], PY = [];
@@ -7825,6 +7830,7 @@
         const vrij = PZ[p] - z0;
         if (vrij <= 0) continue;   // onder de box-onderkant (bv. een putdeksel naast de hoogste rand)
         metDak++;
+        if (PS[p] < bx.dakVan) bx.dakVan = PS[p]; if (PS[p] > bx.dakTot) bx.dakTot = PS[p];
         if (Number.isNaN(bx.vrijLangs[i]) || vrij < bx.vrijLangs[i]) bx.vrijLangs[i] = vrij;
         if (bx.vrijMin == null || vrij < bx.vrijMin) { bx.vrijMin = vrij; bx.kritiek = { station: PS[p], offset: PO[p], z: PZ[p], bodem: z0, x: PX[p], y: PY[p] }; }
         if (vrij < bx.H) { bx.nConflict++; PC[p] = 2; }
@@ -7859,6 +7865,7 @@
     res.ok = boxen.every(bx => bx.ok);
     res.krap = res.ok && boxen.some(bx => bx.krap);
     drResultaat = res;
+    if (drRws) { if (drRws.asSl && drRws.asSl !== res.asSl) drRws = null; else { drRws.asSl = res.asSl; rwsHerbereken(); } }
     return res;
   }
   /** Het resultaat, opnieuw berekend als de as intussen is gewijzigd. */
@@ -8011,10 +8018,12 @@
     for (const [id, sl] of Object.entries(DR_VELDEN)) { const e = document.getElementById(id); if (e) e.value = doorrij[sl] ?? ''; }
     const t = document.getElementById('drTonen'); if (t) t.checked = doorrij.tonen !== false;
     toonDrBoxen();
+    const rw = rwsInst(); for (const [id, sl] of [['drP1', 'p1'], ['drP2', 'p2']]) { const e = document.getElementById(id); if (e) e.value = rw[sl] ?? ''; }
   }
   function leesDoorrijVelden() {
     for (const [id, sl] of Object.entries(DR_VELDEN)) { const e = document.getElementById(id); if (e) doorrij[sl] = e.value; }
     const t = document.getElementById('drTonen'); if (t) doorrij.tonen = t.checked;
+    { const rw = rwsInst(); for (const [id, sl] of [['drP1', 'p1'], ['drP2', 'p2']]) { const e = document.getElementById(id); if (e) rw[sl] = e.value; } }
     for (const rij of document.querySelectorAll('#drBoxen .drBox')) {
       const b = doorrij.boxen[Number(rij.dataset.i)]; if (!b) continue;
       for (const e of rij.querySelectorAll('[data-veld]')) b[e.dataset.veld] = e.value;
@@ -8066,6 +8075,7 @@
     const auto = document.getElementById('drAutoTekst'); const k = drKader();
     if (auto) auto.textContent = k ? (k.heel ? `hele as: ${komma(k.L, 1)} m` : `${komma(k.s1 - k.s0, 1)} m`) : '';
     toonDoorrijResultaat();
+    toonRwsResultaat();
   }
   let drTimer = null;
   function drGewijzigd() {
@@ -8132,6 +8142,222 @@
       werkDoorrijPaneelBij();
       bijwerkenProfielen(); tekenVlak();
     });
+  }
+
+  /* ────────────────────────────────────────────────────────────────
+     Doorrijprofiel volgens RWS (plan doorrijprofielen-rws, 2.14.0),
+     naar de Productspecificaties Doorrijprofielen (RWS, 1 juli 2022):
+     - profiel 1 en 2 aan de voor- en achterkant van het dak (B2):
+       automatisch net binnen de rand, of zelf een station;
+     - meetpunten (B1): kant verharding uit de BGT, de rest (wegmarkering,
+       kantstreep + 1 m, ophangconstructie) aangeklikt in het dwarsprofiel;
+     - hoogtes uit de ruwe punten (B3) binnen ± 10 cm van het meetpunt:
+       weg = onderste laag, dak = onderste laag van wat erboven ligt, met
+       aantal punten en spreiding;
+     - minimale doorrijhoogte per rijbaan = de kleinste vrije hoogte van de
+       box van die rijbaan (ook buiten de profielen, bijlage J).
+     ──────────────────────────────────────────────────────────────── */
+  const RWS_STANDAARD = { p1: '', p2: '', meetpunten: [], weg: '', object: '', rijbaan: '', meetdatum: '', bijzonderheden: '' };
+  const RWS_SOORTEN = { kant: 'kant verharding', markering: 'wegmarkering', kantstreep: 'kantstreep + 1 m', ophang: 'ophangconstructie', overig: 'overig' };
+  const RWS_VENSTER = 0.10;   // m rond het meetpunt (langs en dwars)
+  let drRws = null;          // { profielen: [{ nr, station, punten: {o, z}, meetpunten: [...] }], bron, tijd }
+  let drToon = null;         // { station, index, nr }: tijdelijk dit station in het dwarsprofiel
+  let drKlikModus = false;
+  function rwsInst() { if (!doorrij.rws) doorrij.rws = JSON.parse(JSON.stringify(RWS_STANDAARD)); return doorrij.rws; }
+
+  /** Stations van profiel 1 en 2: zelf ingevuld, anders net binnen de rand van het dak boven de eerste box. */
+  function rwsStations(r) {
+    const inst = rwsInst();
+    const bx = r.boxen[0];
+    // eerste en laatste station met dak boven de box, 0,2 m naar binnen
+    const auto1 = Number.isFinite(bx.dakVan) ? Math.max(0, bx.dakVan + 0.2) : null, auto2 = Number.isFinite(bx.dakTot) ? Math.min(r.L, bx.dakTot - 0.2) : null;
+    const p1 = dvGetal(inst.p1) ?? auto1, p2 = dvGetal(inst.p2) ?? auto2;
+    return { p1, p2, auto1, auto2 };
+  }
+  /** Kant verharding links en rechts uit de BGT: de randen van het weg-vak waar de eerste box in ligt. */
+  function rwsKantVerharding(station, r) {
+    const d = bgtDoorsnede(station, profielL(), profielR());
+    if (!d?.stroken?.length) return [];
+    const c = r.boxen[0].c;
+    const strook = d.stroken.find(s => s.van <= c && s.tot >= c && /weg/i.test(s.label));
+    if (!strook) return [];
+    const uit = [];
+    if (strook.van > -profielL() + 0.05) uit.push({ offset: strook.van + 0.05, soort: 'kant', auto: true });
+    if (strook.tot < profielR() - 0.05) uit.push({ offset: strook.tot - 0.05, soort: 'kant', auto: true });
+    return uit;
+  }
+  const mediaan = (a) => { const m = a.length; return m % 2 ? a[(m - 1) / 2] : (a[m / 2 - 1] + a[m / 2]) / 2; };
+  const spreiding = (a) => { if (a.length < 2) return null; const g = a.reduce((s, v) => s + v, 0) / a.length; return Math.sqrt(a.reduce((s, v) => s + (v - g) * (v - g), 0) / (a.length - 1)); };
+  /** Hoogte op één meetpunt uit de punten van een profiel. */
+  function rwsMeet(p, station, offset, r) {
+    const wz = [], alle = [];
+    for (let i = 0; i < p.o.length; i++) if (Math.abs(p.o[i] - offset) <= RWS_VENSTER) alle.push(p.z[i]);
+    alle.sort((a, b) => a - b);
+    const wegRef = r.wegOp(station, offset);
+    const grens = (wegRef ?? (alle[0] ?? 0)) + r.minH;
+    const dz = [];
+    for (const z of alle) (z < grens ? wz : dz).push(z);
+    let weg = null, sW = null, nW = 0;
+    if (wz.length) {
+      const ref = wz[Math.min(wz.length - 1, Math.max(1, Math.round(0.1 * wz.length)))];
+      const laag = wz.filter(z => Math.abs(z - ref) <= 0.03);
+      weg = mediaan(laag); sW = spreiding(laag); nW = laag.length;
+    }
+    let dak = null, sD = null, nD = 0;
+    if (dz.length >= 2) {
+      const ref = dz[Math.min(dz.length - 1, Math.max(1, Math.round(0.02 * dz.length)))];
+      const laag = dz.filter(z => Math.abs(z - ref) <= 0.05);
+      dak = mediaan(laag); sD = spreiding(laag); nD = laag.length;
+    }
+    return { weg, dak, h: weg != null && dak != null ? dak - weg : null, nW, nD, sW, sD };
+  }
+  /** Alle meetpunten van een profiel (opnieuw) berekenen uit de bewaarde punten. */
+  function rwsBerekenProfiel(pr, r) {
+    const lijst = [...rwsKantVerharding(pr.station, r), ...rwsInst().meetpunten.map(m => ({ ...m, auto: false }))].sort((a, b) => a.offset - b.offset);
+    pr.meetpunten = lijst.map(m => ({ ...m, ...rwsMeet(pr.punten, pr.station, m.offset, r) }));
+    const geldig = pr.meetpunten.filter(m => m.h != null);
+    pr.min = geldig.length ? geldig.reduce((a, b) => (b.h < a.h ? b : a)) : null;
+  }
+  function rwsHerbereken() {
+    const r = drResultaat;
+    if (!drRws || !r) return;
+    for (const pr of drRws.profielen) rwsBerekenProfiel(pr, r);
+  }
+  /** De punten onder de twee profiellijnen ruw inlezen (alleen de vakken eronder) en de meetpunten berekenen. */
+  async function rwsMeten() {
+    const r = drGeldig();
+    if (!r) throw new Error('klik eerst op Controleren');
+    const { p1, p2 } = rwsStations(r);
+    if (p1 == null || p2 == null) throw new Error('geen dak boven de rijbaan gevonden: vul de stations van profiel 1 en 2 zelf in');
+    const pL = profielL(), pR = profielR();
+    const lijnen = [p1, p2].map((st) => { const a = puntOpStationOffset(st, -pL), b = puntOpStationOffset(st, pR); const len = Math.hypot(b.x - a.x, b.y - a.y) || 1e-9; return { a, ux: (b.x - a.x) / len, uy: (b.y - a.y) / len, len, o: [], z: [] }; });
+    let gezien = 0;
+    const sink = {
+      voegToe(x, y, z) {
+        gezien++;
+        for (const l of lijnen) {
+          const dx = x - l.a.x, dy = y - l.a.y, t = dx * l.ux + dy * l.uy;
+          if (t < -0.2 || t > l.len + 0.2) continue;
+          if (Math.abs(dx * l.uy - dy * l.ux) > RWS_VENSTER) continue;
+          l.o.push(t - pL); l.z.push(z);
+        }
+      },
+      get aantalGezien() { return gezien; },
+      resultaat: () => ({ xs: [], ys: [], zs: [], cs: null }),
+    };
+    const bron = laatsteBestand;
+    let soort = 'ruw';
+    const voortgang = (n, t) => { statusEl.textContent = `Doorrijprofiel: ruwe punten onder profiel 1 en 2 lezen… ${Math.round(100 * n / Math.max(1, t))}%`; };
+    if (bron?.tegelbron) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const l of lijnen) for (const q of [l.a, { x: l.a.x + l.ux * l.len, y: l.a.y + l.uy * l.len }]) { minX = Math.min(minX, q.x); maxX = Math.max(maxX, q.x); minY = Math.min(minY, q.y); maxY = Math.max(maxY, q.y); }
+      await leesTegels(bron, voortgang, sink, { minX: minX - 1, maxX: maxX + 1, minY: minY - 1, maxY: maxY + 1 });
+    } else if (bron && /\.la[sz]$/i.test(bron.name)) {
+      const header = await leesLasHeader(bron);
+      const s2 = maakKlassenFilter(sink, bron.pvKlassen ?? null);
+      if (header.isCompressed) await leesLazPunten(bron, header, voortgang, true, s2); else await leesLasPunten(bron, header, voortgang, true, s2);
+    } else if (bron && /\.(pts|txt)$/i.test(bron.name)) {
+      await leesPts(bron, (n, t, f) => voortgang(f ?? n, f != null ? 1 : t), sink);
+    } else {
+      // geen bestand (puntenwolk uit een project): de uitgedunde strook van de doorrijhoogte
+      soort = 'strook';
+      for (let i = 0; i < drWolk.xs.length; i++) sink.voegToe(drWolk.xs[i], drWolk.ys[i], drWolk.zs[i]);
+    }
+    drRws = { bron: soort, tijd: new Date(), profielen: [p1, p2].map((st, i) => ({ nr: i + 1, station: st, punten: { o: Float32Array.from(lijnen[i].o), z: Float32Array.from(lijnen[i].z) } })) };
+    rwsHerbereken();
+    return drRws;
+  }
+  /** Profiel nr (1 of 2) in het dwarsprofiel tonen (tijdelijk station; ◀ ▶ gaat terug naar de gewone profielen). */
+  function rwsToon(nr) {
+    const pr = drRws?.profielen[nr - 1];
+    if (!pr || !dwarsStations.length) return;
+    let beste = 0; dwarsStations.forEach((s, i) => { if (Math.abs(s - pr.station) < Math.abs(dwarsStations[beste] - pr.station)) beste = i; });
+    huidigeStationIndex = beste;
+    drToon = { station: pr.station, index: beste, nr };
+    tekenVlak(); tekenDwarsVoorHuidigeStation(); tekenLangs();
+  }
+  /** Het station dat het dwarsprofiel nu toont, met het profielnummer als het profiel 1 of 2 is. */
+  function drToonStation() {
+    if (drToon && drToon.index === huidigeStationIndex && drRws?.profielen[drToon.nr - 1]) return drToon;
+    drToon = null;
+    return null;
+  }
+  const rwsM = (v, d = 2) => v == null ? '—' : komma(v, d);
+  function toonRwsResultaat() {
+    const vak = document.getElementById('drRwsResultaat');
+    if (!vak) return;
+    const r = drResultaat;
+    const inst = rwsInst();
+    const st = r ? rwsStations(r) : null;
+    for (const [id, auto] of [['drP1', st?.auto1], ['drP2', st?.auto2]]) { const e = document.getElementById(id); if (e) e.placeholder = auto == null ? 'station' : `auto ${komma(auto, 2)}`; }
+    const lijst = document.getElementById('drMeetLijst');
+    if (lijst) lijst.innerHTML = inst.meetpunten.length ? inst.meetpunten.map((m, i) => `<div class="rij"><span>${komma(m.offset, 2)} m</span><select data-mp="${i}">${Object.entries(RWS_SOORTEN).filter(([k]) => k !== 'kant').map(([k, v]) => `<option value="${k}"${k === m.soort ? ' selected' : ''}>${v}</option>`).join('')}</select> <button type="button" class="drMpWeg" data-mp="${i}" title="Meetpunt weghalen">✕</button></div>`).join('') : '<p class="hint" style="margin:0">Nog geen eigen meetpunten. Klik op <b>Meetpunten aanklikken</b> en klik in het dwarsprofiel op de strepen, 1 m uit de kantstreep en ophangconstructies.</p>';
+    if (!drRws) { vak.innerHTML = '<p class="hint">Klik op <b>Profielen meten</b>: de ruwe punten onder profiel 1 en 2 worden gelezen.</p>'; return; }
+    const kop = '<tr><th>meetpunt</th><th>offset</th><th>weg</th><th>dak</th><th>doorrij&shy;hoogte</th><th>punten weg/dak</th><th>spreiding weg/dak</th></tr>';
+    vak.innerHTML = (drRws.bron === 'strook' ? '<p class="hint waarschuw">Geen bestand bij de hand: de hoogtes komen uit de uitgedunde strook, niet uit de ruwe punten.</p>' : '') +
+      drRws.profielen.map(pr => `<p style="margin:6px 0 2px"><b>Profiel ${pr.nr}</b> · st. ${komma(pr.station, 2)}${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''} <button type="button" class="drToon" data-nr="${pr.nr}">Toon</button></p>` +
+        '<table class="snTabel">' + kop + pr.meetpunten.map(m => `<tr class="${pr.min === m ? 'rood' : ''}"><td>${RWS_SOORTEN[m.soort] || m.soort}</td><td>${komma(m.offset, 2)}</td><td>${rwsM(m.weg)}</td><td>${rwsM(m.dak)}</td><td><b>${m.h == null ? (m.weg == null ? 'weg niet gemeten' : 'geen dak') : komma(m.h, 3)}</b></td><td>${m.nW} / ${m.nD}</td><td>${m.sW == null ? '—' : Math.round(m.sW * 1000)} / ${m.sD == null ? '—' : Math.round(m.sD * 1000)} mm</td></tr>`).join('') + '</table>').join('') +
+      `<p style="margin:6px 0 2px"><b>Minimale doorrijhoogte per rijbaan</b> (ook buiten de profielen)</p><table class="snTabel"><tr><th>rijbaan</th><th>minimale doorrijhoogte</th><th>waar</th></tr>${r ? r.boxen.map(b => `<tr><td>${b.naam || 'box'}</td><td><b>${b.vrijMin == null ? '—' : komma(b.vrijMin, 3)}</b></td><td>${b.kritiek ? `st. ${komma(b.kritiek.station, 1)}, ${komma(Math.abs(b.kritiek.offset), 2)} m ${b.kritiek.offset < 0 ? 'L' : 'R'}` : '—'}</td></tr>`).join('') : ''}</table>`;
+  }
+  /** Gegevens voor het dwarsprofiel: de meetpunten als pijlen, als dit profiel 1 of 2 is. */
+  function rwsVoorGrafiek(station) {
+    if (!drRws || station == null) return null;
+    return drRws.profielen.find(p => Math.abs(p.station - station) < 0.005) || null;
+  }
+  /** Klik in het dwarsprofiel → meetpunt (als "Meetpunten aanklikken" aan staat). */
+  svgDwars.addEventListener('click', (e) => {
+    if (!drKlikModus || !svgDwars.__pvX) return;
+    const a = svgDwars.__pvX, rect = svgDwars.getBoundingClientRect();
+    const sx = (e.clientX - rect.left) * a.breed / Math.max(1, rect.width);
+    const o = a.xMin + ((sx - a.zX) / a.zS - a.margeL) / a.xSchaal;
+    if (!Number.isFinite(o)) return;
+    const soort = document.getElementById('drMeetSoort')?.value || 'markering';
+    rwsInst().meetpunten.push({ offset: Math.round(o * 100) / 100, soort });
+    rwsHerbereken();
+    statusEl.style.color = '';
+    statusEl.textContent = `Meetpunt ${RWS_SOORTEN[soort]} op ${komma(o, 2)} m toegevoegd — klik er nog een, of Esc om te stoppen`;
+    toonRwsResultaat(); tekenDwarsVoorHuidigeStation();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && drKlikModus) { drKlikModus = false; svgDwars.classList.remove('meetKlik'); statusEl.textContent = 'Meetpunten aanklikken: gestopt'; e.preventDefault(); if (drDialoog && !drDialoog.open) setTimeout(() => { zetDoorrijVelden(); werkDoorrijPaneelBij(); drDialoog.showModal(); }, 50); }
+  });
+  if (drDialoog) {
+    document.getElementById('drRwsMeten')?.addEventListener('click', async () => {
+      leesDoorrijVelden();
+      const knop = document.getElementById('drRwsMeten'); if (knop) knop.disabled = true;
+      try {
+        const d = await rwsMeten();
+        const min = d.profielen.map(p => p.min).filter(Boolean).sort((a, b) => a.h - b.h)[0];
+        statusEl.style.color = '';
+        statusEl.textContent = `Doorrijprofiel: profiel 1 op st. ${komma(d.profielen[0].station, 2)}, profiel 2 op st. ${komma(d.profielen[1].station, 2)}${min ? ` · laagste doorrijhoogte in de profielen ${komma(min.h, 3)} m` : ''}`;
+      } catch (err) { console.error(err); toonFout('Doorrijprofiel: ' + (err.message || err)); }
+      finally { if (knop) knop.disabled = false; }
+      toonRwsResultaat(); tekenDwarsVoorHuidigeStation();
+    });
+    document.getElementById('drRwsKlik')?.addEventListener('click', () => {
+      if (!drRws) { toonFout('Doorrijprofiel: klik eerst op "Profielen meten".'); return; }
+      leesDoorrijVelden();
+      drKlikModus = true; svgDwars.classList.add('meetKlik');
+      drDialoog.close();
+      if (!drToonStation()) rwsToon(1);
+      statusEl.style.color = '';
+      statusEl.textContent = 'Klik in het dwarsprofiel op de plek van een meetpunt (strepen, 1 m uit de kantstreep, ophangconstructie) — Esc om te stoppen';
+    });
+    document.getElementById('drRwsResultaat')?.addEventListener('click', (e) => {
+      const b = e.target.closest('.drToon'); if (!b) return;
+      drDialoog.close(); rwsToon(Number(b.dataset.nr));
+    });
+    document.getElementById('drMeetLijst')?.addEventListener('click', (e) => {
+      const b = e.target.closest('.drMpWeg'); if (!b) return;
+      rwsInst().meetpunten.splice(Number(b.dataset.mp), 1);
+      rwsHerbereken(); toonRwsResultaat(); tekenDwarsVoorHuidigeStation();
+    });
+    document.getElementById('drMeetLijst')?.addEventListener('change', (e) => {
+      const s = e.target.closest('select[data-mp]'); if (!s) return;
+      const m = rwsInst().meetpunten[Number(s.dataset.mp)]; if (m) m.soort = s.value;
+      rwsHerbereken(); toonRwsResultaat(); tekenDwarsVoorHuidigeStation();
+    });
+    for (const id of ['drP1', 'drP2']) document.getElementById(id)?.addEventListener('change', () => { leesDoorrijVelden(); drRws = null; toonRwsResultaat(); });
   }
 
   /* ────────────────────────────────────────────────────────────────
@@ -10900,6 +11126,7 @@ ${r3d}
     const vanSchermY = (sy) => (sy - zY) / zS;
 
     svgEl.setAttribute('viewBox', `0 0 ${breed} ${hoog}`);
+    svgEl.__pvX = { margeL, xMin, xSchaal, zX, zS, breed };   // voor klikken in het dwarsprofiel (meetpunten)
     const ns = 'http://www.w3.org/2000/svg';
     const g = document.createElementNS(ns, 'g');
     if (zoomState) {
@@ -11324,6 +11551,14 @@ ${r3d}
             const sp = vrij - bx.H, kl = sp < 0 ? 'dv-maatlijn rood' : 'dv-maatlijn';
             maatV(px(L) - 16 * tegen, py(z0), py(z0 + vrij), `vrij ${komma(vrij, 2)}`, kl, true);
           }
+        }
+        // doorrijprofiel (RWS): meetpunten als pijlen van de weg naar het dak, de laagste rood
+        const rp = isDwars ? rwsVoorGrafiek(reeks.station) : null;
+        if (rp) for (const m of rp.meetpunten) {
+          if (m.weg == null) continue;
+          const x = px(m.offset), rood = rp.min === m, kl = rood ? 'dv-maatlijn rood' : 'dv-maatlijn';
+          if (m.h != null) maatV(x, py(m.weg), py(m.dak), komma(m.h, 2), kl, m.offset < 0);
+          dvEl('circle', { cx: x, cy: py(m.weg), r: 2.6 * tegen, fill: m.auto ? '#1F4E79' : '#E08A1E', stroke: '#fff', 'stroke-width': 1, 'vector-effect': 'non-scaling-stroke' });
         }
       } else {
         for (const { bx, lijnB, lijnV } of dr.boxen) {
@@ -11990,11 +12225,12 @@ ${r3d}
   function tekenDwarsVoorHuidigeStation() {
     if (!dwarsStations.length) { svgDwars.innerHTML = ''; dwarsLeeg.hidden = false; stationLabel.textContent = ''; return; }
     dwarsLeeg.hidden = true;
-    const station = dwarsStations[huidigeStationIndex];
+    const toon = drToonStation();
+    const station = toon ? toon.station : dwarsStations[huidigeStationIndex];
     const reeks = berekenDwarsprofiel(station);
     const bron = volleProfielenGeldig()
       ? ` · uit alle punten (${reeks.reduce((n, p) => n + (p.aantal || 0), 0).toLocaleString('nl-NL')} meetpunten)` : '';
-    stationLabel.textContent = `· station ${station.toFixed(1)} m${paalAchter(station, ' · ')} (${huidigeStationIndex + 1}/${dwarsStations.length})${bron}`;
+    stationLabel.textContent = toon ? `· profiel ${toon.nr} (RWS) · station ${station.toFixed(2)} m${paalAchter(station, ' · ')}` : `· station ${station.toFixed(1)} m${paalAchter(station, ' · ')} (${huidigeStationIndex + 1}/${dwarsStations.length})${bron}`;
     const overdrijving = Math.max(0.25, Number(dwarsOverdrijvingVeld.value) || 1);
     const breedte = profielBreedte(), pL = profielL(), pR = profielR();
     const bomen = boomVindenBijStation(station, breedte);
