@@ -112,10 +112,27 @@ func (a *bestandsAPI) omzetStart(w http.ResponseWriter, r *http.Request) {
 		Bron  string `json:"bron"`
 		Doel  string `json:"doel"`
 		Modus string `json:"modus"`
+		// klassen: alleen deze LAS-klassen omzetten; weggelaten of null = alles (plan klassen-kiezen)
+		Klassen *[]int `json:"klassen"`
 	}
 	if err := json.NewDecoder(io.LimitReader(r.Body, 64<<10)).Decode(&v); err != nil || v.Bron == "" || v.Doel == "" || (v.Modus != "boven" && v.Modus != "onder") {
 		http.Error(w, "ongeldige opdracht", http.StatusBadRequest)
 		return
+	}
+	var klassen []uint8
+	if v.Klassen != nil {
+		if len(*v.Klassen) > 256 {
+			http.Error(w, "ongeldige klassen", http.StatusBadRequest)
+			return
+		}
+		klassen = []uint8{}
+		for _, k := range *v.Klassen {
+			if k < 0 || k > 255 {
+				http.Error(w, "ongeldige klassen", http.StatusBadRequest)
+				return
+			}
+			klassen = append(klassen, uint8(k))
+		}
 	}
 	bron, ok1 := a.binnen(v.Bron)
 	doel, ok2 := a.binnen(v.Doel)
@@ -154,15 +171,15 @@ func (a *bestandsAPI) omzetStart(w http.ResponseWriter, r *http.Request) {
 	a.omzetten.taak = t
 	a.omzetten.mu.Unlock()
 	log.Printf("omzetten gestart: %s → %s (%s)", bron, doel, v.Modus)
-	go t.draai(ctx, v.Modus == "onder")
+	go t.draai(ctx, v.Modus == "onder", klassen)
 	stuurJSON(w, map[string]string{"id": id})
 }
 
-func (t *omzetTaak) draai(ctx context.Context, onder bool) {
+func (t *omzetTaak) draai(ctx context.Context, onder bool, klassen []uint8) {
 	defer close(t.klaarKanaal)
 	t0 := time.Now()
 	info, err := omzet.Omzet(ctx, omzet.Opdracht{
-		Bron: t.bron, Doel: t.tijdelijk, Onder: onder, Viewer: "Lutrea Profielviewer " + appVersie + " (exe)",
+		Bron: t.bron, Doel: t.tijdelijk, Onder: onder, Klassen: klassen, Viewer: "Lutrea Profielviewer " + appVersie + " (exe)",
 		LazWasm: lazWasm(),
 		Fase:    func(f string) { t.zet(func() { t.fase = f }) },
 	}, func(gelezen, totaal int64) { t.zet(func() { t.gelezen, t.totaal = gelezen, totaal }) })

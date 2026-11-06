@@ -16,6 +16,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"ptsviewer/omzet"
@@ -27,6 +29,7 @@ func main() {
 	modus := flag.String("modus", "boven", "oppervlak: boven of onder")
 	viewer := flag.String("viewer", "pvomzet", "tekst voor het veld viewer in info.json")
 	wasm := flag.String("wasm", "", "laz-perf.wasm (voor LAZ)")
+	klassen := flag.String("klassen", "", "alleen deze LAS-klassen, bv. 2,11 (leeg = alles)")
 	metVoortgang := flag.Bool("voortgang", false, "voortgang op stderr: \"voortgang <gelezen> <totaal>\" en \"fase <naam>\"")
 	flag.Parse()
 	if *bron == "" || *doel == "" || (*modus != "boven" && *modus != "onder") {
@@ -35,6 +38,16 @@ func main() {
 	}
 	t0 := time.Now()
 	o := omzet.Opdracht{Bron: *bron, Doel: *doel, Onder: *modus == "onder", Viewer: *viewer, LazWasm: leesWasm(*wasm)}
+	if *klassen != "" {
+		for _, d := range strings.Split(*klassen, ",") {
+			k, err := strconv.Atoi(strings.TrimSpace(d))
+			if err != nil || k < 0 || k > 255 {
+				fmt.Fprintln(os.Stderr, "pvomzet: ongeldige klasse", d)
+				os.Exit(2)
+			}
+			o.Klassen = append(o.Klassen, uint8(k))
+		}
+	}
 	var voortgang omzet.Voortgang
 	if *metVoortgang {
 		o.Fase = func(f string) { fmt.Fprintln(os.Stderr, "fase", f) }

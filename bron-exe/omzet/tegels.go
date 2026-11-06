@@ -60,13 +60,16 @@ type Schrijver struct {
 	minX, maxX float64
 	minY, maxY float64
 	minZ, maxZ float64
-	klassen    [256]float64
-	ovAlle     *Uitdunner
-	ovGrond    *Uitdunner
-	rijAlle    *ovRij
-	rijGrond   *ovRij
-	gebufferd  int
-	fout       error
+	klassen    [256]float64 // wat er in de vakken staat
+	// klassenkeuze (plan klassen-kiezen): nil = alle klassen; anders alleen de klassen met true
+	toegestaan  *[256]bool
+	klassenBron [256]float64 // telling over het hele bestand, ook wat niet gekozen is
+	ovAlle      *Uitdunner
+	ovGrond     *Uitdunner
+	rijAlle     *ovRij
+	rijGrond    *ovRij
+	gebufferd   int
+	fout        error
 }
 
 // NieuweSchrijver schrijft de vakken in tegelMap (de map "tegels", die al moet bestaan).
@@ -80,7 +83,19 @@ func NieuweSchrijver(tegelMap string, onder bool) *Schrijver {
 	return s
 }
 
-// Gezien: aantal ontvangen punten.
+// ZetKlassen: alleen deze klassen gaan de vakken in (nil = alles). Vóór het eerste punt aanroepen.
+func (s *Schrijver) ZetKlassen(k []uint8) {
+	if k == nil {
+		s.toegestaan = nil
+		return
+	}
+	s.toegestaan = &[256]bool{}
+	for _, v := range k {
+		s.toegestaan[v] = true
+	}
+}
+
+// Gezien: aantal punten dat de vakken in gaat.
 func (s *Schrijver) Gezien() int64 { return s.gezien }
 
 func (s *Schrijver) schrijf(p punt) {
@@ -198,6 +213,10 @@ func (s *Schrijver) bepaalDeler() {
 // VoegToe is voegToe(x, y, z, r, g, b, k); metKleur = false is "r is undefined". De kleur is een
 // getal zoals in JavaScript (LAS: 0 tot 65535; PTS: wat er in het bestand staat).
 func (s *Schrijver) VoegToe(x, y, z float64, r, g, b float64, metKleur bool, k uint8) {
+	s.klassenBron[k]++
+	if s.toegestaan != nil && !s.toegestaan[k] {
+		return // niet gekozen: telt alleen mee in klassenBron
+	}
 	s.gezien++
 	if !s.oorsprong {
 		s.ox, s.oy, s.oorsprong = math.Floor(x/1000)*1000, math.Floor(y/1000)*1000, true
@@ -287,12 +306,15 @@ type Info struct {
 	Kleur     bool               `json:"kleur"`
 	Bbox      [6]float64         `json:"bbox"`
 	Klassen   map[string]float64 `json:"klassen"`
-	Tegels    [][5]float64       `json:"tegels"`
-	Overzicht InfoOverzicht      `json:"overzicht"`
-	Gemaakt   string             `json:"gemaakt"`
-	Viewer    string             `json:"viewer"`
-	Bron      InfoBron           `json:"bron"`
-	DuurImp   int64              `json:"duurImport"`
+	// KlassenKeuze: de gekozen klassen (oplopend), nil = alles; KlassenBron: telling over het hele bestand
+	KlassenKeuze []int              `json:"klassenKeuze"`
+	KlassenBron  map[string]float64 `json:"klassenBron"`
+	Tegels       [][5]float64       `json:"tegels"`
+	Overzicht    InfoOverzicht      `json:"overzicht"`
+	Gemaakt      string             `json:"gemaakt"`
+	Viewer       string             `json:"viewer"`
+	Bron         InfoBron           `json:"bron"`
+	DuurImp      int64              `json:"duurImport"`
 }
 
 type InfoOverzicht struct {
@@ -320,6 +342,9 @@ func (s *Schrijver) Afronden() (*Info, Punten, error) {
 	if s.fout != nil {
 		return nil, Punten{}, s.fout
 	}
+	if s.gezien == 0 && s.toegestaan != nil {
+		return nil, Punten{}, fmt.Errorf("er zitten geen punten in de gekozen klassen")
+	}
 	modus := "boven"
 	if s.onder {
 		modus = "onder"
@@ -331,10 +356,20 @@ func (s *Schrijver) Afronden() (*Info, Punten, error) {
 		Klassen:   map[string]float64{},
 		Overzicht: InfoOverzicht{Modus: modus, Doel: OverzichtDoel},
 	}
+	info.KlassenBron = map[string]float64{}
 	for i, n := range s.klassen {
 		if n > 0 {
 			info.Klassen[strconv.Itoa(i)] = n
 		}
+		if s.klassenBron[i] > 0 {
+			info.KlassenBron[strconv.Itoa(i)] = s.klassenBron[i]
+		}
+		if s.toegestaan != nil && s.toegestaan[i] {
+			info.KlassenKeuze = append(info.KlassenKeuze, i)
+		}
+	}
+	if s.toegestaan != nil && info.KlassenKeuze == nil {
+		info.KlassenKeuze = []int{}
 	}
 	for _, t := range s.volgorde {
 		info.Tegels = append(info.Tegels, [5]float64{float64(t.tx), float64(t.ty), float64(t.n), rond(float64(t.minZ*1000)) / 1000, rond(float64(t.maxZ*1000)) / 1000})

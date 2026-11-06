@@ -263,6 +263,47 @@ func TestOmzetKleineLas(t *testing.T) {
 	}
 }
 
+// Plan klassen-kiezen F0: met Klassen gaan alleen die klassen de vakken in; klassenBron telt alles.
+func TestOmzetKlassenKeuze(t *testing.T) {
+	d := t.TempDir()
+	scan := filepath.Join(d, "klassen.las")
+	maakLas(t, scan, [][7]float64{
+		{82010.1, 389010.1, 1, 2, 0, 0, 0},
+		{82010.2, 389010.2, 5, 6, 0, 0, 0},
+		{82060.3, 389010.3, 2, 2, 0, 0, 0},
+		{82110.4, 389010.4, 9, 5, 0, 0, 0},
+	})
+	info, err := Omzet(context.Background(), Opdracht{Bron: scan, Doel: filepath.Join(d, "A"), Klassen: []uint8{2}}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Aantal != 2 || len(info.Tegels) != 2 || info.Klassen["2"] != 2 || info.Klassen["6"] != 0 {
+		t.Fatalf("alleen klasse 2 verwacht: %+v", info)
+	}
+	if info.KlassenBron["2"] != 2 || info.KlassenBron["6"] != 1 || info.KlassenBron["5"] != 1 || len(info.KlassenKeuze) != 1 || info.KlassenKeuze[0] != 2 {
+		t.Fatalf("klassenBron/klassenKeuze kloppen niet: %v %v", info.KlassenBron, info.KlassenKeuze)
+	}
+	if info.Bbox[5] != 2 { // de z van klasse 6 en 5 telt niet mee
+		t.Fatalf("bbox hoort alleen klasse 2 te bevatten: %v", info.Bbox)
+	}
+	for _, tg := range info.Tegels {
+		for _, r := range leesVak(t, filepath.Join(d, "A", "tegels", TegelNaam(int(tg[0]), int(tg[1])))) {
+			if r[12] != 2 {
+				t.Fatalf("klasse %d in de vakken", r[12])
+			}
+		}
+	}
+	// zonder keuze: alles, en klassenKeuze leeg (null in info.json)
+	info, err = Omzet(context.Background(), Opdracht{Bron: scan, Doel: filepath.Join(d, "B")}, nil)
+	if err != nil || info.Aantal != 4 || info.KlassenKeuze != nil || info.KlassenBron["6"] != 1 {
+		t.Fatalf("zonder keuze: %v %+v", err, info)
+	}
+	// een keuze zonder punten: een duidelijke fout
+	if _, err := Omzet(context.Background(), Opdracht{Bron: scan, Doel: filepath.Join(d, "C"), Klassen: []uint8{11}}, nil); err == nil {
+		t.Fatal("geen punten in de keuze moet een fout geven")
+	}
+}
+
 func TestOmzetAfbreken(t *testing.T) {
 	d := t.TempDir()
 	scan := filepath.Join(d, "groot.las")

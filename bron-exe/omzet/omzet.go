@@ -19,10 +19,12 @@ var gcProcent = 50
 
 // Opdracht: wat er omgezet moet worden.
 type Opdracht struct {
-	Bron   string // pad van de scan
-	Doel   string // de puntenwolkmap, bv. <projectmap>\puntenwolk\A - <naam>
-	Onder  bool   // oppervlak onderkant (anders bovenkant)
-	Viewer string // komt in info.json als "viewer"
+	Bron  string // pad van de scan
+	Doel  string // de puntenwolkmap, bv. <projectmap>\puntenwolk\A - <naam>
+	Onder bool   // oppervlak onderkant (anders bovenkant)
+	// Klassen: alleen deze LAS-klassen gaan de vakken in; nil = alles (plan klassen-kiezen)
+	Klassen []uint8
+	Viewer  string // komt in info.json als "viewer"
 	// LazWasm: laz-perf.wasm (dezelfde als in de viewer); alleen nodig voor LAZ
 	LazWasm []byte
 	// Fase krijgt "afronden" als alle punten gelezen zijn (overzichten en info.json); mag nil zijn
@@ -52,6 +54,7 @@ func Omzet(ctx context.Context, o Opdracht, voortgang Voortgang) (*Info, error) 
 	}
 	s := NieuweSchrijver(tegelMap, o.Onder)
 	defer s.Stop()
+	s.ZetKlassen(o.Klassen)
 	switch strings.ToLower(filepath.Ext(o.Bron)) {
 	case ".las", ".laz":
 		// zoals de viewer: de header zegt of het gecomprimeerd is, niet de extensie
