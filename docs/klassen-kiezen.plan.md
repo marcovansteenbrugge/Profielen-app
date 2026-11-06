@@ -128,6 +128,10 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F1 | 2026-11-06 15:04 | 3. Een LAS met één klasse toont geen venster | stap 7: "venster geopend: 0 \| knop zichtbaar: false" | gehaald |
 | F1 | 2026-11-06 15:04 | 4. Met Klassen… klasse 6 erbij: vakken bevatten 2 en 6 en de as blijft; afbreken laat de vakken staan (beide routes) | programma: stap 3 "erbij 6: [ 2, 6 ] \| as 280.0" (as vóór 280.0), stap 4 afbreken "omzetten afgebroken \| vakken [ 2, 6 ]", geen .pvtmp; viewer: stap 5 "erbij 6: [ 2, 6 ]", oude `tegels` weg; stap 6 schrijffout halverwege: "vakken [ 2, 6 ]", één tegelmap. De viewer-route heeft geen afbreekknop; daar is mislukken getoetst (zie punt 12) | gehaald |
 | F1 | 2026-11-06 15:04 | 5. Screenshot van het venster op LoZ.laz | `tests/uit/klassen_kiezen_LoZ.png`: venster na 0,9 s met klassen 2, 5, 6, 11, 66, 67 en "± 89% van de punten (steekproef)" met 5 uitgevinkt | gehaald |
+| F2 | 2026-11-06 15:24 | 1. `node run_alle.js` eindigt met `fouten: geen` | `node run_alle.js`: 21 tests "OK", eindregel "Alle tests geslaagd" (elke test met "fouten: geen") | gehaald |
+| F2 | 2026-11-06 15:24 | 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen` | uitvoer: "geïnstalleerde exe is de gebouwde exe van 2.12.1", "versie in Windows-instellingen is 2.12.1", eindregel "fouten: geen" | gehaald |
+| F2 | 2026-11-06 15:24 | 3. Exe, zip en setup staan in `dist` | `dist\Lutrea-Profielviewer-2.12.1.exe` (13.493.248 bytes), `_compleet_2.12.1.zip` (6.509.759), `-2.12.1-setup.exe` (6.107.339) | gehaald |
+| F2 | 2026-11-06 15:24 | 4. Marco bevestigt dat LoZ.laz met een beperkte keuze te openen en te profileren is | nog niet beoordeeld: wacht op Marco | niet toetsbaar |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
