@@ -3027,6 +3027,8 @@
     doorrij: () => { const r = drResultaat; return r ? { ok: r.ok, krap: r.krap, ruis: r.ruis, metDak: r.metDak, gatM2: r.dekking?.oppGat ?? null, dekking: r.dekking ? { gemeten: r.dekking.pct, gaten: r.dekking.gaten.length } : null,
       boxen: r.boxen.map(b => ({ B: b.B, H: b.H, c: b.c, vrijMin: b.vrijMin, speling: b.speling, ok: b.ok, krap: b.krap, nConflict: b.nConflict, kritiek: b.kritiek })) } : null; },
     doorrijWeg: (s, o) => drResultaat ? drResultaat.wegOp(s, o) : null,
+    doorrijInst: () => JSON.parse(JSON.stringify(doorrij)),
+    projectRondje: async () => { const blob = maakProjectBlob(); doorrij = JSON.parse(JSON.stringify(DR_STANDAARD)); await laadProjectBestand(new File([blob], 'rondje.json')); return JSON.parse(JSON.stringify(doorrij)); },
     profielPunten: () => { const st = dwarsStations[huidigeStationIndex]; const q = volleProfielenGeldig() && volleProfielen.punten?.get(st); return q ? { station: st, strook: volleProfielen.strook, o: Array.from(q.o), z: Array.from(q.z), k: Array.from(q.k) } : null; } };
 
   function hoogteOp(x, y) {
@@ -7666,6 +7668,17 @@
   let drWolk = null, drDak = null;   // { naam, xs, ys, zs, idx, half, asSleutel }
   const DR_STANDAARD = { boxen: [{ voorwaarde: 'weg', naam: 'rijbaan', breedte: 3.5, hoogte: 4.2, verschuiving: 0 }], marge: 0.1, minHoogte: 0.5, stVan: '', stTot: '', minPunten: 3, tonen: true };
   let doorrij = JSON.parse(JSON.stringify(DR_STANDAARD));
+  /** Voorwaarden (besluit B3): gangbare maten als voorstel, geen norm. Kies "eigen maten" voor de eis van de opdrachtgever. */
+  const DR_VOORWAARDEN = {
+    hoofdweg: { tekst: 'Hoofdweg / vrachtverkeer', naam: 'rijbaan', H: 4.5, B: 3.5 },
+    weg: { tekst: 'Gewone weg', naam: 'rijbaan', H: 4.2, B: 3.5 },
+    bus: { tekst: 'Bus', naam: 'busbaan', H: 4.0, B: 3.5 },
+    hulpdiensten: { tekst: 'Hulpdiensten', naam: 'hulpdiensten', H: 4.0, B: 3.5 },
+    fietspad: { tekst: 'Fietspad', naam: 'fietspad', H: 2.5, B: 2.0 },
+    voetpad: { tekst: 'Voetpad', naam: 'voetpad', H: 2.3, B: 1.5 },
+    eigen: { tekst: 'Eigen maten', naam: '', H: null, B: null },
+  };
+  const DR_MAX_BOXEN = 4;
   let drResultaat = null;
   const DR_KLEUR = { box: '#1F4E79', ok: '#16803D', nok: '#C6472B', krap: '#E08A1E', dak: '#5B6670', weg: '#A3ADB8' };
 
@@ -7984,11 +7997,14 @@
   /** De rijen van de boxen in het venster. */
   function toonDrBoxen() {
     const vak = document.getElementById('drBoxen'); if (!vak) return;
+    const opties = (gekozen) => Object.entries(DR_VOORWAARDEN).map(([k, v]) => `<option value="${k}"${k === gekozen ? ' selected' : ''}>${v.tekst}${v.H ? ` (${komma(v.H, 2)} m)` : ''}</option>`).join('');
     vak.innerHTML = doorrij.boxen.map((b, i) => `<div class="drBox" data-i="${i}">
+      <div class="rij" title="Kiest naam, breedte en hoogte. De maten zijn een voorstel uit de praktijk, geen norm: pas ze aan naar de eis van de opdrachtgever."><span>Voorwaarde</span><select data-veld="voorwaarde">${opties(b.voorwaarde || 'eigen')}</select>${doorrij.boxen.length > 1 ? ` <button type="button" class="drWeg" data-i="${i}" title="Deze box weghalen">✕</button>` : ''}</div>
+      <div class="rij"><span>Naam</span><input type="text" data-veld="naam" value="${(b.naam ?? '').replace(/"/g, '&quot;')}" placeholder="bv. rijbaan" style="width:120px"></div>
       <div class="rij"><span>Breedte B</span><input type="number" data-veld="breedte" step="0.05" min="0" value="${b.breedte ?? ''}"> m</div>
       <div class="rij"><span>Hoogte H</span><input type="number" data-veld="hoogte" step="0.05" min="0" value="${b.hoogte ?? ''}"> m boven de weg</div>
       <div class="rij" title="Midden van de box t.o.v. de as; positief = rechts (kijkrichting oplopend station)"><span>Verschuiving</span><input type="number" data-veld="verschuiving" step="0.1" value="${b.verschuiving ?? 0}"> m (+ = rechts)</div>
-    </div>`).join('');
+    </div>`).join('') + (doorrij.boxen.length < DR_MAX_BOXEN ? '<div class="rij"><span></span><button type="button" id="drBoxErbij" title="Nog een box toetsen, bv. een fietspad naast de rijbaan (maximaal vier)">+ box</button></div>' : '');
   }
   function zetDoorrijVelden() {
     for (const [id, sl] of Object.entries(DR_VELDEN)) { const e = document.getElementById(id); if (e) e.value = doorrij[sl] ?? ''; }
@@ -8070,7 +8086,28 @@
   }
   if (drDialoog) {
     for (const id of Object.keys(DR_VELDEN)) document.getElementById(id)?.addEventListener('input', drGewijzigd);
-    document.getElementById('drBoxen')?.addEventListener('input', drGewijzigd);
+    document.getElementById('drBoxen')?.addEventListener('input', (e) => { if (e.target.dataset?.veld !== 'voorwaarde') drGewijzigd(); });
+    document.getElementById('drBoxen')?.addEventListener('change', (e) => {
+      if (e.target.dataset?.veld !== 'voorwaarde') return;
+      leesDoorrijVelden();
+      const i = Number(e.target.closest('.drBox')?.dataset.i), b = doorrij.boxen[i], v = DR_VOORWAARDEN[e.target.value];
+      if (b && v) { b.voorwaarde = e.target.value; if (v.H != null) { b.hoogte = v.H; b.breedte = v.B; b.naam = v.naam; } }
+      toonDrBoxen(); drGewijzigd();
+    });
+    document.getElementById('drBoxen')?.addEventListener('click', (e) => {
+      if (e.target.id === 'drBoxErbij') {
+        leesDoorrijVelden();
+        if (doorrij.boxen.length >= DR_MAX_BOXEN) return;
+        const v = DR_VOORWAARDEN.fietspad, vorige = doorrij.boxen[doorrij.boxen.length - 1];
+        const naast = (dvGetal(vorige?.verschuiving) ?? 0) + (dvGetal(vorige?.breedte) ?? 3.5) / 2 + v.B / 2 + 0.5;
+        doorrij.boxen.push({ voorwaarde: 'fietspad', naam: v.naam, breedte: v.B, hoogte: v.H, verschuiving: Math.round(naast * 10) / 10 });
+        toonDrBoxen(); drGewijzigd();
+      } else if (e.target.classList.contains('drWeg')) {
+        leesDoorrijVelden();
+        doorrij.boxen.splice(Number(e.target.dataset.i), 1);
+        toonDrBoxen(); drGewijzigd();
+      }
+    });
     document.getElementById('drTonen')?.addEventListener('change', drGewijzigd);
     document.getElementById('doorrijKnop')?.addEventListener('click', () => { zetDoorrijVelden(); werkDoorrijPaneelBij(); drDialoog.showModal(); });
     document.getElementById('drSluit')?.addEventListener('click', () => drDialoog.close());

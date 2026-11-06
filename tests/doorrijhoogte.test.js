@@ -85,6 +85,35 @@ function maakWolk() {
   if (!r.dekking || !r.dekking.gaten || !(r.gatM2 > 25 && r.gatM2 < 45)) fouten.push(`3: het stuk zonder weg onder het dak staat niet goed als niet gemeten op de dekkingskaart (${r.gatM2} m²)`);
   if (!r.ruis) fouten.push('3: de losse vogel werd niet als ruis herkend');
 
+  // 4. (F1) voorwaarde kiezen zet B en H; eigen maten blijven werken
+  await p.selectOption('#drBoxen .drBox[data-i="0"] select[data-veld="voorwaarde"]', 'fietspad'); await p.waitForTimeout(500);
+  let inst = await p.evaluate(() => window.__pvTest.doorrijInst());
+  console.log('4 fietspad:', JSON.stringify(inst.boxen[0]));
+  if (inst.boxen[0].breedte != 2 || inst.boxen[0].hoogte != 2.5 || inst.boxen[0].naam !== 'fietspad') fouten.push('4: kiezen van "fietspad" zet B en H niet');
+  await p.selectOption('#drBoxen .drBox[data-i="0"] select[data-veld="voorwaarde"]', 'weg'); await p.waitForTimeout(500);
+  await p.selectOption('#drBoxen .drBox[data-i="0"] select[data-veld="voorwaarde"]', 'eigen'); await p.waitForTimeout(300);
+  await p.fill('#drBoxen .drBox[data-i="0"] [data-veld="breedte"]', '3.5'); await p.fill('#drBoxen .drBox[data-i="0"] [data-veld="hoogte"]', '4.2'); await p.waitForTimeout(400);
+  inst = await p.evaluate(() => window.__pvTest.doorrijInst());
+  if (inst.boxen[0].breedte != 3.5 || inst.boxen[0].hoogte != 4.2 || inst.boxen[0].voorwaarde !== 'eigen') fouten.push('4: eigen maten werken niet');
+
+  // 5. (F1) twee boxen: rijbaan 3,50 × 4,20 en fietspad 2,00 × 2,50 op 4,5 m rechts; elk een eigen oordeel en kritiek punt
+  await p.click('#drBoxErbij'); await p.waitForTimeout(400);
+  await p.fill('#drBoxen .drBox[data-i="1"] [data-veld="verschuiving"]', '4.5'); await p.waitForTimeout(400);
+  await p.click('#drControleer'); await p.waitForTimeout(800);
+  r = await p.evaluate(() => window.__pvTest.doorrij());
+  const [b1, b2] = r.boxen;
+  const verwacht2 = DAK_ONDER - weg(b2.kritiek.station, b2.c + b2.B / 2) - b2.H;
+  console.log('5 twee boxen:', JSON.stringify(r.boxen.map(b => ({ B: b.B, H: b.H, c: b.c, ok: b.ok, speling: b.speling?.toFixed(3), st: b.kritiek?.station.toFixed(1) }))), '| verwacht fietspad', verwacht2.toFixed(3));
+  if (r.boxen.length !== 2 || b1.ok || !b2.ok || Math.abs(b2.speling - verwacht2) >= 0.02 || r.ok) fouten.push('5: twee boxen geven niet elk het juiste oordeel');
+  if (!/fietspad/.test(await p.textContent('#drResultaat'))) fouten.push('5: de tweede box staat niet in het resultaat');
+
+  // 6. (F1) instellingen komen terug na opslaan en heropenen van het project
+  const terug = await p.evaluate(() => window.__pvTest.projectRondje());
+  console.log('6 na opslaan en openen:', JSON.stringify(terug.boxen));
+  if (terug.boxen.length !== 2 || terug.boxen[1].naam !== 'fietspad' || Number(terug.boxen[1].verschuiving) !== 4.5 || Number(terug.boxen[0].hoogte) !== 4.2) fouten.push('6: de boxen komen niet terug na opslaan en openen');
+  await p.waitForTimeout(1500);
+  if (!(await p.isVisible('#drDialoog[open]'))) { await p.click('#doorrijKnop'); await p.waitForTimeout(400); }
+
   // schermafdruk: venster, dan dwars- en lengteprofiel
   await p.screenshot({ path: path.join(H.UIT, 'doorrijhoogte_venster.png') });
   await p.click('#drSluit');
