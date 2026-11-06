@@ -3,7 +3,7 @@ plan: doorrijhoogte
 titel: Doorrijhoogte: vrije hoogte onder een dak of kunstwerk toetsen
 versie: 1
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ▶ · F2 ▶ · F3 ▶           # berekend door de skill
+voortgang: F0 ✅ · F1 ✅ · F2 ▶ · F3 ▶           # berekend door de skill
 opgesteld: 2026-11-06
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -80,8 +80,8 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
 | F0 | ✅ gebouwd | Knop en venster "Doorrijhoogte", rekenstuk (weg uit de onderste laag met overbrugde gaten, dak erboven, vrije hoogte en speling per station, kritiek punt), box op de weg in dwars- en lengteprofiel, geen schip | 1. Nieuwe test `tests/doorrijhoogte.test.js` met een gemaakte wolk (weg met dwarshelling en een dak op bekende hoogte, deels zonder weg eronder): gemeten vrije hoogte wijkt < 2 cm af van de bekende, het kritieke station klopt. 2. Bij een dak lager dan H: oordeel "voldoet niet" met de juiste tekortkoming. 3. De vakken onder het dak zonder weg staan als niet gemeten op de dekkingskaart en tellen niet als weg. 4. Schermafdruk van venster en dwarsprofiel op LoZ.laz, alleen met het originele bestand. 5. De bestaande doorvaarttest blijft groen. | B1, B2, B5 | L | Opus 5.5, medium | `F0:` |
-| F1 | ▶ vrijgegeven | Voorwaarden-lijst, eigen maten, marge, meerdere boxen tegelijk | 1. Test: kiezen uit de lijst zet B en H; eigen maten werken. 2. Test met twee boxen (4,20 × 3,50 en 2,50 × 2,00 met verschuiving): elk een eigen oordeel en kritiek punt. 3. Instellingen komen terug na opslaan en heropenen van het project. | F0, B3, B4 | M | Opus 5.5, medium | `F1:` |
-| F2 | ▶ vrijgegeven, na F1 | PDF-blad "Doorrijhoogte" met box, kritieke doorsnede, lengteprofiel met vrije hoogte, tabel per voorwaarde en dekkingskaart | 1. Test maakt de PDF; het blad staat erin met de juiste kleinste vrije hoogte en speling. 2. Render van het blad op LoZ.laz bekeken (schermafdruk). | F1 | M | Opus 5.5, medium | `F2:` |
+| F1 | ✅ gebouwd | Voorwaarden-lijst, eigen maten, marge, meerdere boxen tegelijk | 1. Test: kiezen uit de lijst zet B en H; eigen maten werken. 2. Test met twee boxen (4,20 × 3,50 en 2,50 × 2,00 met verschuiving): elk een eigen oordeel en kritiek punt. 3. Instellingen komen terug na opslaan en heropenen van het project. | F0, B3, B4 | M | Opus 5.5, medium | `F1:` |
+| F2 | ▶ vrijgegeven | PDF-blad "Doorrijhoogte" met box, kritieke doorsnede, lengteprofiel met vrije hoogte, tabel per voorwaarde en dekkingskaart | 1. Test maakt de PDF; het blad staat erin met de juiste kleinste vrije hoogte en speling. 2. Render van het blad op LoZ.laz bekeken (schermafdruk). | F1 | M | Opus 5.5, medium | `F2:` |
 | F3 | ▶ vrijgegeven, na F2 | Opleveren: versie, LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met `fouten: geen`. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat de doorrijhoogte onder het dak bij LoZ.laz klopt. | F2, B6 | S | Opus 5.5, medium | `F3:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
@@ -112,6 +112,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
 | F0 | 2026-11-06 21:18 | 2026-11-06 21:54 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 136 / 72.561 | b38991d | transcript (Claude Code 2.1.317) |
+| F1 | 2026-11-06 21:55 | 2026-11-06 21:57 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 14 / 9.878 | b7552ff | transcript (Claude Code 2.1.317) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -125,6 +126,9 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F0 | 2026-11-06 21:54 | 3. Vakken onder het dak zonder weg als niet gemeten op de dekkingskaart, tellen niet als weg | zelfde test: weg op st. 50 overbrugd 11,002 (verwacht 11,000, niet het dak op 14,60); "niet gemeten: 40 m²" (verwacht ± 35 m²), 1 plek; losse vogel als ruis herkend | gehaald |
 | F0 | 2026-11-06 21:54 | 4. Schermafdruk van venster en dwarsprofiel op LoZ.laz, alleen met het originele bestand | `tests/uit/doorrijhoogte_LoZ.png` en `_venster.png`: LoZ.laz zonder projectmap, klassen 2/6/11/66/67, strook 3.976.823 punten (vakjes 4 cm), box 3,50 × 4,20 op de weg. De as is door mij afgeleid en loopt over het plein naast het dak (paal en auto gevonden), niet onder het dak; de controle onder het dak volgt met Marco's as in F3 | gehaald |
 | F0 | 2026-11-06 21:54 | 5. De bestaande doorvaarttest blijft groen | `node doorvaart.test.js`: "fouten: geen"; ook stationering_snoei, zoom_vakken, projectmap, natieve_map, profielpunten "fouten: geen" | gehaald |
+| F1 | 2026-11-06 21:57 | 1. Kiezen uit de lijst zet B en H; eigen maten werken | `node doorrijhoogte.test.js` stap 4: "fietspad" → breedte 2, hoogte 2.5, naam fietspad; daarna "eigen maten" met 3,5 × 4,2 bewaard | gehaald |
+| F1 | 2026-11-06 21:57 | 2. Twee boxen (4,20 × 3,50 en 2,50 × 2,00 met verschuiving): elk een eigen oordeel en kritiek punt | stap 5: rijbaan ok=false, speling −0,847, st. 60; fietspad (c 4,5) ok=true, speling +0,760 (verwacht 0,763), st. 60; "fietspad" in het resultaat | gehaald |
+| F1 | 2026-11-06 21:57 | 3. Instellingen komen terug na opslaan en heropenen van het project | stap 6 (`maakProjectBlob` → `laadProjectBestand`): beide boxen terug, fietspad met verschuiving 4.5, rijbaan H 4.2; "fouten: geen" | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
