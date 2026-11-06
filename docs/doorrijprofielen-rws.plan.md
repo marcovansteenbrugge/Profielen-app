@@ -2,8 +2,8 @@
 plan: doorrijprofielen-rws
 titel: Doorrijprofielen volgens RWS (profiel 1 en 2, meetpunten, doorrijbreedte)
 versie: 1
-status: vrijgegeven        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ▶ · F1 ▶ · F2 ▶ · F3 ▶           # berekend door de skill
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ✅ · F1 ▶ · F2 ▶ · F3 ▶           # berekend door de skill
 opgesteld: 2026-11-06
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -82,8 +82,8 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ▶ vrijgegeven | Profiel 1 en 2, meetpunten (BGT + aanklikken), hoogtes uit ruwe punten met aantal en spreiding, minimale doorrijhoogte per rijbaan, tabel en pijlen in het dwarsprofiel | 1. Nieuwe test met gemaakte wolk (weg met helling, dak met bekende onderkant, BGT-randen): profiel 1 en 2 op de dakranden (± 0,25 m), hoogtes op de meetpunten < 1 cm van de bekende waarden. 2. Een aangeklikt meetpunt verschijnt in de tabel en verdwijnt na verwijderen. 3. Minimale doorrijhoogte per rijbaan gelijk aan de kleinste vrije hoogte uit 2.13.0. 4. Schermafdruk op LoZ.laz. | B1, B2, B3 | L | Opus 5.5, medium | `F0:` |
-| F1 | ▶ vrijgegeven, na F0 | Doorrijbreedte op 0,5–1,0 m in de profielen en tot 30 m ervoor en erna | 1. Test met twee "geleiderails" op bekende afstand en een kolom 15 m voor het dak: breedte < 1 cm van de bekende, de kolom bepaalt de kleinste breedte. 2. Zonder obstakel: kant verharding als begrenzing. | F0, B4 | M | Opus 5.5, medium | `F1:` |
+| F0 | ✅ gebouwd | Profiel 1 en 2, meetpunten (BGT + aanklikken), hoogtes uit ruwe punten met aantal en spreiding, minimale doorrijhoogte per rijbaan, tabel en pijlen in het dwarsprofiel | 1. Nieuwe test met gemaakte wolk (weg met helling, dak met bekende onderkant, BGT-randen): profiel 1 en 2 op de dakranden (± 0,25 m), hoogtes op de meetpunten < 1 cm van de bekende waarden. 2. Een aangeklikt meetpunt verschijnt in de tabel en verdwijnt na verwijderen. 3. Minimale doorrijhoogte per rijbaan gelijk aan de kleinste vrije hoogte uit 2.13.0. 4. Schermafdruk op LoZ.laz. | B1, B2, B3 | L | Opus 5.5, medium | `F0:` |
+| F1 | ▶ vrijgegeven | Doorrijbreedte op 0,5–1,0 m in de profielen en tot 30 m ervoor en erna | 1. Test met twee "geleiderails" op bekende afstand en een kolom 15 m voor het dak: breedte < 1 cm van de bekende, de kolom bepaalt de kleinste breedte. 2. Zonder obstakel: kant verharding als begrenzing. | F0, B4 | M | Opus 5.5, medium | `F1:` |
 | F2 | ▶ vrijgegeven, na F1 | PDF-blad per profiel per rijbaan in RWS-stijl, met tekstvak | 1. Test maakt de PDF: per profiel een blad, maten met drie decimalen en punt, minimale doorrijhoogte rood in het tekstvak. 2. Render bekeken (schermafdruk). | F1, B5, B6 | M | Opus 5.5, medium | `F2:` |
 | F3 | ▶ vrijgegeven, na F2 | Opleveren 2.14.0: LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met "Alle tests geslaagd". 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat profiel 1 en 2 bij de Bergstraat kloppen. | F2, B7 | S | Opus 5.5, medium | `F3:` |
 
@@ -114,6 +114,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
+| F0 | 2026-11-06 23:04 | 2026-11-06 23:31 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 66 / 38.189 | a63ff94 | transcript (Claude Code 2.1.317) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -122,12 +123,17 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 
 | Fase | Tijdstip | Criterium | Controle en uitkomst | Oordeel |
 |---|---|---|---|---|
+| F0 | 2026-11-06 23:31 | 1. Profiel 1 en 2 op de dakranden (± 0,25 m), hoogtes op de meetpunten < 1 cm van de bekende waarden | `node doorrijprofiel_rws.test.js`: profiel 1 st. 40,2, profiel 2 st. 59,8 (dak van 40 tot 60); kant verharding uit de BGT op ± 3,95 m; hoogtes 3,8938 / 3,6963 / 3,5038 / 3,3063 tegen verwacht 3,8948 / 3,6973 / 3,5048 / 3,3073 (1 mm); "fouten: geen" | gehaald |
+| F0 | 2026-11-06 23:31 | 2. Een aangeklikt meetpunt verschijnt in de tabel en verdwijnt na verwijderen | zelfde test: klik op 1,5 m in profiel 1 → meetpunt "markering" op 1,49 m, h 3,7588 (verwacht 3,7588), "wegmarkering" in de tabel; na ✕ weg | gehaald |
+| F0 | 2026-11-06 23:31 | 3. Minimale doorrijhoogte per rijbaan gelijk aan de kleinste vrije hoogte uit 2.13.0 | zelfde test: "3,353" van de box staat in de tabel "Minimale doorrijhoogte per rijbaan" | gehaald |
+| F0 | 2026-11-06 23:31 | 4. Schermafdruk op LoZ.laz | `tests/uit/doorrijprofiel_rws_LoZ.png` en `_venster.png`: LoZ.laz zonder projectmap, ruwe punten onder profiel 1 en 2 in 169 s gelezen. De as is door mij afgeleid en ligt niet onder het dak, dus de profielen vallen op een paal en een auto (st. 0,2 en 57,7) en er is geen BGT: de inhoudelijke controle onder het dak volgt met Marco's as in F3 | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
 
 | Fase | Wat week af van het plan | Waarom |
 |---|---|---|
+| F0 | Profielen tonen via een tijdelijk station (drToon) in plaats van ze aan de dwarsprofielen toe te voegen | De gewone profielreeks (en de PDF-dwarsprofielen) blijft ongewijzigd |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |

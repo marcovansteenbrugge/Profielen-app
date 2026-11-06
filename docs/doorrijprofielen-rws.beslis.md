@@ -4,7 +4,7 @@ titel: Doorrijprofielen volgens RWS (profiel 1 en 2, meetpunten, doorrijbreedte)
 plan: doorrijprofielen-rws.plan.md
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
 voorgelegd: 2026-11-06 22:59          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
-status: vrijgegeven        # berekend door de skill, nooit met de hand gezet
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 ---
 
 > Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
@@ -21,7 +21,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
-| F0 | Profiel 1 en 2, meetpunten, hoogtes uit de ruwe punten, minimale doorrijhoogte per rijbaan | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B1, B2, B3 | - |
+| F0 | Profiel 1 en 2, meetpunten, hoogtes uit de ruwe punten, minimale doorrijhoogte per rijbaan | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B1, B2, B3 | ✅ 2026-11-06 23:31 |
 | F1 | Doorrijbreedte op 0,5–1,0 m | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B4 | - |
 | F2 | PDF-blad per profiel in RWS-stijl, met tekstvak | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B5, B6 | - |
 | F3 | Uitleveren als 2.14.0, met jouw controle op LoZ.laz | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B7 | - |
@@ -174,5 +174,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 |---|---|---|
 | 2026-11-06 22:59 | Plan opgesteld en voorgelegd, op verzoek van Marco ("Ja, maak het plan"), op basis van de RWS-productspecificatie Doorrijprofielen (1 juli 2022) | Claude Opus 5.5 (agent) |
 | 2026-11-06 23:04 | B1 tot en met B7 akkoord (ons voorstel) en vrijgave F0 tot en met F3 op planversie 1: "Akkoord, bouw F0–F3" | Marco van Steenbrugge, via chat |
+| 2026-11-06 23:31 | F0 gebouwd: profiel 1 en 2, meetpunten (BGT en aanklikken), hoogtes uit de ruwe punten, minimale doorrijhoogte per rijbaan | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
