@@ -60,7 +60,7 @@ function natiefVerzoek(req, res, url) {
   const pad = binnen(q.get('pad'));
   if (!pad) return stuur(403, 'pad buiten toegestane mappen');
   try {
-    if (route === 'fs/info') { if (!fs.existsSync(pad)) return json({ bestaat: false }); const st = fs.statSync(pad); return json({ bestaat: true, soort: st.isDirectory() ? 'map' : 'bestand', naam: path.basename(pad), grootte: st.size, gewijzigd: st.mtimeMs | 0 }); }
+    if (route === 'fs/info') { if (!fs.existsSync(pad)) return json({ bestaat: false }); const st = fs.statSync(pad); return json({ bestaat: true, soort: st.isDirectory() ? 'map' : 'bestand', naam: path.basename(pad), grootte: st.size, gewijzigd: Math.floor(st.mtimeMs) }); }
     if (route === 'fs/lijst') return json(fs.readdirSync(pad, { withFileTypes: true }).filter(d => !d.name.endsWith('.pvtmp')).map(d => ({ naam: d.name, soort: d.isDirectory() ? 'map' : 'bestand' })));
     if (route === 'fs/lees') {
       const st = fs.statSync(pad), m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
@@ -104,30 +104,42 @@ function omzetVerzoek(req, res, route, q, lees, stuur, json) {
   if (route === 'omzet/afbreken') {
     const t = omzettingen.get(q.get('id'));
     if (!t || t.fase !== 'lezen' && t.fase !== 'afronden') return stuur(204);
-    t.afbreken = true; t.proc.kill();
+    t.afbreken = true;
+    if (t.proc) t.proc.kill(); else t.stopPauze();
     return t.klaar.then(() => stuur(204));
   }
   if (route !== 'omzet/start') return stuur(404, 'onbekende route');
   return lees().then(b => {
-    const { bron, doel, modus } = JSON.parse(String(b) || '{}');
+    const { bron, doel, modus, klassen } = JSON.parse(String(b) || '{}');
+    if (klassen != null && (!Array.isArray(klassen) || klassen.some(k => !Number.isInteger(k) || k < 0 || k > 255))) return stuur(400, 'ongeldige klassen');
     if (!bron || !doel || !['boven', 'onder'].includes(modus)) return stuur(400, 'ongeldige opdracht');
     if (!binnen(bron) || !binnen(doel)) return stuur(403, 'bron of doel buiten toegestane plekken');
     if ([...omzettingen.values()].some(t => t.fase === 'lezen' || t.fase === 'afronden')) return stuur(409, 'er loopt al een omzetting');
     const id = require('crypto').randomBytes(12).toString('hex'), tijdelijk = `${doel}.${id}.pvtmp`;
     // natief.omzetFout: de exe laat het omzetten mislukken (om de terugval van de viewer te testen)
     if (natief.omzetFout) { omzettingen.set(id, { fase: 'fout', fout: natief.omzetFout, gelezen: 0, totaal: 0, klaar: Promise.resolve() }); return json({ id }); }
-    const proc = require('child_process').spawn(pvomzet(), ['-bron', bron, '-doel', tijdelijk, '-modus', modus, '-voortgang', '-viewer', 'pvomzet (testserver)']);
-    const t = { fase: 'lezen', gelezen: 0, totaal: 0, proc };
+    natief.laatsteKlassen = klassen ?? null;
+    const t = { fase: 'lezen', gelezen: 0, totaal: 0, proc: null };
     natief.omzettingen = (natief.omzettingen || 0) + 1;
     let fout = '';
-    proc.stderr.on('data', d => { for (const r of String(d).split('\n')) { const m = /^voortgang (\d+) (\d+)/.exec(r); if (m) { t.gelezen = +m[1]; t.totaal = +m[2]; } else if (/^fase afronden/.test(r)) t.fase = 'afronden'; else if (r.trim()) fout = r.trim(); } });
-    t.klaar = new Promise(ok => proc.on('exit', (code) => {
+    const einde = (code, ok) => {
       if (code === 0 && !t.afbreken) {
         try { fs.rmSync(doel, { recursive: true, force: true }); fs.renameSync(tijdelijk, doel); t.info = JSON.parse(fs.readFileSync(path.join(doel, 'info.json'), 'utf8')); t.fase = 'klaar'; }
         catch (e) { t.fase = 'fout'; t.fout = e.message; }
       } else { fs.rmSync(tijdelijk, { recursive: true, force: true }); if (t.afbreken) t.fase = 'afgebroken'; else { t.fase = 'fout'; t.fout = fout.replace(/^pvomzet: /, '') || `pvomzet stopte met ${code}`; } }
       ok();
-    }));
+    };
+    const begin = (ok) => {
+      const proc = t.proc = require('child_process').spawn(pvomzet(), ['-bron', bron, '-doel', tijdelijk, '-modus', modus, '-voortgang', '-viewer', 'pvomzet (testserver)', ...(klassen ? ['-klassen', klassen.join(',')] : [])]);
+      proc.stderr.on('data', d => { for (const r of String(d).split('\n')) { const m = /^voortgang (\d+) (\d+)/.exec(r); if (m) { t.gelezen = +m[1]; t.totaal = +m[2]; } else if (/^fase afronden/.test(r)) t.fase = 'afronden'; else if (r.trim()) fout = r.trim(); } });
+      proc.on('exit', (code) => einde(code, ok));
+    };
+    // natief.omzetPauze (ms): eerst even wachten, zodat de tests betrouwbaar kunnen afbreken
+    t.klaar = new Promise(ok => {
+      if (!natief.omzetPauze) return begin(ok);
+      const tm = setTimeout(() => begin(ok), natief.omzetPauze);
+      t.stopPauze = () => { clearTimeout(tm); einde(null, ok); };
+    });
     omzettingen.set(id, t);
     json({ id });
   });
@@ -157,4 +169,11 @@ async function start() {
 function browserOpties() {
   return process.env.PV_CHROMIUM ? { executablePath: process.env.PV_CHROMIUM } : { channel: process.env.PV_KANAAL || 'msedge' };
 }
-module.exports = { chromium: pw.chromium, ROOT, UIT, URL, POORT, data, start, browserOpties, natief, pvomzet };
+/** Het venster "Welke klassen inlezen?" afhandelen (plan klassen-kiezen): wachten tot het opent,
+ *  zo nodig alleen `klassen` aanvinken, en Inlezen. */
+async function klassenInlezen(p, klassen = null) {
+  await p.waitForSelector('#klassenDialoog[open]', { timeout: 120000 });
+  if (klassen) await p.$$eval('#klLijst input[type=checkbox]', (vs, ks) => { for (const v of vs) v.checked = ks.includes(+v.value); vs[0]?.dispatchEvent(new Event('change', { bubbles: true })); }, klassen);
+  await p.click('#klInlezen');
+}
+module.exports = { chromium: pw.chromium, ROOT, UIT, URL, POORT, data, start, browserOpties, natief, pvomzet, klassenInlezen };

@@ -404,6 +404,7 @@
       <label class="veld" title="Alleen maaiveld (klasse 2): bij een LAS/LAZ met classificatie (zoals AHN of een geclassificeerde dronemeting) alleen de grondpunten van A gebruiken. Begroeiing, gebouwen, hekwerk en paaltjes vallen dan weg uit de surface en de profielen (ook bij Alle punten en Detailstrook). Een .pts of een LAS zonder classificatie gebruikt vanzelf alle punten.">
         <input type="checkbox" id="wolkAMaaiveld"> maaiveld
       </label>
+      <button type="button" id="klassenKnop" hidden title="Klassen wijzigen: kiezen welke classificaties (maaiveld, weg, gebouw, …) van deze scan worden ingelezen. Bij een omgezette wolk wordt hij opnieuw omgezet; je as en profielen blijven staan.">Klassen…</button>
     </div>
     <div class="rij">
       <label class="veld" title="Hoeveel punten de viewer maximaal gebruikt voor de surface. Meer punten = meer detail (kleinere puntafstand), maar trager inlezen en een groter projectbestand. Wijzigen leest het bestand opnieuw in; je as en BGT blijven staan.">punten
@@ -815,6 +816,16 @@
     <p class="hint" style="margin:0">Tip: maak in de projectmap van de opdracht een map "Profielviewer" (of per onderdeel, bv. "Profielviewer dijkvak 3") en kies die.</p>
   </div>
   <div class="pdf-voet"><span class="info" id="pmInfo"></span><button id="pmZonder" title="Zoals vroeger: de puntenwolk direct inlezen en uitdunnen, zonder vakken en zonder projectmap">Zonder projectmap</button><button id="pmKies" class="primair">Projectmap kiezen…</button></div>
+</dialog>
+
+<dialog id="klassenDialoog" class="dvDialoog" style="width:min(520px, calc(100vw - 32px))">
+  <div class="pdf-kop"><img src="merk-lutrea.png" alt=""><h2>Welke klassen inlezen?</h2><span class="zacht" id="klOndertitel"></span></div>
+  <div style="padding:14px 20px; display:grid; gap:10px; font-size:13.5px; line-height:1.5">
+    <p id="klTekst" style="margin:0">Alleen de aangevinkte classificaties komen in de vakken. Minder klassen = minder punten, sneller en lichter. Later wijzigen kan met de knop <b>Klassen…</b> bij de puntenwolk.</p>
+    <div id="klLijst" style="display:grid; gap:2px; max-height:min(46vh, 420px); overflow:auto; border:1px solid var(--line); border-radius:6px; padding:6px 8px"></div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap"><button type="button" id="klAlles">Alles</button><button type="button" id="klGeen">Niets</button><button type="button" id="klMaaiveld" title="Alleen maaiveld (klasse 2)">Alleen maaiveld</button></div>
+  </div>
+  <div class="pdf-voet"><span class="info" id="klInfo"></span><button type="button" id="klAnnuleer">Annuleren</button><button type="button" id="klInlezen" class="primair">Inlezen</button></div>
 </dialog>
 
 <dialog id="projectOpenDialoog" class="dvDialoog" style="width:min(620px, calc(100vw - 32px))">

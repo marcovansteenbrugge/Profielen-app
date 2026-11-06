@@ -50,7 +50,7 @@ const MAP = path.join(H.UIT, 'natief');
   console.log('0 natief in de pagina:', await p.evaluate(() => !!window.__pvNatief));
   H.natief.kiesRij.push(path.join(MAP, 'proj1'));
   let t0 = Date.now();
-  await p.setInputFiles('#ptsBestand', U + '/dijk_begroeid.las');
+  await p.setInputFiles('#ptsBestand', U + '/dijk_begroeid.las'); await H.klassenInlezen(p);
   await p.waitForSelector('#projectMapDialoog[open]'); await p.click('#pmKies');
   console.log('1 laden:', (await wacht(/driehoeken/)).slice(0, 160));
   const tNatief = (Date.now() - t0) / 1000;
@@ -130,7 +130,7 @@ const MAP = path.join(H.UIT, 'natief');
   // 4. vergelijking: hetzelfde omzetten via de browsermap (OPFS)
   const q = await nieuwePagina(false), wachtQ = wachter(q);
   t0 = Date.now();
-  await q.setInputFiles('#ptsBestand', U + '/dijk_begroeid.las');
+  await q.setInputFiles('#ptsBestand', U + '/dijk_begroeid.las'); await H.klassenInlezen(q);
   await q.waitForSelector('#projectMapDialoog[open]'); await q.click('#pmKies');
   console.log('9 vergelijking (browsermap):', (await wachtQ(/driehoeken/)).slice(0, 100));
   const tBrowser = (Date.now() - t0) / 1000;

@@ -40,6 +40,7 @@ const UIT = path.join(H.UIT, 'omzetten_viewer');
   const openen = async (scanPad, projMap) => {
     H.natief.kiesRij.push(scanPad);
     await p.click('button.bestandOpen[data-voor="ptsBestand"]');
+    if (/\.la[sz]$/i.test(scanPad)) await H.klassenInlezen(p);
     if (projMap) { fs.mkdirSync(projMap, { recursive: true }); H.natief.kiesRij.push(projMap); await p.waitForSelector('#projectMapDialoog[open]'); await p.click('#pmKies'); }
   };
   const volg = async (stop, max = 240) => {   // statusregels verzamelen tot stop(status) waar is

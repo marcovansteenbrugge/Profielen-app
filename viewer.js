@@ -1690,6 +1690,8 @@
 
   /** Een puntenwolk als A openen: met projectmap omzetten naar vakken, anders zoals vroeger. */
   async function openPuntenwolkA(bestand) {
+    if (!(await kiesKlassenBijOpenen(bestand))) { statusEl.textContent = 'Openen geannuleerd'; return; }
+    bronBestandA = bestand;
     if (!projectMap) {
       const map = await vraagProjectMap({ info: `${bestand.name} (${(bestand.size / 1e6).toLocaleString('nl-NL', { maximumFractionDigits: 0 })} MB)` });
       if (map === false) { statusEl.textContent = 'Openen geannuleerd'; return; }
@@ -1703,6 +1705,7 @@
       await laadBestand(bron, false);
       // de omzettijd blijft zichtbaar (anders overschrijft het laden hem)
       if (bron.pvOmzetTekst && !/omgezet in/.test(statusEl.textContent)) statusEl.textContent += ` · ${bron.pvOmzetTekst}`;
+      if (bron.info.klassenKeuze) statusEl.textContent += ` · klassen: ${klassenTekst(bron.info.klassenKeuze)}`;
     }
   }
   /** Vakken voor `bestand` in puntenwolk\<letter> - <naam>: hergebruiken als ze er al zijn, anders omzetten. */
@@ -1711,7 +1714,7 @@
   async function omzettenDoorProgramma(bestand, wolkMap) {
     const json = { 'Content-Type': 'application/json' };
     const { id } = await (await natiefVraag('omzet/start', null, { methode: 'POST', kop: json,
-      body: JSON.stringify({ bron: bestand.pvPad, doel: wolkMap.pvPad, modus: oppervlakModus() }) })).json();
+      body: JSON.stringify({ bron: bestand.pvPad, doel: wolkMap.pvPad, modus: oppervlakModus(), klassen: bestand.pvKlassen ?? null }) })).json();
     let knop = document.getElementById('omzetAfbreken');
     if (!knop) {
       knop = document.createElement('button');
@@ -1743,9 +1746,12 @@
     const pw = await projectMap.getDirectoryHandle('puntenwolk', { create: true });
     const naam = `${letter} - ${veiligeNaam(bestand.name.replace(/\.[^.]+$/, ''), 'scan')}`;
     const wolkMap = await pw.getDirectoryHandle(naam, { create: true });
+    let oudInfo = null;
     try {
-      const info = JSON.parse(await (await leesBestandUitMap(wolkMap, 'info.json')).text());
-      if (info.formaat === TEGEL_FORMAAT && info.bron?.grootte === bestand.size && info.bron?.gewijzigd === bestand.lastModified) {
+      const info = oudInfo = JSON.parse(await (await leesBestandUitMap(wolkMap, 'info.json')).text());
+      // hergebruiken: zelfde scan én zelfde klassenkeuze (oude vakken zonder klassenKeuze = alles)
+      if (info.formaat === TEGEL_FORMAAT && info.bron?.grootte === bestand.size && info.bron?.gewijzigd === bestand.lastModified
+        && zelfdeKlassen(info.klassenKeuze ?? null, bestand.pvKlassen ?? null)) {
         statusEl.textContent = `${bestand.name}: al omgezet (${info.aantal.toLocaleString('nl-NL')} punten in ${info.tegels.length} vakken) — vakken worden hergebruikt`;
         return maakTegelbron(wolkMap, info);
       }
@@ -1764,10 +1770,21 @@
         statusEl.style.color = ''; statusEl.textContent = `${bestand.name}: het programma kon niet omzetten (${err.message || err}); de viewer zet om…`;
       } finally { markeerKlaar(); }
     }
-    for (const oud of ['tegels', 'info.json', 'overzicht.pvt', 'overzicht_maaiveld.pvt']) { try { await wolkMap.removeEntry(oud, { recursive: true }); } catch { /* */ } }
+    // staan er al vakken (andere scan of andere klassenkeuze), dan de nieuwe ernaast schrijven en de
+    // oude pas weghalen als het nieuwe omzetten gelukt is; zo niet, dan blijven de oude gewoon staan
+    const achter = oudInfo ? Date.now().toString(36) : '';
+    // geen (leesbare) info.json: restanten van een afgebroken omzetting weg, anders komen er punten bij
+    if (!oudInfo) await ruimOudeVakkenOp(wolkMap, null);
     markeerBezig('omzetten naar vakken', bestand.name);
     try {
-      const bron = await importeerNaarTegels(bestand, wolkMap, (t) => { statusEl.style.color = ''; statusEl.textContent = t; });
+      let bron;
+      try {
+        bron = await importeerNaarTegels(bestand, wolkMap, (t) => { statusEl.style.color = ''; statusEl.textContent = t; }, { klassen: bestand.pvKlassen ?? null, achter });
+      } catch (err) {
+        if (achter) for (const n of [`tegels-${achter}`, `overzicht-${achter}.pvt`, `overzicht_maaiveld-${achter}.pvt`]) { try { await wolkMap.removeEntry(n, { recursive: true }); } catch { /* */ } }
+        throw err;
+      }
+      if (achter) await ruimOudeVakkenOp(wolkMap, bron.info);
       statusEl.textContent = `${bestand.name}: ${bron.info.aantal.toLocaleString('nl-NL')} punten omgezet naar ${bron.info.tegels.length} vakken in ${bron.info.duurImport} s`;
       bron.pvOmzetTekst = `omgezet in ${bron.info.duurImport} s`;
       return bron;
@@ -1790,6 +1807,7 @@
     if (!behoud) { volleProfielen = null; volleCache.clear(); }
     detailStrook = strook;
     werkDetailKnopBij();
+    werkKlassenKnopBij();
     tekenAsKnop.disabled = true;
     wisAsKnop.disabled = true;
 
@@ -1816,7 +1834,7 @@
             ? `${bestand.name}: ${header.aantalPunten.toLocaleString('nl-NL')} punten in bestand — te veel om allemaal te lezen, neem een verspreide steekproef… ${n.toLocaleString('nl-NL')} / ${totaal.toLocaleString('nl-NL')}`
             : `${bestand.name} inlezen… ${n.toLocaleString('nl-NL')} / ${totaal.toLocaleString('nl-NL')} punten`;
         };
-        const sink = strook ? maakStrookFilter(strook, alleenGrondVan(maakUitdunner(uitdunLimiet()))) : maakMaaiveldKeuze(() => maakUitdunner(uitdunLimiet()), maaiveldAGevraagd());
+        const sink = maakKlassenFilter(strook ? maakStrookFilter(strook, alleenGrondVan(maakUitdunner(uitdunLimiet()))) : maakMaaiveldKeuze(() => maakUitdunner(uitdunLimiet()), maaiveldAGevraagd()), bestand.pvKlassen);
         gelezen = header.isCompressed
           ? await leesLazPunten(bestand, header, voortgang, volledigInlezen || !!strook, sink)
           : await leesLasPunten(bestand, header, voortgang, volledigInlezen || !!strook, sink);
@@ -1898,8 +1916,13 @@
   const TEGEL_M = 50, TEGEL_REC = 16, TEGEL_FORMAAT = 'pv-tegels-1', OVERZICHT_DOEL = 2000000;
   const tegelNaam = (tx, ty) => `${tx}_${ty}.pvt`;
 
-  function maakTegelSchrijver(tegelMap) {
+  function maakTegelSchrijver(tegelMap, klassenKeuze = null) {
     let ox = null, oy = null;
+    // klassenkeuze (plan klassen-kiezen): null = alles; anders alleen deze klassen in de vakken
+    const toegestaan = klassenKeuze ? new Uint8Array(256) : null;
+    if (toegestaan) for (const k of klassenKeuze) toegestaan[k] = 1;
+    const klassenBron = new Float64Array(256);
+    let bronGezien = 0;
     const tegels = new Map(), CAP = 8192;
     let gezien = 0, kleurMax = 0, metKleur = false, deler = null;
     let voorraad = [];
@@ -1941,6 +1964,9 @@
     }
     return {
       voegToe(x, y, z, r, g, b, k) {
+        bronGezien++;
+        klassenBron[k ?? 0]++;
+        if (toegestaan && !toegestaan[k ?? 0]) return;   // niet gekozen: telt alleen mee in klassenBron
         gezien++;
         if (ox === null) { ox = Math.floor(x / 1000) * 1000; oy = Math.floor(y / 1000) * 1000; }
         if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
@@ -1954,11 +1980,12 @@
         schrijf(x, y, z, r, g, b, k);
       },
       async naBlok() { if (deler !== null) await wegschrijven(); },
-      get aantalGezien() { return gezien; },
+      get aantalGezien() { return bronGezien; },   // voor de voortgang: alle gelezen punten
       resultaat() { return { xs: [], ys: [], zs: [], cs: null }; },
       /** Alles wegschrijven en afsluiten → info (voor info.json) + de overzichten. */
       async afronden(onVoortgang) {
         if (deler === null) bepaalDeler();
+        if (toegestaan && gezien === 0) throw new Error('er zitten geen punten in de gekozen klassen');
         for (const t of tegels.values()) if (t.buf.i) { t.delen.push(t.buf.b.slice(0, t.buf.i * TEGEL_REC)); t.buf = nieuweBuf(); }
         await wegschrijven();
         let k = 0;
@@ -1973,6 +2000,8 @@
           formaat: TEGEL_FORMAAT, tegelM: TEGEL_M, rec: TEGEL_REC, oorsprong: [ox, oy], aantal: gezien, kleur: metKleur && kleurMax > 0,
           bbox: [minX, minY, minZ, maxX, maxY, maxZ],
           klassen: Object.fromEntries([...klassen].map((n, i) => [i, n]).filter(([, n]) => n > 0)),
+          klassenKeuze: toegestaan ? [...toegestaan].map((v, i) => v ? i : -1).filter(i => i >= 0) : null,
+          klassenBron: Object.fromEntries([...klassenBron].map((n, i) => [i, n]).filter(([, n]) => n > 0)),
           tegels: [...tegels.values()].map(t => [t.tx, t.ty, t.n, Math.round(t.minZ * 1000) / 1000, Math.round(t.maxZ * 1000) / 1000]),
           overzicht: { modus: oppervlakModus(), doel: OVERZICHT_DOEL },
           gemaakt: new Date().toISOString(), viewer: document.getElementById('appVersie')?.textContent || '',
@@ -2006,13 +2035,17 @@
   /** Bron die uit een tegelmap leest: gedraagt zich voor de rest van de viewer als een bestand. */
   function maakTegelbron(map, info) {
     return { tegelbron: true, map, info, name: info.bron?.naam || map.name, size: info.bron?.grootte || 0, tegelMapP: null,
-      async tegelMap() { return this.tegelMapP || (this.tegelMapP = map.getDirectoryHandle('tegels')); } };
+      async tegelMap() { return this.tegelMapP || (this.tegelMapP = map.getDirectoryHandle(info.bestanden?.tegels || 'tegels')); } };
   }
 
   /** Bestand → tegels in `wolkMap`. Leest het hele bestand één keer helemaal door. */
-  async function importeerNaarTegels(bestand, wolkMap, onVoortgang) {
-    const tegelMap = await wolkMap.getDirectoryHandle('tegels', { create: true });
-    const schrijver = maakTegelSchrijver(tegelMap);
+  async function importeerNaarTegels(bestand, wolkMap, onVoortgang, { klassen = null, achter = '' } = {}) {
+    // achter: bij opnieuw omzetten naast de oude vakken schrijven (tegels-<achter>, …); info.json
+    // wijst ze aan, de oude blijven tot het nieuwe omzetten klaar is
+    const namen = achter ? { tegels: `tegels-${achter}`, overzicht: `overzicht-${achter}.pvt`, maaiveld: `overzicht_maaiveld-${achter}.pvt` }
+      : { tegels: 'tegels', overzicht: 'overzicht.pvt', maaiveld: 'overzicht_maaiveld.pvt' };
+    const tegelMap = await wolkMap.getDirectoryHandle(namen.tegels, { create: true });
+    const schrijver = maakTegelSchrijver(tegelMap, klassen);
     const t0 = performance.now();
     const tijd = () => `${Math.round((performance.now() - t0) / 1000)} s`;
     if (/\.la[sz]$/i.test(bestand.name)) {
@@ -2026,9 +2059,10 @@
     onVoortgang?.(`${bestand.name}: vakken afsluiten en overzicht maken…`);
     const { info, alle, grond } = await schrijver.afronden(onVoortgang);
     info.bron = { naam: bestand.name, grootte: bestand.size, gewijzigd: bestand.lastModified };
-    await schrijfBestandInMap(wolkMap, 'overzicht.pvt', puntenNaarTegelBytes(alle, info.oorsprong[0], info.oorsprong[1]));
+    if (achter) info.bestanden = namen;
+    await schrijfBestandInMap(wolkMap, namen.overzicht, puntenNaarTegelBytes(alle, info.oorsprong[0], info.oorsprong[1]));
     info.overzicht.alle = alle.xs.length;
-    if (grond) { await schrijfBestandInMap(wolkMap, 'overzicht_maaiveld.pvt', puntenNaarTegelBytes(grond, info.oorsprong[0], info.oorsprong[1])); info.overzicht.maaiveld = grond.xs.length; }
+    if (grond) { await schrijfBestandInMap(wolkMap, namen.maaiveld, puntenNaarTegelBytes(grond, info.oorsprong[0], info.oorsprong[1])); info.overzicht.maaiveld = grond.xs.length; }
     info.duurImport = Math.round((performance.now() - t0) / 1000);
     await schrijfBestandInMap(wolkMap, 'info.json', JSON.stringify(info, null, 1));
     return maakTegelbron(wolkMap, info);
@@ -2065,7 +2099,7 @@
   }
   /** Overzicht (al uitgedund bij het omzetten) door een sink halen. */
   async function leesOverzicht(bron, sink, maaiveld) {
-    const buf = await (await leesBestandUitMap(bron.map, maaiveld ? 'overzicht_maaiveld.pvt' : 'overzicht.pvt')).arrayBuffer();
+    const buf = await (await leesBestandUitMap(bron.map, maaiveld ? (bron.info.bestanden?.maaiveld || 'overzicht_maaiveld.pvt') : (bron.info.bestanden?.overzicht || 'overzicht.pvt'))).arrayBuffer();
     const info = bron.info;
     // klasse staat in het overzicht niet per punt: bij het maaiveld-overzicht is alles klasse 2
     const s = maaiveld ? { voegToe: (x, y, z, r, g, b) => sink.voegToe(x, y, z, r, g, b, 2), get aantalGezien() { return sink.aantalGezien; }, resultaat: () => sink.resultaat() } : sink;
@@ -2105,6 +2139,192 @@
     for (const st of alleAsStukken()) { minX = Math.min(minX, st.ax, st.bx); maxX = Math.max(maxX, st.ax, st.bx); minY = Math.min(minY, st.ay, st.by); maxY = Math.max(maxY, st.ay, st.by); }
     return { minX: minX - halveBreedte, maxX: maxX + halveBreedte, minY: minY - halveBreedte, maxY: maxY + halveBreedte };
   }
+
+  /* ────────────────────────────────────────────────────────────────
+     Klassen kiezen (plan klassen-kiezen, 2.12.1): bij het openen van een
+     LAS/LAZ met twee of meer classificaties vraagt een venster welke klassen
+     worden ingelezen. Alleen die komen in de vakken (of, zonder projectmap,
+     in de werkwolk). bestand.pvKlassen = de keuze (null = alles). Met de
+     knop "Klassen…" kies je later opnieuw; een omgezette wolk wordt dan
+     opnieuw omgezet en de oude vakken blijven staan tot dat klaar is.
+     ──────────────────────────────────────────────────────────────── */
+  const KLASSE_NAAM = { 0: 'nooit geclassificeerd', 1: 'niet geclassificeerd', 2: 'maaiveld', 3: 'lage vegetatie', 4: 'middelhoge vegetatie',
+    5: 'hoge vegetatie', 6: 'gebouw', 7: 'ruis (laag)', 8: 'modelsleutelpunt', 9: 'water', 10: 'spoor', 11: 'wegdek', 12: 'overlap',
+    13: 'draadbescherming', 14: 'hoogspanningsdraad', 15: 'mast', 16: 'draadverbinding', 17: 'brugdek', 18: 'ruis (hoog)' };
+  const klasseNaam = (k) => KLASSE_NAAM[k] || (k >= 64 ? `eigen klasse ${k}` : `klasse ${k}`);
+  const KLASSEN_SLEUTEL = 'pv.klassenKeuze';
+  /** Zelfde keuze? null = alles. */
+  function zelfdeKlassen(a, b) {
+    if (!a || !b) return !a && !b;
+    const sa = [...a].sort((p, q) => p - q), sb = [...b].sort((p, q) => p - q);
+    return sa.length === sb.length && sa.every((v, i) => v === sb[i]);
+  }
+  /** Keuze als tekst voor de statusregel. */
+  const klassenTekst = (keuze) => keuze ? keuze.map(k => `${k} ${klasseNaam(k)}`).join(', ') : 'alle';
+  /** Restanten van eerdere omzettingen weghalen: alles wat op vakken of een overzicht lijkt en niet bij `info` hoort
+   *  (info = null: ook info.json weg). */
+  async function ruimOudeVakkenOp(wolkMap, info) {
+    const houd = new Set(info ? Object.values(info.bestanden || { tegels: 'tegels', overzicht: 'overzicht.pvt', maaiveld: 'overzicht_maaiveld.pvt' }) : []);
+    const weg = [];
+    try {
+      for await (const naam of wolkMap.keys()) if (/^(tegels(-[0-9a-z]+)?|overzicht(_maaiveld)?(-[0-9a-z]+)?\.pvt)$/.test(naam) && !houd.has(naam)) weg.push(naam);
+    } catch { /* lijst niet te lezen: niets weghalen */ }
+    if (!info) weg.push('info.json');
+    for (const n of weg) { try { await wolkMap.removeEntry(n, { recursive: true }); } catch { /* bestaat niet (meer) */ } }
+  }
+  /** Telling per klasse uit een verspreide steekproef (grote bestanden) of uit alle punten (kleine).
+   *  → { telling: {klasse: aantal}, steekproef } */
+  async function telKlassen(bestand) {
+    const header = await leesLasHeader(bestand);
+    const n = new Float64Array(256);
+    let gezien = 0;
+    const sink = { voegToe(x, y, z, r, g, b, k) { gezien++; n[k ?? 0]++; }, get aantalGezien() { return gezien; }, resultaat: () => ({ xs: [], ys: [], zs: [], cs: null }) };
+    const voortgang = (a, totaal) => { statusEl.textContent = `${bestand.name}: klassen bekijken… ${Math.round(100 * a / Math.max(1, totaal))}%`; };
+    const r = header.isCompressed ? await leesLazPunten(bestand, header, voortgang, false, sink) : await leesLasPunten(bestand, header, voortgang, false, sink);
+    return { telling: Object.fromEntries([...n].map((v, k) => [k, v]).filter(([, v]) => v > 0)), steekproef: !!r.isSteekproef };
+  }
+  const procent = (p) => p < 1 ? p.toLocaleString('nl-NL', { maximumFractionDigits: 1 }) : String(Math.round(p));
+  /** Het venster. telling = {klasse: aantal}; huidig = huidige keuze (null = alles), of undefined = de laatst gekozen.
+   *  → keuze (array), null (= alles) of false (= geannuleerd). */
+  function vraagKlassen(telling, { naam = '', huidig, steekproef = false } = {}) {
+    const dlg = document.getElementById('klassenDialoog');
+    const klassen = Object.keys(telling).map(Number).sort((a, b) => a - b);
+    const totaal = klassen.reduce((s, k) => s + telling[k], 0) || 1;
+    if (huidig === undefined) {
+      // besluit B2: de vorige keuze aangevinkt als die klassen in dit bestand zitten, anders alles
+      let vorig = null;
+      try { vorig = JSON.parse(localStorage.getItem(KLASSEN_SLEUTEL) || 'null'); } catch { /* geen opslag */ }
+      huidig = Array.isArray(vorig) && vorig.some(k => klassen.includes(k)) ? vorig : null;
+    }
+    document.getElementById('klOndertitel').textContent = naam;
+    const lijst = document.getElementById('klLijst');
+    lijst.textContent = '';
+    for (const k of klassen) {
+      const pct = 100 * telling[k] / totaal;
+      const rij = document.createElement('label');
+      rij.style.cssText = 'display:grid; grid-template-columns:auto 2.4em 1fr auto; gap:8px; align-items:center; padding:3px 2px; cursor:pointer';
+      const vak = document.createElement('input');
+      vak.type = 'checkbox'; vak.value = String(k); vak.checked = !huidig || huidig.includes(k);
+      const nr = document.createElement('span'); nr.textContent = String(k); nr.style.cssText = 'text-align:right; opacity:.65';
+      const nm = document.createElement('span'); nm.textContent = klasseNaam(k);
+      const aandeel = document.createElement('span');
+      aandeel.textContent = steekproef ? `± ${procent(pct)}%` : `${Math.round(telling[k]).toLocaleString('nl-NL')} (${procent(pct)}%)`;
+      aandeel.style.cssText = 'font-variant-numeric:tabular-nums; opacity:.75';
+      rij.append(vak, nr, nm, aandeel);
+      lijst.append(rij);
+    }
+    const vakken = () => [...lijst.querySelectorAll('input[type=checkbox]')];
+    const info = document.getElementById('klInfo'), inlezen = document.getElementById('klInlezen');
+    const werkBij = () => {
+      const aan = vakken().filter(v => v.checked).map(v => +v.value);
+      const pct = aan.reduce((s, k) => s + telling[k], 0) / totaal * 100;
+      inlezen.disabled = !aan.length;
+      info.textContent = aan.length ? `${steekproef ? '± ' : ''}${procent(pct)}% van de punten${steekproef ? ' (steekproef)' : ''}` : 'kies minstens één klasse';
+    };
+    lijst.onchange = werkBij;
+    document.getElementById('klAlles').onclick = () => { for (const v of vakken()) v.checked = true; werkBij(); };
+    document.getElementById('klGeen').onclick = () => { for (const v of vakken()) v.checked = false; werkBij(); };
+    const mv = document.getElementById('klMaaiveld');
+    mv.hidden = !klassen.includes(2);
+    mv.onclick = () => { for (const v of vakken()) v.checked = v.value === '2'; werkBij(); };
+    werkBij();
+    return new Promise((klaar) => {
+      const annuleer = document.getElementById('klAnnuleer');
+      const ruim = (w) => { inlezen.onclick = annuleer.onclick = null; dlg.onclose = null; if (dlg.open) dlg.close(); klaar(w); };
+      inlezen.onclick = () => {
+        const aan = vakken().filter(v => v.checked).map(v => +v.value);
+        if (!aan.length) return;
+        const keuze = aan.length === klassen.length ? null : aan;
+        try { localStorage.setItem(KLASSEN_SLEUTEL, JSON.stringify(keuze)); } catch { /* geen opslag */ }
+        ruim(keuze);
+      };
+      annuleer.onclick = () => ruim(false);
+      dlg.onclose = () => ruim(false);
+      dlg.showModal();
+    });
+  }
+  /** Bij het openen van een LAS/LAZ: klassen bekijken en zo nodig vragen. Zet bestand.pvKlassen; false = geannuleerd. */
+  async function kiesKlassenBijOpenen(bestand) {
+    bestand.pvKlassen = null;
+    if (!/\.la[sz]$/i.test(bestand.name)) return true;
+    let t;
+    try { t = await telKlassen(bestand); } catch (err) { console.warn('klassen bekijken lukte niet:', err); return true; }
+    bestand.pvKlassenTelling = t;
+    if (Object.keys(t.telling).length < 2) return true;   // één klasse (of geen classificatie): niets te kiezen
+    const keuze = await vraagKlassen(t.telling, { naam: bestand.name, steekproef: t.steekproef });
+    if (keuze === false) return false;
+    bestand.pvKlassen = keuze;
+    return true;
+  }
+  /** Sink-omhulsel voor laden zonder projectmap: alleen de gekozen klassen doorgeven. */
+  function maakKlassenFilter(sink, keuze) {
+    if (!keuze) return sink;
+    const mag = new Uint8Array(256);
+    for (const k of keuze) mag[k] = 1;
+    let gezien = 0;
+    return {
+      voegToe(x, y, z, r, g, b, k) { gezien++; if (mag[k ?? 0]) sink.voegToe(x, y, z, r, g, b, k); },
+      naBlok: sink.naBlok ? () => sink.naBlok() : undefined,
+      get aantalGezien() { return gezien; },
+      resultaat: () => sink.resultaat(),
+    };
+  }
+  let bronBestandA = null;   // de scan van wolk A in deze sessie (voor "Klassen…")
+  function werkKlassenKnopBij() {
+    const knop = document.getElementById('klassenKnop');
+    if (!knop) return;
+    const b = laatsteBestand;
+    const telling = b?.tegelbron ? (b.info.klassenBron || b.info.klassen || {}) : b?.pvKlassenTelling?.telling || {};
+    knop.hidden = !b || Object.keys(telling).length < 2;
+    if (!knop.hidden) knop.title = `Klassen wijzigen (nu: ${klassenTekst(b.tegelbron ? b.info.klassenKeuze ?? null : b.pvKlassen ?? null)}). Bij een omgezette wolk wordt hij opnieuw omgezet; je as en profielen blijven staan.`;
+  }
+  /** De scan achter een tegelbron: die van deze sessie, of de gebruiker kiest hem (naam en grootte moeten kloppen). */
+  async function scanVoorTegelbron(bron) {
+    const ib = bron.info.bron || {};
+    const past = (b) => b && b.name === ib.naam && b.size === ib.grootte;
+    if (past(bronBestandA)) return bronBestandA;
+    statusEl.textContent = `Kies de scan ${ib.naam || ''} om de wolk opnieuw om te zetten…`;
+    let b = null;
+    if (natief) {
+      const { pad } = await (await natiefVraag('kies', null, { methode: 'POST', kop: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ soort: 'open', titel: `Scan ${ib.naam || ''} kiezen`, filter: [{ naam: 'Puntenwolk (*.las, *.laz)', patroon: '*.las;*.laz' }] }) })).json();
+      if (pad) b = await natieveScan(pad);
+    } else {
+      b = await new Promise((ok) => {
+        const veld = document.createElement('input'); veld.type = 'file'; veld.accept = '.las,.laz';
+        veld.onchange = () => ok(veld.files?.[0] || null); veld.oncancel = () => ok(null); veld.click();
+      });
+    }
+    if (!b) { statusEl.textContent = 'Klassen wijzigen geannuleerd'; return null; }
+    if (!past(b)) { toonFout(`${b.name} is niet de scan van deze wolk (${ib.naam}, ${((ib.grootte || 0) / 1e6).toLocaleString('nl-NL', { maximumFractionDigits: 0 })} MB).`); return null; }
+    return b;
+  }
+  async function wijzigKlassen() {
+    const b = laatsteBestand;
+    if (!b) return;
+    if (b.tegelbron) {
+      const telling = b.info.klassenBron || b.info.klassen;
+      const keuze = await vraagKlassen(telling, { naam: b.name, huidig: b.info.klassenKeuze ?? null });
+      if (keuze === false || zelfdeKlassen(keuze, b.info.klassenKeuze ?? null)) return;
+      const scan = await scanVoorTegelbron(b);
+      if (!scan) return;
+      scan.pvKlassen = keuze;
+      scan.pvKlassenTelling = { telling, steekproef: false };
+      bronBestandA = scan;
+      const bron = await tegelbronVoor(scan, 'A');
+      if (!bron) { werkKlassenKnopBij(); return; }   // afgebroken of mislukt: de oude vakken staan er nog
+      await laadBestand(bron, true);
+      statusEl.textContent += ` · klassen: ${klassenTekst(bron.info.klassenKeuze ?? null)}`;
+    } else {
+      const t = b.pvKlassenTelling;
+      const keuze = await vraagKlassen(t.telling, { naam: b.name, huidig: b.pvKlassen ?? null, steekproef: t.steekproef });
+      if (keuze === false || zelfdeKlassen(keuze, b.pvKlassen ?? null)) return;
+      b.pvKlassen = keuze;
+      await laadBestand(b, true);
+    }
+    werkKlassenKnopBij();
+  }
+  document.getElementById('klassenKnop')?.addEventListener('click', () => { wijzigKlassen().catch(err => { console.error(err); toonFout(`Klassen wijzigen lukte niet: ${err.message || err}`); }); });
 
   /* ────────────────────────────────────────────────────────────────
      Vergelijkingswolk (B): een tweede puntenwolk — bv. AHN naast een

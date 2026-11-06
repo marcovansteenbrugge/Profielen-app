@@ -12,7 +12,7 @@ const D = H.data('snoei_test'), U = H.UIT;
   await p.evaluate(async () => { localStorage.setItem('ptsviewer-puntdichtheid', '150000'); const r = await navigator.storage.getDirectory(); try { await r.removeEntry('zoomproj4', { recursive: true }); } catch {} });
   await p.reload();
   const st = async () => (await p.textContent('#status')).trim();
-  await p.setInputFiles('#ptsBestand', H.data('groot', 'dijk_begroeid.las'));
+  await p.setInputFiles('#ptsBestand', H.data('groot', 'dijk_begroeid.las')); await H.klassenInlezen(p);
   await p.waitForSelector('#projectMapDialoog[open]'); await p.click('#pmKies');
   for (let i = 0; i < 2000; i++) { if (/driehoeken/.test(await st())) break; await p.waitForTimeout(250); }
   const box = await (await p.$('#canvasVlak')).boundingBox();

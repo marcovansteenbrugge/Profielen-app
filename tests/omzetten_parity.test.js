@@ -75,6 +75,7 @@ function verschil(a, b) {
       H.natief.kiesRij.push(proj);
       let t0 = Date.now();
       await p.setInputFiles('#ptsBestand', scan);
+      if (/\.la[sz]$/i.test(scan)) await H.klassenInlezen(p);
       await p.waitForSelector('#projectMapDialoog[open]'); await p.click('#pmKies');
       for (let i = 0; i < 4800; i++) { const s = await p.textContent('#status'); if (/driehoeken|mislukt/.test(s) || fouten.length) break; await p.waitForTimeout(250); }
       const tViewer = (Date.now() - t0) / 1000;

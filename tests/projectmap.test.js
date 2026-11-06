@@ -24,7 +24,7 @@ const U = H.data('groot'), D = H.data('snoei_test');
     const loop = async (d, pad) => { for await (const [n, h] of d.entries()) { if (h.kind === 'directory') { if (n === 'tegels') { let k = 0; for await (const _ of h.entries()) k++; uit.push(pad + 'tegels\\ (' + k + ' vakken)'); } else { uit.push(pad + n + '\\'); await loop(h, pad + '  '); } } else uit.push(pad + n + ' (' + Math.round((await h.getFile()).size / 1e3) + ' kB)'); } };
     await loop(r, '  '); return '\n' + uit.sort().join('\n');
   }, naam);
-  await p.setInputFiles('#ptsBestand', U + '/dijk_begroeid.las');
+  await p.setInputFiles('#ptsBestand', U + '/dijk_begroeid.las'); await H.klassenInlezen(p);
   await p.waitForSelector('#projectMapDialoog[open]'); await p.click('#pmKies');
   console.log('1 laden:', (await wacht(/driehoeken/)).slice(0, 160));
   await p.setInputFiles('#asBestand', U + '/as_begroeid.geojson'); await p.waitForTimeout(1500);

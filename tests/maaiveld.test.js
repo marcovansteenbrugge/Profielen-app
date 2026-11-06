@@ -14,7 +14,7 @@ const U = H.data('groot');
   await p.reload();
   const st = async () => (await p.textContent('#status')).trim();
   const wacht = async () => { for (let i = 0; i < 600; i++) { if (/driehoeken/.test(await st())) return; await p.waitForTimeout(250); } };
-  await p.setInputFiles('#ptsBestand', U + '/dijk_begroeid.las'); await wacht();
+  await p.setInputFiles('#ptsBestand', U + '/dijk_begroeid.las'); await H.klassenInlezen(p); await wacht();
   console.log('uit:', await st());
   await p.setInputFiles('#asBestand', U + '/as_begroeid.geojson'); await p.waitForTimeout(800);
   await p.evaluate((v) => { const e = document.getElementById('dwarsBreedte'); e.value = v; e.dispatchEvent(new Event('change')); }, '44'); await p.waitForTimeout(500);
