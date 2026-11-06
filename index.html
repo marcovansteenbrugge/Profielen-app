@@ -805,6 +805,10 @@
         <div class="rij"><span>Meetpunten</span><select id="drMeetSoort" title="Soort van het volgende aangeklikte meetpunt"><option value="markering">wegmarkering</option><option value="kantstreep">kantstreep + 1 m</option><option value="ophang">ophangconstructie</option><option value="overig">overig</option></select> <button type="button" id="drRwsKlik" title="Het venster gaat dicht; klik in het dwarsprofiel op de plekken, Esc om te stoppen">Meetpunten aanklikken</button></div>
         <div id="drMeetLijst"></div>
         <div id="drRwsResultaat"></div>
+        <div class="rij" title="Komt in het tekstvak onder elk doorrijprofiel in de PDF"><span>Weg / straat</span><input type="text" id="drRwsWeg" style="width:180px" placeholder="bv. Bergstraat"></div>
+        <div class="rij"><span>Object</span><input type="text" id="drRwsObject" style="width:180px" placeholder="bv. viaduct, onderdoorgang"></div>
+        <div class="rij" title="Standaard de datum uit het LAS-bestand (of de datum van het bestand)"><span>Meetdatum</span><input type="text" id="drRwsMeetdatum" style="width:120px"></div>
+        <div class="rij"><span>Bijzonderheden</span><input type="text" id="drRwsBijz" style="width:260px" placeholder="bv. min. doorrijhoogte niet in profiel"></div>
       </fieldset>
     </div>
   </div>
@@ -937,6 +941,7 @@
       <label class="vink" title="Een eigen blad met de doorvaartcontrole: maatgevende doorsnede onder de brug met de doorvaartbox, de uitgangspunten en het oordeel. Alleen als er een onderzijde van een brug is ingelezen of een dieptetoets is ingesteld."><input type="checkbox" id="pdfDoorvaart" checked> Doorvaartcontrole (eigen blad)</label>
       <label class="vink" title="Snoeilijst met alle genummerde snoeipunten (station, kant, hoogte, hoeveel terugsnoeien, RD-coördinaat). Het bovenaanzicht toont dan de snoeikaart. Alleen als er begroeiing is ingelezen."><input type="checkbox" id="pdfSnoei" checked> Snoeilijst (eigen blad)</label>
       <label class="vink" title="Een eigen blad met de doorrijhoogte: dwarsprofiel bij de kleinste vrije hoogte met de box(en), de uitgangspunten en het oordeel per box, en een dekkingskaart van de weg onder het dak. Alleen als de doorrijhoogte is ingelezen."><input type="checkbox" id="pdfDoorrij" checked> Doorrijhoogte (eigen blad)</label>
+      <label class="vink" title="Per profiel (1 en 2) een blad in RWS-stijl: doorrijhoogtes op de meetpunten met drie decimalen, doorrijbreedte, minimale doorrijhoogte per rijbaan in rood en een tekstvak. Alleen als in het venster Doorrijhoogte op Profielen meten is geklikt."><input type="checkbox" id="pdfRws" checked> Doorrijprofielen RWS (blad per profiel)</label>
       <label class="vink"><input type="checkbox" id="pdfLengteprofiel" checked> Lengteprofiel</label>
       <label class="vink"><input type="checkbox" id="pdfDwarsprofielen" checked> Dwarsprofielen</label>
       <p class="hint waarschuw" id="pdfGeenAs" hidden>Nog geen as getekend — alleen het bovenaanzicht kan mee.</p>

@@ -106,6 +106,29 @@ function maakData() {
   console.log('3 minimale doorrijhoogte rijbaan:', minTekst, '| in de tabel:', tabel3.includes(minTekst));
   if (!tabel3.includes(minTekst)) fouten.push('3: minimale doorrijhoogte per rijbaan niet in de tabel');
   await p.screenshot({ path: path.join(H.UIT, 'doorrijprofiel_rws_venster.png') });
+
+  // 5. (F2) PDF: per profiel een blad, drie decimalen met punt, minimale doorrijhoogte in het tekstvak
+  await p.fill('#drRwsWeg', 'Teststraat'); await p.fill('#drRwsObject', 'Testviaduct'); await p.fill('#drRwsMeetdatum', '06-11-2026');
+  await p.click('#drSluit');
+  await p.click('#printKnop'); await p.waitForTimeout(400);
+  await p.evaluate(() => { const z = (k, v) => { const e = document.getElementById(k); if (!e) return; if (typeof v === 'boolean') e.checked = v; else e.value = v; e.dispatchEvent(new Event('change')); }; z('pdfLuchtfoto', false); z('pdfFormaat', 'A3'); z('pdfProjectnaam', 'Test doorrijprofiel'); z('pdf3D', false); z('pdfRws', true); z('pdfDwarsprofielen', false); });
+  const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 300000 }), p.click('#pdfMaak')]);
+  const pdfPad = path.join(H.UIT, 'doorrijprofiel_rws.pdf');
+  await dl.saveAs(pdfPad);
+  const { spawnSync } = require('child_process');
+  const py = spawnSync('python', ['-I', '-c', [
+    'import sys, pymupdf',
+    'd = pymupdf.open(sys.argv[1])',
+    'for i, pg in enumerate(d):',
+    '    t = " ".join(pg.get_text().split())',
+    '    if t.startswith("Doorrijprofiel "):',
+    '        print("RWSBLAD", i + 1, t[:900]); pg.get_pixmap(dpi=70).save(sys.argv[2].replace("N", t[15]))',
+  ].join(String.fromCharCode(10)), pdfPad, path.join(H.UIT, 'doorrijprofiel_rws_blad_N.png')], { encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
+  const pdfTekst = py.stdout || '';
+  console.log('5 PDF:', pdfTekst.replace(/\s+/g, ' ').slice(0, 900), py.stderr ? py.stderr.slice(0, 300) : '');
+  const bladen = (pdfTekst.match(/RWSBLAD/g) || []).length;
+  if (bladen !== 2) fouten.push(`5: ${bladen} RWS-bladen in de PDF (verwacht 2)`);
+  for (const t of ['3.696', '3.353', 'Teststraat', 'Testviaduct', '06-11-2026', 'Minimale doorrijhoogte:', '9.000']) if (!pdfTekst.includes(t)) fouten.push(`5: "${t}" niet op het RWS-blad`);
   console.log('fouten:', fouten.join(' | ') || 'geen');
   await b.close();
 })();

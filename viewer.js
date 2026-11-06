@@ -8019,12 +8019,13 @@
     for (const [id, sl] of Object.entries(DR_VELDEN)) { const e = document.getElementById(id); if (e) e.value = doorrij[sl] ?? ''; }
     const t = document.getElementById('drTonen'); if (t) t.checked = doorrij.tonen !== false;
     toonDrBoxen();
-    const rw = rwsInst(); for (const [id, sl] of [['drP1', 'p1'], ['drP2', 'p2']]) { const e = document.getElementById(id); if (e) e.value = rw[sl] ?? ''; }
+    const rw = rwsInst(); for (const [id, sl] of RWS_VELDEN) { const e = document.getElementById(id); if (e) e.value = rw[sl] ?? ''; }
+    rwsMeetdatumVoorstel();
   }
   function leesDoorrijVelden() {
     for (const [id, sl] of Object.entries(DR_VELDEN)) { const e = document.getElementById(id); if (e) doorrij[sl] = e.value; }
     const t = document.getElementById('drTonen'); if (t) doorrij.tonen = t.checked;
-    { const rw = rwsInst(); for (const [id, sl] of [['drP1', 'p1'], ['drP2', 'p2']]) { const e = document.getElementById(id); if (e) rw[sl] = e.value; } }
+    { const rw = rwsInst(); for (const [id, sl] of RWS_VELDEN) { const e = document.getElementById(id); if (e) rw[sl] = e.value; } }
     for (const rij of document.querySelectorAll('#drBoxen .drBox')) {
       const b = doorrij.boxen[Number(rij.dataset.i)]; if (!b) continue;
       for (const e of rij.querySelectorAll('[data-veld]')) b[e.dataset.veld] = e.value;
@@ -8161,6 +8162,23 @@
   const RWS_STANDAARD = { p1: '', p2: '', meetpunten: [], weg: '', object: '', rijbaan: '', meetdatum: '', bijzonderheden: '' };
   const RWS_SOORTEN = { kant: 'kant verharding', markering: 'wegmarkering', kantstreep: 'kantstreep + 1 m', ophang: 'ophangconstructie', overig: 'overig' };
   const RWS_VENSTER = 0.10;   // m rond het meetpunt (langs en dwars)
+  const RWS_VELDEN = [['drP1', 'p1'], ['drP2', 'p2'], ['drRwsWeg', 'weg'], ['drRwsObject', 'object'], ['drRwsMeetdatum', 'meetdatum'], ['drRwsBijz', 'bijzonderheden']];
+  /** Meetdatum als voorstel: de datum in de LAS-header (dag van het jaar + jaar), anders de datum van het bestand. */
+  async function rwsMeetdatumVoorstel() {
+    const veld = document.getElementById('drRwsMeetdatum');
+    if (!veld || veld.placeholder) return;
+    const b = laatsteBestand; let d = null;
+    try {
+      if (b && /\.la[sz]$/i.test(b.name) && !b.tegelbron) {
+        const dv = new DataView(await b.slice(0, 96).arrayBuffer());
+        const dag = dv.getUint16(90, true), jaar = dv.getUint16(92, true);
+        if (jaar > 1990 && dag >= 1 && dag <= 366) d = new Date(jaar, 0, dag);
+      }
+      if (!d && b?.tegelbron && b.info?.bron?.gewijzigd) d = new Date(b.info.bron.gewijzigd);
+      if (!d && b?.lastModified) d = new Date(b.lastModified);
+    } catch { /* geen datum */ }
+    if (d) veld.placeholder = d.toLocaleDateString('nl-NL');
+  }
   let drRws = null;          // { profielen: [{ nr, station, punten: {o, z}, meetpunten: [...] }], bron, tijd }
   let drToon = null;         // { station, index, nr }: tijdelijk dit station in het dwarsprofiel
   let drKlikModus = false;
@@ -8406,6 +8424,7 @@
       rwsHerbereken(); toonRwsResultaat(); tekenDwarsVoorHuidigeStation();
     });
     for (const id of ['drP1', 'drP2']) document.getElementById(id)?.addEventListener('change', () => { leesDoorrijVelden(); drRws = null; toonRwsResultaat(); });
+    for (const id of ['drRwsWeg', 'drRwsObject', 'drRwsMeetdatum', 'drRwsBijz']) document.getElementById(id)?.addEventListener('input', () => leesDoorrijVelden());
   }
 
   /* ────────────────────────────────────────────────────────────────
@@ -11605,12 +11624,12 @@ ${r3d}
         if (rp) for (const m of rp.meetpunten) {
           if (m.weg == null) continue;
           const x = px(m.offset), rood = rp.min === m, kl = rood ? 'dv-maatlijn rood' : 'dv-maatlijn';
-          if (m.h != null) maatV(x, py(m.weg), py(m.dak), komma(m.h, 2), kl, m.offset < 0);
+          if (m.h != null) maatV(x, py(m.weg), py(m.dak), opties.rwsNotatie ? m.h.toFixed(3) : komma(m.h, 2), kl, m.offset < 0);
           dvEl('circle', { cx: x, cy: py(m.weg), r: 2.6 * tegen, fill: m.auto ? '#1F4E79' : '#E08A1E', stroke: '#fff', 'stroke-width': 1, 'vector-effect': 'non-scaling-stroke' });
         }
         if (rp?.breedte) {
           const wb = r.wegOp(rp.station, r.boxen[0].c);
-          if (wb != null) maatH(px(rp.breedte.links.offset), px(rp.breedte.rechts.offset), py(wb + 0.75), `b ${komma(rp.breedte.breedte, 2)}`, 'dv-maatlijn grijs', true);
+          if (wb != null) maatH(px(rp.breedte.links.offset), px(rp.breedte.rechts.offset), py(wb + 0.75), `b ${opties.rwsNotatie ? rp.breedte.breedte.toFixed(3) : komma(rp.breedte.breedte, 2)}`, 'dv-maatlijn grijs', true);
         }
       } else {
         for (const { bx, lijnB, lijnV } of dr.boxen) {
@@ -12510,6 +12529,7 @@ ${r3d}
       doorvaart: v('pdfDoorvaart') ? v('pdfDoorvaart').checked : true,
       snoei: v('pdfSnoei') ? v('pdfSnoei').checked : true,
       doorrij: v('pdfDoorrij') ? v('pdfDoorrij').checked : true,
+      rws: v('pdfRws') ? v('pdfRws').checked : true,
       opdrachtgever: v('pdfOpdrachtgever').value.trim(),
       omschrijving: v('pdfOmschrijving').value.trim(),
       getekend: v('pdfGetekend').value.trim(),
@@ -12549,7 +12569,7 @@ ${r3d}
     zet('pdfDpi', inst.dpi);
     vink('pdfLosseBladen', inst.losseBladen);
     zet('pdfProjectnaam', inst.projectnaam); zet('pdfProjectnummer', inst.projectnummer);
-    zet('pdfTekeningnummer', inst.tekeningnummer); zet('pdfOpmerkingen', inst.opmerkingen); zet('pdfBladindeling', inst.bladindeling); zet('pdfTeksthoogte', inst.teksthoogte); vink('pdf3D', inst.beeld3D); vink('pdf3DBlad', inst.blad3D); if (inst.doorvaart != null) vink('pdfDoorvaart', inst.doorvaart); if (inst.snoei != null) vink('pdfSnoei', inst.snoei); if (inst.doorrij != null) vink('pdfDoorrij', inst.doorrij);
+    zet('pdfTekeningnummer', inst.tekeningnummer); zet('pdfOpmerkingen', inst.opmerkingen); zet('pdfBladindeling', inst.bladindeling); zet('pdfTeksthoogte', inst.teksthoogte); vink('pdf3D', inst.beeld3D); vink('pdf3DBlad', inst.blad3D); if (inst.doorvaart != null) vink('pdfDoorvaart', inst.doorvaart); if (inst.snoei != null) vink('pdfSnoei', inst.snoei); if (inst.doorrij != null) vink('pdfDoorrij', inst.doorrij); if (inst.rws != null) vink('pdfRws', inst.rws);
     zet('pdfOpdrachtgever', inst.opdrachtgever); zet('pdfOmschrijving', inst.omschrijving);
     zet('pdfGetekend', inst.getekend); zet('pdfGecontroleerd', inst.gecontroleerd);
     zet('pdfStatusVeld', inst.status); zet('pdfRevisie', inst.revisie);
@@ -12581,6 +12601,7 @@ ${r3d}
     if (inst.doorvaart && dvPdfMogelijk()) delen.push('doorvaartcontrole');
     if (inst.snoei && begroeiing && snKader()) delen.push('snoeilijst');
     if (inst.doorrij && drWolk && drKader()) delen.push('doorrijhoogte');
+    if (inst.rws && drRws && drResultaat) delen.push('doorrijprofielen RWS');
     if (inst.lengteprofiel) delen.push('lengteprofiel');
     if (inst.dwarsprofielen) delen.push(`${n} dwarsprofiel${n === 1 ? '' : 'en'}`);
     let bladTekst = '';
@@ -14527,6 +14548,94 @@ ${r3d}
             doc.splitTextToSize(voetD, vak.w).slice(0, 3).forEach((regel, j) => doc.text(regel, vak.x, Math.min(vak.y + vak.h - 1, ty + 3 * TS + j * 3.2 * TS)));
           }
         }
+      }
+    }
+
+    // ── doorrijprofielen in RWS-stijl: een blad per profiel (plan doorrijprofielen-rws, F2) ──
+    if (inst.rws && drRws && drResultaat) {
+      const r = drResultaat, rw = rwsInst();
+      const meetdatum = rw.meetdatum || document.getElementById('drRwsMeetdatum')?.placeholder || '';
+      const rws3 = (v) => v == null ? '-' : v.toFixed(3);   // B5: drie decimalen met een punt
+      for (const pr of drRws.profielen) {
+        const nodig = volgendBladNodig();
+        const vol = berekenDwarsprofiel(pr.station);
+        const reeks = vol.slice();
+        for (const sl of ['station', 'bgt', 'punten']) if (vol[sl] !== undefined) reeks[sl] = vol[sl];
+        let lo = Infinity, hi = -Infinity;
+        for (const p of reeks) if (p.hoogte != null) { if (p.hoogte < lo) lo = p.hoogte; if (p.hoogte > hi) hi = p.hoogte; }
+        for (const m of pr.meetpunten) { if (m.weg != null) lo = Math.min(lo, m.weg); if (m.dak != null) hi = Math.max(hi, m.dak + 1.2); }
+        r.boxen.forEach((b, bi) => { const z0 = r.bodemOp(bi, pr.station); if (z0 != null) hi = Math.max(hi, z0 + b.H + 1.2); });
+        if (!isFinite(lo)) { lo = 0; hi = 5; }
+        const bereik = Math.max(1, (hi - lo) * 1.35);
+        const kopMm = 8 * TS, grafMaxH = vak.h * 0.5;
+        const breedteM = Math.max(1, reeks[reeks.length - 1].offset - reeks[0].offset);
+        const mmPerMMax = Math.min((vak.w - plotMarges) / breedteM, (grafMaxH - (MARGE_T + 34) / VIRT_PER_MM) / bereik);
+        const N = [...STANDAARD_SCHALEN, 175, 225, 350, 450, 600].sort((a, b) => a - b).find(n => 1000 / n <= mmPerMMax) || 50000;
+        const mmPerM = 1000 / N;
+        const grafW = breedteM * mmPerM + plotMarges, grafH = Math.min(grafMaxH, bereik * mmPerM + (MARGE_T + 34) / VIRT_PER_MM);
+        const titel = `Doorrijprofiel ${pr.nr}${rw.object ? ` - ${rw.object}` : ''}`;
+        nieuwePagina(titel, `${schaalTekst(N)} (hoogte niet overdreven)`);
+        const pg = paginas[paginas.length - 1];
+        if (!nodig) continue;
+        onVoortgang?.(`Doorrijprofiel ${pr.nr} tekenen…`);
+        doc.setFontSize(12 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
+        doc.text(pdfTekst(titel), vak.x, vak.y + 5 * TS);
+        doc.setFontSize(8 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
+        doc.text(pdfTekst(`profiel ${pr.nr} · station ${pr.station.toFixed(2)} m${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''} · ${schaalTekst(N)} · maten in m`), vak.x + vak.w, vak.y + 5 * TS, { align: 'right' });
+        zetHost(grafW, grafH);
+        svgEl.removeAttribute('width'); svgEl.removeAttribute('height');
+        tekenGrafiek(svgEl, reeks, 'offset', 'offset (m)', 0, matenWaarde(maatDwarsVeld, 5), 1, null, null, null, { legenda: !kolomModus, legendaUit: pg.legenda, rwsNotatie: true });
+        const data = await beeldVanSvg(svgEl, naarPx(grafW), naarPx(grafH), N);
+        svgEl.innerHTML = '';
+        const gx = vak.x + Math.max(0, (vak.w - grafW) / 2);
+        doc.addImage(data, 'JPEG', gx, vak.y + kopMm, grafW, grafH);
+        doc.setDrawColor(220, 227, 232); doc.setLineWidth(0.2); doc.rect(gx, vak.y + kopMm, grafW, grafH);
+        // tabel met de meetpunten
+        let ty = vak.y + kopMm + grafH + 9 * TS;
+        const rh = 5 * TS;
+        const kol = [['meetpunt', 42], ['offset', 22], ['weg (m NAP)', 26], ['object (m NAP)', 28], ['doorrijhoogte', 28], ['punten weg/object', 32], ['spreiding (mm)', 28]];
+        const kx = []; { let x = vak.x; for (const k of kol) { kx.push(x); x += k[1] * TS; } }
+        doc.setFontSize(7.5 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
+        kol.forEach((k, j) => doc.text(k[0], kx[j] + 1, ty));
+        doc.setDrawColor(30, 127, 166); doc.setLineWidth(0.3); doc.line(vak.x, ty + 1.4 * TS, kx[kx.length - 1] + kol[kol.length - 1][1] * TS, ty + 1.4 * TS);
+        ty += rh;
+        doc.setFont('helvetica', 'normal');
+        for (const m of pr.meetpunten) {
+          if (ty > vak.y + vak.h - 40 * TS) break;
+          const rood = pr.min === m;
+          doc.setTextColor(...(rood ? [198, 71, 43] : [27, 42, 56]));
+          const w = [RWS_SOORTEN[m.soort] || m.soort, m.offset.toFixed(2), rws3(m.weg), rws3(m.dak), m.h == null ? (m.weg == null ? 'niet gemeten' : 'geen object') : rws3(m.h), `${m.nW} / ${m.nD}`, `${m.sW == null ? '-' : Math.round(m.sW * 1000)} / ${m.sD == null ? '-' : Math.round(m.sD * 1000)}`];
+          doc.setFont('helvetica', rood ? 'bold' : 'normal');
+          w.forEach((t, j) => doc.text(pdfTekst(t), kx[j] + 1, ty));
+          ty += rh;
+        }
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(27, 42, 56);
+        if (pr.breedte) { doc.text(pdfTekst(`Doorrijbreedte op 0.5 - 1.0 m boven de weg: ${rws3(pr.breedte.breedte)} m (links ${pr.breedte.links.soort}, rechts ${pr.breedte.rechts.soort})`), vak.x + 1, ty); ty += rh; }
+        if (drRws.breedteMin) { doc.text(pdfTekst(`Kleinste doorrijbreedte st. ${drRws.breedteMin.s0.toFixed(0)} - ${drRws.breedteMin.s1.toFixed(0)}: ${rws3(drRws.breedteMin.breedte)} m bij st. ${drRws.breedteMin.station.toFixed(1)}`), vak.x + 1, ty); ty += rh; }
+        // wit tekstvak (B6), zoals de voorbeelden in de RWS-specificatie
+        const tvH = 26 * TS, tvW = Math.min(vak.w, 250 * TS), tvY = Math.min(vak.y + vak.h - tvH - 1, ty + 4 * TS);
+        doc.setFillColor(255, 255, 255); doc.setDrawColor(27, 42, 56); doc.setLineWidth(0.35); doc.rect(vak.x, tvY, tvW, tvH, 'FD');
+        const minTekst = r.boxen.map(b => `${b.naam || 'rijbaan'} ${rws3(b.vrijMin)}`).join(' / ');
+        const velden = [
+          ['Weg / straat:', rw.weg || '-', 'Meetdatum:', meetdatum || '-'],
+          ['Rijbaan:', r.boxen.map(b => b.naam || 'rijbaan').join(', '), 'Profiel:', String(pr.nr)],
+          ['Station:', `${pr.station.toFixed(2)} m${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''}`, 'Object:', rw.object || '-'],
+          ['Bijzonderheden:', rw.bijzonderheden || '-', 'Minimale doorrijhoogte:', minTekst],
+        ];
+        const c1 = vak.x + 3 * TS, c2 = c1 + 30 * TS, c3 = vak.x + tvW / 2 + 2 * TS, c4 = c3 + 42 * TS;
+        velden.forEach((v, i) => {
+          const y = tvY + 6 * TS + i * 5.6 * TS;
+          doc.setFontSize(8.5 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
+          doc.text(v[0], c1, y); doc.text(v[2], c3, y);
+          doc.setFont('helvetica', 'normal');
+          doc.text(kortTekst(doc, pdfTekst(v[1]), c3 - c2 - 3 * TS), c2, y);
+          if (i === 3) { doc.setFont('helvetica', 'bold'); doc.setTextColor(198, 71, 43); }
+          doc.text(kortTekst(doc, pdfTekst(v[3]), vak.x + tvW - c4 - 2 * TS), c4, y);
+        });
+        doc.setFontSize(6.5 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
+        const voet = `Opgezet naar de Productspecificaties Doorrijprofielen (RWS, 1 juli 2022). Doorrijhoogte = object min weg, uit de ${drRws.bron === 'ruw' ? 'ruwe meetpunten' : 'uitgedunde punten'} binnen 0,10 m van het meetpunt; aantal punten en spreiding per meetpunt in de tabel. ` +
+          'De precisie (RWS: sigma <= 1,0 cm) hangt af van de meting zelf. Minimale doorrijhoogte per rijbaan: kleinste vrije hoogte boven de box van die rijbaan, ook buiten de profielen.';
+        doc.splitTextToSize(pdfTekst(voet), vak.w).slice(0, 3).forEach((regel, j) => doc.text(regel, vak.x, Math.min(vak.y + vak.h - 1, tvY + tvH + 4 * TS + j * 3.2 * TS)));
       }
     }
 
