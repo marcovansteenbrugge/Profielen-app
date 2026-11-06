@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Nov 6, 2026 · @Marco van Steenbrugge · versie 2.12.1
+Nov 6, 2026 · @Marco van Steenbrugge · versie 2.13.0
 
 ## Wat is de Profielviewer
 
@@ -369,6 +369,29 @@ De snoeicheck zoekt alle begroeiing die in de vrije doorloopruimte boven een pad
 - **3D**: het profiel als tunnel over het pad; **Naar snoeipunt** loopt de punten af. Loopt het terreinmodel van A door de kronen, dan zet de viewer de laag Bodem uit en Maaiveld (strook) aan.
 
 &#91;image: 3D: het doorloopprofiel als tunnel over het pad, met de takken in rood en oranje\]
+
+## Doorrijhoogte
+
+De doorrijhoogte toetst de vrije hoogte boven een weg (of fietspad) onder een dak, viaduct, overkapping of kunstwerk. De as ligt op de weg; op het wegdek staat een box van breedte × hoogte, en de viewer laat zien hoeveel ruimte er tussen de bovenkant van de box en het dak zit (de speling). Weg en dak mogen in **één puntenwolk** zitten: je hoeft niets te splitsen.
+
+1. Open de scan als puntenwolk (stap 1). Bij een LAS/LAZ kun je in het klassenvenster vegetatie (5) weglaten. Zet "punten" op 300.000 tot 1 miljoen.
+2. Teken of lees de **as over de weg** in, onder het dak door.
+3. Klik **TOETS → Doorrijhoogte…** en dan **Uit puntenwolk A** (of **Ander bestand…**). De viewer leest alle punten in een strook langs de as, zo breed als het dwarsprofiel (max. 30 m).
+4. Kies per box een **voorwaarde** of vul eigen maten in, en klik **Controleren**. Het dwarsprofiel springt naar de plek met de kleinste vrije hoogte.
+
+| Veld | Betekenis |
+| --- | --- |
+| **Voorwaarde** | Vult naam, breedte en hoogte in: hoofdweg/vrachtverkeer 4,50 m, gewone weg 4,20 m, bus 4,00 m, hulpdiensten 4,00 × 3,50 m, fietspad 2,50 m, voetpad 2,30 m, of eigen maten. De maten zijn een voorstel uit de praktijk, geen norm: houd de eis van de opdrachtgever aan (bv. ROA/ROK of CROW). |
+| **Breedte B / Hoogte H / Verschuiving** | De box; verschuiving = midden van de box t.o.v. de as (+ = rechts). Met **+ box** toets je tot vier boxen tegelijk, bv. rijbaan en fietspad. |
+| **Marge** | Extra ruimte boven H. Minder speling dan de marge = "krap" (oranje). |
+| **Negeer lager dan** | Wat minder hoog boven de weg ligt (wegdek, banden, paaltjes) is geen dak. Staan er auto's onder het dak in de scan, zet het dan op ± 2,5 m. |
+| **Dak apart (optioneel)** | Alleen als het dak in een ander bestand zit dan de weg. |
+
+**Hoe hij rekent.** De weg is per vakje de onderste laag. Waar onder het dak geen weg gemeten is (een drone ziet daar weinig), herkent de viewer dat het vakje alleen het dak raakt en overbrugt hij de weg uit de weg ervoor en erna; die plekken staan op de dekkingskaart. Het dak is alles wat hoger dan "negeer lager dan" boven de weg ligt; losse punten tellen niet mee. De box staat per station op het hoogste punt van de weg binnen de boxbreedte (veilige kant). De vrije hoogte is het laagste dakpunt boven de box-onderkant; de speling is vrije hoogte − H.
+
+**Wat je ziet.** In het dwarsprofiel de box(en) op de weg met B en H, "vrij x,xx" tot het dak en de punten (weg grijs, dak donker, in de box rood). In het lengteprofiel de box langs de weg en de onderkant van het dak als rode stippellijn; de profiellijn volgt binnen de strook de weg, niet het dak. In het bovenaanzicht de randen van de box, het kritieke punt ("min") en de niet-gemeten plekken. De PDF krijgt een blad **Doorrijhoogte** (dwarsprofiel bij de kleinste vrije hoogte, tabel per box, oordeel) en een **dekkingskaart**.
+
+Voor een vaarweg onder een brug blijft de **Doorvaartcontrole** (hierboven) de toets.
 
 ## Stationering: dijkpalen en hectometrering
 

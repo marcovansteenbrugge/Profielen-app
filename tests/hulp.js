@@ -98,6 +98,13 @@ function pvomzet() {
   if (r.status !== 0) throw new Error('pvomzet bouwen mislukt: ' + r.stderr);
   return (pvomzetPad = exe);
 }
+/** Tijdelijke map op de plek van het doel; een virusscanner kan de map even vasthouden (EPERM): opnieuw proberen. */
+function verplaatsMetPogingen(tijdelijk, doel) {
+  for (let poging = 0; ; poging++) {
+    try { fs.rmSync(doel, { recursive: true, force: true }); fs.renameSync(tijdelijk, doel); return; }
+    catch (e) { if (poging >= 5 || !/EPERM|EBUSY|EACCES/.test(e.code || '')) throw e; const t0 = Date.now(); while (Date.now() - t0 < 300) { /* even wachten */ } }
+  }
+}
 const omzettingen = new Map();
 function omzetVerzoek(req, res, route, q, lees, stuur, json) {
   if (route === 'omzet/stand') { const t = omzettingen.get(q.get('id')); if (!t) return stuur(404, 'onbekende omzetting'); const { proc, ...stand } = t; return json(stand); }
@@ -124,7 +131,7 @@ function omzetVerzoek(req, res, route, q, lees, stuur, json) {
     let fout = '';
     const einde = (code, ok) => {
       if (code === 0 && !t.afbreken) {
-        try { fs.rmSync(doel, { recursive: true, force: true }); fs.renameSync(tijdelijk, doel); t.info = JSON.parse(fs.readFileSync(path.join(doel, 'info.json'), 'utf8')); t.fase = 'klaar'; }
+        try { verplaatsMetPogingen(tijdelijk, doel); t.info = JSON.parse(fs.readFileSync(path.join(doel, 'info.json'), 'utf8')); t.fase = 'klaar'; }
         catch (e) { t.fase = 'fout'; t.fout = e.message; }
       } else { fs.rmSync(tijdelijk, { recursive: true, force: true }); if (t.afbreken) t.fase = 'afgebroken'; else { t.fase = 'fout'; t.fout = fout.replace(/^pvomzet: /, '') || `pvomzet stopte met ${code}`; } }
       ok();

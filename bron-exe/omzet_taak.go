@@ -185,8 +185,14 @@ func (t *omzetTaak) draai(ctx context.Context, onder bool, klassen []uint8) {
 	}, func(gelezen, totaal int64) { t.zet(func() { t.gelezen, t.totaal = gelezen, totaal }) })
 	if err == nil {
 		// klaar: het oude doel weg, de tijdelijke map op zijn plek
-		if err = os.RemoveAll(t.doel); err == nil {
-			err = os.Rename(t.tijdelijk, t.doel)
+		// een virusscanner kan de net geschreven map even vasthouden: een paar keer opnieuw proberen
+		for poging := 0; poging < 6; poging++ {
+			if err = os.RemoveAll(t.doel); err == nil {
+				if err = os.Rename(t.tijdelijk, t.doel); err == nil {
+					break
+				}
+			}
+			time.Sleep(300 * time.Millisecond)
 		}
 	}
 	if err != nil {

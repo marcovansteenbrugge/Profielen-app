@@ -1,4 +1,4 @@
-Lutrea Profielviewer 2.12.1 (voorheen PTS-viewer)
+Lutrea Profielviewer 2.13.0 (voorheen PTS-viewer)
 ================================================
 Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
 De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
@@ -48,6 +48,25 @@ Mapversie (alternatief)
 
 Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
 adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.13.0 — Doorrijhoogte
+-------------------------------
+- Nieuwe toets onder TOETS: "Doorrijhoogte…". De as ligt op de weg; op het wegdek staat
+  een box (breedte x hoogte) en de viewer laat zien hoeveel ruimte er tussen de box en
+  het dak, viaduct of kunstwerk erboven zit (vrije hoogte en speling), en waar die het
+  kleinst is.
+- Weg en dak mogen in één puntenwolk zitten: de onderste laag is de weg, wat erboven
+  ligt het dak. Waar onder het dak geen weg gemeten is, wordt de weg overbrugd; die
+  plekken staan op de dekkingskaart.
+- Voorwaarden uit een lijst (hoofdweg 4,50 m, gewone weg 4,20 m, bus en hulpdiensten
+  4,00 m, fietspad 2,50 m, voetpad 2,30 m) of eigen maten; tot vier boxen tegelijk, bv.
+  rijbaan en fietspad. De maten zijn een voorstel, geen norm.
+- Box en vrije hoogte in het dwars- en lengteprofiel en het bovenaanzicht; de PDF krijgt
+  een blad "Doorrijhoogte" en een dekkingskaart. De doorvaartcontrole blijft zoals hij was.
+- Hersteld: bij zeer dichte wolken (honderden miljoenen punten) liepen "Alle punten" en
+  punten in het profiel vast op grote vakken ("Failed to fetch"), en bleef bij de
+  snoeicheck en de doorvaart van de strook bijna niets over. Vakken worden nu in stukken
+  gelezen en de strook goed uitgedund.
 
 Nieuw in 2.12.1 — Kiezen welke klassen je inleest
 -------------------------------------------------
