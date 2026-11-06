@@ -111,8 +111,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
-| F0 | 2026-11-06 21:18 | 2026-11-06 21:54 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 136 / 72.561
-Plak in de tabel bij punt 11 (Uitvoering), kolommen Effort, Tokens invoer / uitvoer en Bron: | b38991d | transcript (Claude Code 2.1.317) |
+| F0 | 2026-11-06 21:18 | 2026-11-06 21:54 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 136 / 72.561 | b38991d | transcript (Claude Code 2.1.317) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
