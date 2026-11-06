@@ -23,7 +23,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 |---|---|---|---|---|---|
 | F0 | Profiel 1 en 2, meetpunten, hoogtes uit de ruwe punten, minimale doorrijhoogte per rijbaan | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B1, B2, B3 | ✅ 2026-11-06 23:31 |
 | F1 | Doorrijbreedte op 0,5–1,0 m | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B4 | ✅ 2026-11-06 23:33 |
-| F2 | PDF-blad per profiel in RWS-stijl, met tekstvak | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B5, B6 | - |
+| F2 | PDF-blad per profiel in RWS-stijl, met tekstvak | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B5, B6 | ✅ 2026-11-06 23:35 |
 | F3 | Uitleveren als 2.14.0, met jouw controle op LoZ.laz | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B7 | - |
 
 Letterlijk akkoord (F0 tot en met F3, via chat): "Akkoord, bouw F0–F3", als antwoord op de vraag "Akkoord met B1–B7 zoals voorgesteld, en bouwen op planversie 1, fase F0 t/m F3?"
@@ -176,5 +176,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-06 23:04 | B1 tot en met B7 akkoord (ons voorstel) en vrijgave F0 tot en met F3 op planversie 1: "Akkoord, bouw F0–F3" | Marco van Steenbrugge, via chat |
 | 2026-11-06 23:31 | F0 gebouwd: profiel 1 en 2, meetpunten (BGT en aanklikken), hoogtes uit de ruwe punten, minimale doorrijhoogte per rijbaan | Claude Opus 5.5 (agent) |
 | 2026-11-06 23:33 | F1 gebouwd: doorrijbreedte op 0,5–1,0 m in de profielen en van 30 m voor tot 30 m na het dak | Claude Opus 5.5 (agent) |
+| 2026-11-06 23:35 | F2 gebouwd: PDF-blad per profiel in RWS-stijl met tekstvak | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
