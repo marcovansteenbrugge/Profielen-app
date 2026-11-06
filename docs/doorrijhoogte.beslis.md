@@ -4,7 +4,7 @@ titel: Doorrijhoogte: vrije hoogte onder een dak of kunstwerk toetsen
 plan: doorrijhoogte.plan.md
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
 voorgelegd: 2026-11-06 21:16          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
-status: vrijgegeven        # berekend door de skill, nooit met de hand gezet
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 ---
 
 > Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
@@ -21,7 +21,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
-| F0 | Knop en venster Doorrijhoogte, de berekening (weg en dak uit één wolk, vrije hoogte en speling per station) en de box op de weg in de profielen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 21:18 | B1, B2, B5 | - |
+| F0 | Knop en venster Doorrijhoogte, de berekening (weg en dak uit één wolk, vrije hoogte en speling per station) en de box op de weg in de profielen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 21:18 | B1, B2, B5 | ✅ 2026-11-06 21:54 |
 | F1 | Voorwaarden kiezen uit een lijst of eigen maten, marge, meerdere boxen tegelijk | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 21:18 | B3, B4 | - |
 | F2 | PDF-blad Doorrijhoogte met dekkingskaart | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 21:18 | - | - |
 | F3 | Uitleveren (tests, LEESMIJ, handleiding, exe en setup), met jouw controle op LoZ.laz | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 21:18 | B6 | - |
@@ -155,5 +155,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 |---|---|---|
 | 2026-11-06 21:16 | Plan opgesteld en voorgelegd, op basis van de wensen van Marco in de chat ("maak het kopje doorrijhoogte", "hou de doorvaart ook", "as op de bodem... box met breedte en hoogte en dan laten zien hoever we onder het dak zitten") | Claude Opus 5.5 (agent) |
 | 2026-11-06 21:18 | B1 tot en met B6 akkoord (ons voorstel) en vrijgave F0 tot en met F3 op planversie 1: "Akkoord, bouw F0–F3" | Marco van Steenbrugge, via chat |
+| 2026-11-06 21:54 | F0 gebouwd: knop en venster Doorrijhoogte, weg en dak uit één wolk, box op de weg; testversie in dist\test. Twee fouten hersteld die ook LoZ.laz raakten (uitdunnen, vakken in stukken lezen) | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
