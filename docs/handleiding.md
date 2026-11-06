@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Nov 6, 2026 · @Marco van Steenbrugge · versie 2.12.0
+Nov 6, 2026 · @Marco van Steenbrugge · versie 2.12.1
 
 ## Wat is de Profielviewer
 
@@ -87,6 +87,8 @@ Kies in de bovenste balk het bestand (.pts, .las of .laz) met **Openen…**; in 
 | **kleur** (bovenaanzicht) | **RGB (inmeting)** = de kleur uit de puntenwolk, **hoogte** = kleurverloop op hoogte | RGB voor herkenbaarheid |
 
 Wijzig je punten, oppervlak of randen strak, dan leest de viewer het bestand opnieuw in. Je as en BGT blijven staan.
+
+**Klassen kiezen (LAS/LAZ).** Heeft een LAS of LAZ meer dan één classificatie, dan vraagt het venster **Welke klassen inlezen?** welke je wilt gebruiken, met per klasse het aandeel (bij grote bestanden een schatting uit een steekproef). Alleen de aangevinkte klassen komen in de vakken. Dat scheelt veel bij zeer dichte drone- of fotogrammetriewolken: laat bijvoorbeeld hoge vegetatie (5) weg, of begin met maaiveld (2) en wegdek (11) en zet een kunstwerk er later bij. Met de knop **Klassen…** bij de puntenwolk wijzig je de keuze: de wolk wordt opnieuw omgezet (bij een grote LAZ ongeveer een minuut), je as en profielen blijven staan, en tot het omzetten klaar is blijven de oude vakken staan, ook als je afbreekt. Dit is iets anders dan het vinkje **maaiveld**: dat kiest uit wat er is ingelezen, het klassenvenster bepaalt wat er wordt ingelezen. In het bovenaanzicht zie je per plek één hoogte (bovenkant of onderkant); weg en brug boven elkaar zie je samen in het dwarsprofiel met **punten** aan.
 
 **PTS uit ReCap.** Een PTS die je in ReCap uit meerdere LAS-tegels hebt samengevoegd (x y z r g b nx ny nz) wordt herkend, inclusief de kleur. Ook PTS met 4, 6, 7 of 10 kolommen werken.
 

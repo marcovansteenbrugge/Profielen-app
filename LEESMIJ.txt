@@ -1,4 +1,4 @@
-Lutrea Profielviewer 2.12.0 (voorheen PTS-viewer)
+Lutrea Profielviewer 2.12.1 (voorheen PTS-viewer)
 ================================================
 Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
 De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
@@ -48,6 +48,20 @@ Mapversie (alternatief)
 
 Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
 adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.12.1 — Kiezen welke klassen je inleest
+-------------------------------------------------
+- Open je een LAS of LAZ met meer dan één classificatie (maaiveld, gebouw, wegdek, …),
+  dan vraagt een venster welke klassen je wilt inlezen. Je ziet per klasse het aandeel
+  (bij grote bestanden een schatting uit een steekproef). Alleen de aangevinkte klassen
+  komen in de vakken: minder punten, sneller en lichter. Handig bij zeer dichte drone- of
+  fotogrammetriewolken (bv. 440 miljoen punten op 1,4 ha).
+- De knop "Klassen…" bij de puntenwolk wijzigt de keuze later: een klasse erbij of eraf.
+  De wolk wordt dan opnieuw omgezet (bij een grote LAZ ongeveer een minuut); je as en
+  profielen blijven staan. Tot het omzetten klaar is, blijven de oude vakken staan, ook als
+  je afbreekt.
+- Je vorige keuze staat bij de volgende scan al aangevinkt. Een scan met één klasse (of
+  zonder classificatie) opent zoals altijd, zonder venster.
 
 Nieuw in 2.12.0 — Alle punten in het dwarsprofiel
 -------------------------------------------------
