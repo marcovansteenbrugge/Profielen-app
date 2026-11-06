@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Kiezen welke classificaties worden ingelezen
 
-> **Nu van jou gevraagd:** je controle van 2.12.1 op LoZ.laz (F2): openen met een beperkte klassenkeuze en profielen maken. Daarna volgt de tag.
+> **Nu van jou gevraagd:** het laatste deel van je controle (F2): een dwarsprofiel over de brug op LoZ.laz, met "punten" aan. Daarna volgt de tag.
 > **Later nodig:** niets.
 
 Bij het openen van een LAS of LAZ krijg je straks eerst een venstertje waarin je per classificatie (maaiveld, weg, gebouw, …) aanvinkt wat je wilt inlezen. Alleen dat komt in de vakken, zodat een zeer dichte wolk als LoZ.laz werkbaar wordt. Met de knop "Klassen wijzigen…" vink je later een klasse bij of af, zodat je de wolk stap voor stap aankleedt. Inzoomen werkt zoals nu (ingezoomd meer punten), alleen met de gekozen klassen. Het werk is verdeeld in drie fasen.
@@ -101,5 +101,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-06 14:38 | F0 gebouwd: het programma zet alleen de gekozen klassen om (LoZ.laz met maaiveld en weg: 146,6 mln punten, 2,3 GB, 38 s) | Claude Opus 5.5 (agent) |
 | 2026-11-06 15:05 | F1 gebouwd: het venster en de knop Klassen…; testversie gebouwd in dist	est | Claude Opus 5.5 (agent) |
 | 2026-11-06 15:24 | F2: 2.12.1 gebouwd (alle tests en installatietoets groen), commit d6a108d; tag wacht op je controle | Claude Opus 5.5 (agent) |
+| 2026-11-06 15:25 | Controle F2 deels: inladen werkt ("ja het werkt bij het inladen"), profielen over de brug nog niet getest | Marco van Steenbrugge, via chat |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

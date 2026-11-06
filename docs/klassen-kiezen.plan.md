@@ -132,6 +132,7 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F2 | 2026-11-06 15:24 | 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen` | uitvoer: "geïnstalleerde exe is de gebouwde exe van 2.12.1", "versie in Windows-instellingen is 2.12.1", eindregel "fouten: geen" | gehaald |
 | F2 | 2026-11-06 15:24 | 3. Exe, zip en setup staan in `dist` | `dist\Lutrea-Profielviewer-2.12.1.exe` (13.493.248 bytes), `_compleet_2.12.1.zip` (6.509.759), `-2.12.1-setup.exe` (6.107.339) | gehaald |
 | F2 | 2026-11-06 15:24 | 4. Marco bevestigt dat LoZ.laz met een beperkte keuze te openen en te profileren is | nog niet beoordeeld: wacht op Marco | niet toetsbaar |
+| F2 | 2026-11-06 15:25 | 4. Marco bevestigt dat LoZ.laz met een beperkte keuze te openen en te profileren is | Marco van Steenbrugge, 2026-11-06 15:25, via chat: "ja het werkt bij het inladen.. heb nog neit goed kunnen testen of ik de onder en bovenkant kan zien tegelijk". Openen bevestigd, profileren nog niet | niet toetsbaar |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
