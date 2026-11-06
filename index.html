@@ -204,7 +204,7 @@
   #lint .groep.ingeklapt{justify-content:flex-start; padding-right:8px}
   #lint .groep.ingeklapt h2{writing-mode:vertical-rl; transform:rotate(180deg); flex-direction:row-reverse; margin:auto 0; padding:2px 0}
   #lint .groep.ingeklapt h2::after{transform:rotate(-90deg)}
-  #lint .toetsRaster{display:grid; grid-template-columns:auto auto; gap:4px 6px; align-items:center}
+  #lint .toetsRaster{display:grid; grid-template-columns:auto auto auto; gap:4px 6px; align-items:center}
   #lint .toetsRaster .dvChip{max-width:118px}
   #lint .merkBlok{display:flex; flex-direction:column; justify-content:center; gap:4px; padding-right:10px}
   #lint .groep{display:flex; flex-direction:column; gap:4px; padding:0 11px; border-left:1px solid var(--line); min-width:0}
@@ -257,6 +257,8 @@
   .dv-maatlijn{stroke:#1B2A38; stroke-width:.9; fill:none}
   .dv-maatlijn.grijs{stroke:#6B7A8C}
   .dv-maatlijn.rood{stroke:#C6472B; stroke-width:1.2}
+  .dr-vrij{stroke:#C6472B; stroke-width:1.3; stroke-dasharray:2 3; fill:none}
+  #drBoxen .drBox + .drBox{border-top:1px solid var(--line); margin-top:6px; padding-top:6px}
   .dv-maatlijn.groen{stroke:#16803D; stroke-width:1.2}
   .dv-maatlijn-tekst{fill:#1B2A38; font:600 12.5px "Segoe UI",system-ui,sans-serif; stroke:#fff; stroke-width:3px; paint-order:stroke}
   .dv-maatlijn-tekst.grijs{fill:#6B7A8C}
@@ -497,7 +499,8 @@
     <div class="toetsRaster">
       <button id="doorvaartKnop" disabled class="breed" title="Doorvaarthoogte (en -diepte) onder een brug controleren: brugscans inlezen, doorvaartbox instellen en toetsen">Doorvaart…</button>
       <button id="snoeiKnop" disabled class="breed" title="Snoeicheck: vrije doorloopruimte (breedte × hoogte) boven een pad toetsen op begroeiing uit de puntenwolk — snoeikaart en snoeilijst">Snoeien…</button>
-      <span id="dvChip" class="dvChip">geen brug ingelezen</span><span id="snChip" class="dvChip">geen begroeiing</span>
+      <button id="doorrijKnop" disabled class="breed" title="Doorrijhoogte: een box (breedte × hoogte) op het wegdek en de vrije hoogte tot een dak, viaduct of kunstwerk erboven toetsen — weg en dak uit dezelfde puntenwolk">Doorrijhoogte…</button>
+      <span id="dvChip" class="dvChip">geen brug ingelezen</span><span id="snChip" class="dvChip">geen begroeiing</span><span id="drChip" class="dvChip">niet gecontroleerd</span>
     </div>
   </section>
 
@@ -759,6 +762,44 @@
   </div>
   <div class="pdf-voet"><span class="info">De PDF krijgt een blad "Snoeilijst"; het bovenaanzicht wordt de snoeikaart met de nummers.</span>
     <button id="snCsv" disabled title="Snoeilijst als CSV (opent in Excel)">Snoeilijst (CSV)</button><button id="snSluit">Sluiten</button><button id="snControleer" class="primair">Controleren</button></div>
+</dialog>
+
+<dialog id="drDialoog" class="dvDialoog">
+  <div class="pdf-kop"><img src="merk-lutrea.png" alt=""><h2>Doorrijhoogte</h2><span class="zacht">vrije hoogte boven de weg onder een dak, viaduct of kunstwerk</span></div>
+  <div class="dvLijf">
+    <div class="dvKolom">
+      <fieldset>
+        <legend>Weg en dak</legend>
+        <p class="hint">De as ligt op de weg. Alle punten in een strook langs de as worden in 3D gelezen. De onderste laag is de weg; wat er hoger dan "negeer lager dan" boven ligt, is het dak (ook als weg en dak in één puntenwolk zitten). Waar onder het dak geen weg gemeten is, wordt de weg overbrugd en staat het op de dekkingskaart.</p>
+        <div class="rij"><span>Puntenwolk</span>
+          <button type="button" id="drUitA">Uit puntenwolk A</button>
+          <input type="file" id="drBestand" accept=".pts,.txt,.las,.laz" hidden>
+          <button type="button" class="bestandOpen" data-voor="drBestand" id="drAnderKnop" title="Een ander bestand met weg en dak">Ander bestand…</button></div>
+        <div class="rij"><span></span><span class="bestandNaam" id="drNaam" style="max-width:300px">niet ingelezen</span><button type="button" id="drWis" hidden title="Punten weghalen">✕</button></div>
+        <div class="rij" title="Optioneel: het dak (onderzijde van het kunstwerk) uit een apart bestand. De weg komt dan nog steeds uit de puntenwolk hierboven."><span>Dak apart (optioneel)</span>
+          <input type="file" id="drDakBestand" accept=".pts,.txt,.las,.laz" hidden>
+          <button type="button" class="bestandOpen" data-voor="drDakBestand" id="drDakKnop">Bestand…</button></div>
+        <div class="rij"><span></span><span class="bestandNaam" id="drDakNaam" style="max-width:300px">niet ingelezen</span><button type="button" id="drDakWis" hidden title="Apart dak weghalen">✕</button></div>
+      </fieldset>
+      <fieldset>
+        <legend>Doorrijprofiel</legend>
+        <div id="drBoxen"></div>
+        <div class="rij" title="Ruimte die je extra wilt houden boven de vereiste hoogte (bv. voor asfaltlagen of zetting). Minder speling dan de marge = krap."><span>Marge</span><input type="number" id="drMarge" step="0.05" min="0"> m boven H</div>
+        <div class="rij" title="Stations langs de as die gecontroleerd worden. Leeg = de hele as."><span>Lengte</span>st. <input type="number" id="drVan" step="1"> tot <input type="number" id="drTot" step="1"> <button type="button" id="drAuto" title="De hele as">hele as</button> <span class="zacht" id="drAutoTekst"></span></div>
+        <div class="rij" title="Alles wat minder hoog dan dit boven de weg ligt (wegdek, banden, paaltjes) is geen dak. Staan er voertuigen onder het dak, zet het dan hoger (bv. 2,5 m)."><span>Negeer lager dan</span><input type="number" id="drMinHoogte" step="0.1" min="0"> m boven de weg</div>
+        <div class="rij" title="Losse punten (vogel, spinrag, ruis) tellen niet mee: een punt telt alleen als er binnen 0,5 m minstens zoveel andere punten liggen."><span>Ruisfilter</span><input type="number" id="drMinPunten" step="1" min="1"> punten binnen 0,5 m</div>
+        <label class="vink"><input type="checkbox" id="drTonen" checked> tonen in bovenaanzicht, profielen en PDF</label>
+      </fieldset>
+    </div>
+    <div class="dvKolom">
+      <fieldset>
+        <legend>Resultaat</legend>
+        <div id="drResultaat"></div>
+      </fieldset>
+    </div>
+  </div>
+  <div class="pdf-voet"><span class="info">Na "Controleren" springt het dwarsprofiel naar de plek met de kleinste vrije hoogte.</span>
+    <button id="drSluit">Sluiten</button><button id="drControleer" class="primair">Controleren</button></div>
 </dialog>
 
 <dialog id="paalDialoog" class="dvDialoog" style="width:min(760px, calc(100vw - 32px))">

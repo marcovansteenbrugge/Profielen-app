@@ -2089,8 +2089,16 @@
     const tm = await bron.tegelMap();
     let gedaan = 0;
     for (const [tx, ty, n] of lijst) {
-      const buf = await (await (await tm.getFileHandle(tegelNaam(tx, ty))).getFile()).arrayBuffer();
-      voerTegelRecords(buf, bron.info, sink, kader);
+      // in stukken van 32 MB (een veelvoud van 16 bytes): een vak van een zeer dichte wolk is honderden MB,
+      // en in één keer ophalen lukt dan niet ("Failed to fetch") of vreet het geheugen op
+      const h = await tm.getFileHandle(tegelNaam(tx, ty));
+      const f = h.pvPad ? await natieveScan(h.pvPad) : await h.getFile();
+      const STUK = 32 << 20;
+      for (let van = 0; van < f.size; van += STUK) {
+        const buf = await f.slice(van, Math.min(f.size, van + STUK)).arrayBuffer();
+        voerTegelRecords(buf, bron.info, sink, kader);
+        if (f.size > STUK) await new Promise(r => setTimeout(r, 0));
+      }
       gedaan += n;
       onVoortgang?.(gedaan, totaal);
       await new Promise(r => setTimeout(r, 0));
@@ -2897,7 +2905,7 @@
     boomBestandVeld.disabled = false;
     drieDKnop.disabled = false;
     printKnop.disabled = false;
-    for (const id of ['nwbKnop', 'dxfKnop', 'gpkgKnop', 'ifcKnop', 'asInlezenKnop', 'omdraaiAsKnop', 'doorvaartKnop', 'snoeiKnop', 'kadasterOphalenKnop', 'kadasterBestand']) { const k = document.getElementById(id); if (k) k.disabled = false; }
+    for (const id of ['nwbKnop', 'dxfKnop', 'gpkgKnop', 'ifcKnop', 'asInlezenKnop', 'omdraaiAsKnop', 'doorvaartKnop', 'snoeiKnop', 'doorrijKnop', 'kadasterOphalenKnop', 'kadasterBestand']) { const k = document.getElementById(id); if (k) k.disabled = false; }
     projectOpslaanKnop.disabled = false; projectOpslaanAlsKnop.disabled = false;
     bronBestandsnaam = naam;
     { const wn = document.getElementById('wolkBestandNaam'); if (wn) { wn.textContent = naam; wn.title = `Ingelezen puntenwolk: ${naam}`; } }
@@ -3016,6 +3024,9 @@
   window.__pvTest = { naarScherm: (x, y) => wereldNaarScherm(x, y), dwars: () => { const r = berekenDwarsprofiel(dwarsStations[huidigeStationIndex]); return [r[0]?.offset, r[r.length - 1]?.offset, r.length, volleProfielenGeldig()]; }, detailVakken: () => detailCache.size, percelen: () => percelen.length, bgt: () => bgtLagen.length, hoogteOp: (x, y) => hoogteOp(x, y), puntOpStationOffset: (s, o) => puntOpStationOffset(s, o), lengte: () => { const s = stationsLangsAs(); return s[s.length - 1]; },
     profielPuntenUitgedund: (max) => { const st = dwarsStations[huidigeStationIndex]; const q = volleProfielenGeldig() && volleProfielen.punten?.get(st); return q ? dunProfielPuntenUit(q, 0.02, max).o.length : null; },
     dwarsLijn: () => berekenDwarsprofiel(dwarsStations[huidigeStationIndex]).map(p => [p.offset, p.hoogte]),
+    doorrij: () => { const r = drResultaat; return r ? { ok: r.ok, krap: r.krap, ruis: r.ruis, metDak: r.metDak, gatM2: r.dekking?.oppGat ?? null, dekking: r.dekking ? { gemeten: r.dekking.pct, gaten: r.dekking.gaten.length } : null,
+      boxen: r.boxen.map(b => ({ B: b.B, H: b.H, c: b.c, vrijMin: b.vrijMin, speling: b.speling, ok: b.ok, krap: b.krap, nConflict: b.nConflict, kritiek: b.kritiek })) } : null; },
+    doorrijWeg: (s, o) => drResultaat ? drResultaat.wegOp(s, o) : null,
     profielPunten: () => { const st = dwarsStations[huidigeStationIndex]; const q = volleProfielenGeldig() && volleProfielen.punten?.get(st); return q ? { station: st, strook: volleProfielen.strook, o: Array.from(q.o), z: Array.from(q.z), k: Array.from(q.k) } : null; } };
 
   function hoogteOp(x, y) {
@@ -3608,6 +3619,7 @@
     if (brugOnder || brugBoven || dvResultaat) tekenDoorvaartOpVlak();
     if (toon('toonKadaster', percelen.length > 0)) tekenPercelenOpCanvas(ctxVlak, wereldNaarScherm, { w: canvasVlak.clientWidth, h: canvasVlak.clientHeight });
     if (snResultaat && snoei.tonen) tekenSnoeiOpCanvas(ctxVlak, wereldNaarScherm, { w: canvasVlak.clientWidth, h: canvasVlak.clientHeight, pxPerM: schaal });
+    if (drResultaat && doorrij.tonen !== false) tekenDoorrijOpCanvas(ctxVlak, wereldNaarScherm, { w: canvasVlak.clientWidth, h: canvasVlak.clientHeight, pxPerM: schaal });
     tekenPalenOpCanvas(ctxVlak, wereldNaarScherm, { w: canvasVlak.clientWidth, h: canvasVlak.clientHeight });
 
     // overige assen: grijs, met naam bij het beginpunt (klik erop om te kiezen)
@@ -5340,6 +5352,9 @@
     delete doorvaart.gecontroleerd;
     snoei = { ...SN_STANDAARD, ...(inst.snoei || {}) };
     delete snoei.gecontroleerd;
+    doorrij = { ...JSON.parse(JSON.stringify(DR_STANDAARD)), ...(inst.doorrij ? JSON.parse(JSON.stringify(inst.doorrij)) : {}) };
+    if (!Array.isArray(doorrij.boxen) || !doorrij.boxen.length) doorrij.boxen = JSON.parse(JSON.stringify(DR_STANDAARD.boxen));
+    drResultaat = null;
     if (inst.toonLangsprofiel != null) {
       toonLangsprofielVeld.checked = inst.toonLangsprofiel;
       toonLangsprofielVeld.dispatchEvent(new Event('change'));
@@ -5349,6 +5364,7 @@
     werkDoorvaartPaneelBij();
     if (inst.snoei?.gecontroleerd && begroeiing) { try { voerSnoeiUit(); } catch { snResultaat = null; } }
     werkSnoeiPaneelBij();
+    werkDoorrijPaneelBij();
     tekenVlak();
     bijwerkenProfielen();
     if (drieDActief) bouwDrieDGeometrie();
@@ -6169,8 +6185,8 @@
   function maakBrugSink(kader, limiet = 3000000) {
     let X = [], Y = [], Z = [];
     let gezien = 0, binnen = 0, cel = 0;
-    const dun = () => {
-      cel = cel ? cel * 1.4 : 0.02;
+    const dun = (groei = true) => {
+      if (groei || !cel) cel = cel ? cel * 1.4 : 0.02;
       const x0 = kader.minX, y0 = kader.minY, z0 = Math.min(...Z.slice(0, 1000)) - 500;
       const ruim = 131072;
       const gezienSet = new Set(), nx = [], ny = [], nz = [];
@@ -6189,7 +6205,8 @@
         if (x < kader.minX || x > kader.maxX || y < kader.minY || y > kader.maxY) return;
         binnen++;
         X.push(x); Y.push(y); Z.push(z);
-        if (X.length > limiet) { do dun(); while (X.length > limiet * 0.7); }
+        // eerst met het huidige vakje uitdunnen; pas groter maken als dat niet genoeg is (anders groeit het bij elke portie)
+        if (X.length > limiet) { if (cel) dun(false); while (X.length > limiet * 0.7) dun(); }
       },
       get aantalGezien() { return gezien; },
       get binnen() { return binnen; },
@@ -6974,6 +6991,8 @@
   /** Maaiveld voor de profiellijnen: binnen de strook van de snoeicheck het eigen grondraster
    *  (laagste punten, dus niet door de kronen heen), daarbuiten het terreinmodel van A. */
   function profielHoogte(x, y, o = 0) {
+    const dw = drWegOpXY(x, y);
+    if (dw != null) return dw;
     const g = (begroeiing?.grond && snoei.maaiveld !== false && Math.abs(o) <= begroeiing.half - 0.5 && begroeiing.asSleutel === asSleutelNu()) ? begroeiing.grond.op(x, y) : null;
     return g ?? hoogteOp(x, y);
   }
@@ -6991,8 +7010,8 @@
     for (const st of stukken) { bx0 = Math.min(bx0, st.ax, st.bx); by0 = Math.min(by0, st.ay, st.by); }
     bx0 -= half + 2; by0 -= half + 2;
     let X = [], Y = [], Z = [], K = [], gezien = 0, metKlasse = false, cel = 0;
-    const dun = () => {
-      cel = cel ? cel * 1.4 : 0.03;
+    const dun = (groei = true) => {
+      if (groei || !cel) cel = cel ? cel * 1.4 : 0.03;
       let z0 = Infinity; for (let i = 0; i < Z.length; i += 97) if (Z[i] < z0) z0 = Z[i];
       z0 -= 200;
       const ruim = 131072, set = new Set(), nx = [], ny = [], nz = [], nk = [];
@@ -7015,7 +7034,8 @@
         if (!binnen) return;
         X.push(x); Y.push(y); Z.push(z); K.push(klasse ?? 0);
         if (klasse != null) metKlasse = true;
-        if (X.length > limiet) { do dun(); while (X.length > limiet * 0.7); }
+        // eerst met het huidige vakje uitdunnen; pas groter maken als dat niet genoeg is (anders groeit het bij elke portie)
+        if (X.length > limiet) { if (cel) dun(false); while (X.length > limiet * 0.7) dun(); }
       },
       get aantalGezien() { return gezien; },
       get binnen() { return X.length; },
@@ -7623,6 +7643,456 @@
     document.getElementById('snOndergrondKnop')?.addEventListener('click', () => {
       const v = document.getElementById('oppervlakModus');
       if (v && v.value !== 'onder') { v.value = 'onder'; v.dispatchEvent(new Event('change')); }
+    });
+  }
+
+  /* ────────────────────────────────────────────────────────────────
+     Doorrijhoogte (plan doorrijhoogte, 2.13.0): vrije hoogte boven de weg
+     onder een dak, viaduct of kunstwerk.
+     - Punten: alle punten in een strook langs de as, in 3D (zoals de
+       snoeicheck), uit puntenwolk A of een ander bestand; optioneel het dak
+       uit een apart bestand.
+     - Weg: per vakje (station × offset) de onderste laag. Vakjes waar alleen
+       het dak geraakt is (veel hoger dan de weg ervoor en erna, met een
+       grens op de helling) vallen weg en worden langs de as overbrugd; ze
+       staan op de dekkingskaart als niet gemeten. Geen klasse nodig: bij een
+       Metashape-wolk is het dak soms ook "maaiveld".
+     - Dak: alles wat meer dan "negeer lager dan" boven de weg ligt.
+     - Box (breedte × hoogte, verschuiving t.o.v. de as) staat per station op
+       het hoogste punt van de weg binnen de boxbreedte (besluit B5).
+     - Per box: vrije hoogte = laagste dakpunt boven de box-onderkant binnen
+       de breedte; speling = vrije hoogte − H. Losse punten tellen niet mee.
+     ──────────────────────────────────────────────────────────────── */
+  let drWolk = null, drDak = null;   // { naam, xs, ys, zs, idx, half, asSleutel }
+  const DR_STANDAARD = { boxen: [{ voorwaarde: 'weg', naam: 'rijbaan', breedte: 3.5, hoogte: 4.2, verschuiving: 0 }], marge: 0.1, minHoogte: 0.5, stVan: '', stTot: '', minPunten: 3, tonen: true };
+  let doorrij = JSON.parse(JSON.stringify(DR_STANDAARD));
+  let drResultaat = null;
+  const DR_KLEUR = { box: '#1F4E79', ok: '#16803D', nok: '#C6472B', krap: '#E08A1E', dak: '#5B6670', weg: '#A3ADB8' };
+
+  /** Halve breedte van de strook die gelezen wordt: de breedste box plus wat ruimte ernaast. */
+  function drStrookHalf() {
+    let m = 0;
+    for (const b of doorrij.boxen) m = Math.max(m, Math.abs(dvGetal(b.verschuiving) ?? 0) + (dvGetal(b.breedte) ?? 3) / 2);
+    // ook zo breed als het dwarsprofiel (max. 30 m), zodat de profiellijn over de hele breedte de weg volgt
+    return Math.max(6, m + 3, Math.min(30, Math.max(profielL(), profielR()) + 0.5));
+  }
+  /** Boxen en grenzen, of null als er (nog) niets te toetsen is. */
+  function drKader() {
+    if (asPunten.length < 2) return null;
+    const st = stationsLangsAs(), L = st[st.length - 1];
+    const boxen = [];
+    for (const b of doorrij.boxen) {
+      const B = dvGetal(b.breedte), H = dvGetal(b.hoogte);
+      if (B > 0 && H > 0) boxen.push({ naam: b.naam || '', voorwaarde: b.voorwaarde || 'eigen', B, H, c: dvGetal(b.verschuiving) ?? 0 });
+    }
+    if (!boxen.length) return null;
+    const van = dvGetal(doorrij.stVan), tot = dvGetal(doorrij.stTot);
+    const s0 = van != null ? Math.max(0, van) : 0, s1 = tot != null ? Math.min(L, tot) : L;
+    if (!(s1 > s0)) return null;
+    return { boxen, M: Math.max(0, dvGetal(doorrij.marge) ?? 0), minH: Math.max(0.05, dvGetal(doorrij.minHoogte) ?? 0.5),
+      minP: Math.max(1, Math.round(dvGetal(doorrij.minPunten) ?? 3)), s0, s1, L, heel: van == null && tot == null };
+  }
+
+  /** De toets. */
+  function voerDoorrijUit() {
+    const k = drKader();
+    if (!k) throw new Error(asPunten.length < 2 ? 'teken of lees eerst de as van de weg in' : 'vul de breedte en hoogte van de box in');
+    const w = drWolk;
+    if (!w) throw new Error('lees eerst de punten in (knop "Uit puntenwolk A" of "Ander bestand")');
+    const half = Math.max(w.half, drDak?.half || 0);
+    const proj = maakSnProjectie(half + 0.5);
+    const BS = 0.5, BO = 0.25, L = k.L;
+    const ns = Math.max(2, Math.ceil(L / BS) + 1), no = Math.max(2, Math.ceil(2 * half / BO) + 1), N = ns * no;
+    const cel = (s, o) => { const i = Math.floor(s / BS), j = Math.floor((o + half) / BO); return i < 0 || j < 0 || i >= ns || j >= no ? -1 : i * no + j; };
+    // 1. alle punten op station en offset
+    const bronnen = [w, drDak].filter(Boolean).map((b) => {
+      const n = b.xs.length, S = new Float32Array(n), O = new Float32Array(n);
+      for (let i = 0; i < n; i++) { const so = proj(b.xs[i], b.ys[i]); if (!so || so.d > half + 0.5) { S[i] = NaN; continue; } S[i] = so.s; O[i] = so.o; }
+      return { b, S, O };
+    });
+    // 2. weg: onderste laag per vakje (op één na laagste bij 3 of meer punten), alleen uit de wegwolk
+    const l1 = new Float32Array(N).fill(Infinity), l2 = new Float32Array(N).fill(Infinity), tel = new Uint16Array(N);
+    { const { b, S, O } = bronnen[0];
+      for (let i = 0; i < b.xs.length; i++) {
+        if (Number.isNaN(S[i])) continue;
+        const c = cel(S[i], O[i]); if (c < 0) continue;
+        const z = b.zs[i];
+        if (z < l1[c]) { l2[c] = l1[c]; l1[c] = z; } else if (z < l2[c]) l2[c] = z;
+        if (tel[c] < 65535) tel[c]++;
+      } }
+    const ruw = new Float32Array(N).fill(NaN);
+    for (let c = 0; c < N; c++) if (tel[c]) ruw[c] = tel[c] >= 3 ? l2[c] : l1[c];
+    // 3. onderomhullende met een grens op de helling (8 % langs, 30 % dwars): een vakje dat meer dan 1 m
+    //    boven die omhullende ligt, raakt alleen het dak (of iets anders dan de weg)
+    const E = new Float32Array(N);
+    for (let c = 0; c < N; c++) E[c] = Number.isNaN(ruw[c]) ? Infinity : ruw[c];
+    const langs = () => {
+      const d = 0.08 * BS;
+      for (let j = 0; j < no; j++) {
+        for (let i = 1; i < ns; i++) { const c = i * no + j, v = E[c - no] + d; if (v < E[c]) E[c] = v; }
+        for (let i = ns - 2; i >= 0; i--) { const c = i * no + j, v = E[c + no] + d; if (v < E[c]) E[c] = v; }
+      }
+    };
+    const dwars = () => {
+      const d = 0.3 * BO;
+      for (let i = 0; i < ns; i++) {
+        for (let j = 1; j < no; j++) { const c = i * no + j, v = E[c - 1] + d; if (v < E[c]) E[c] = v; }
+        for (let j = no - 2; j >= 0; j--) { const c = i * no + j, v = E[c + 1] + d; if (v < E[c]) E[c] = v; }
+      }
+    };
+    langs(); dwars(); langs();
+    const gemeten = new Uint8Array(N), weg = new Float32Array(N).fill(NaN);
+    for (let c = 0; c < N; c++) if (!Number.isNaN(ruw[c]) && ruw[c] <= E[c] + 1.0) { gemeten[c] = 1; weg[c] = ruw[c]; }
+    // 4. gaten langs de as overbruggen (lineair, tot 30 m), daarna dwars (tot 2 m)
+    const maxGatS = Math.round(30 / BS), maxGatO = Math.round(2 / BO);
+    for (let j = 0; j < no; j++) {
+      let vorige = -1;
+      for (let i = 0; i < ns; i++) {
+        const c = i * no + j; if (!gemeten[c]) continue;
+        if (vorige >= 0 && i - vorige > 1 && i - vorige - 1 <= maxGatS) {
+          const a = weg[vorige * no + j], z = weg[c];
+          for (let m = vorige + 1; m < i; m++) weg[m * no + j] = a + (z - a) * (m - vorige) / (i - vorige);
+        }
+        vorige = i;
+      }
+    }
+    for (let i = 0; i < ns; i++) {
+      let vorige = -1;
+      for (let j = 0; j < no; j++) {
+        const c = i * no + j; if (Number.isNaN(weg[c])) continue;
+        if (vorige >= 0 && j - vorige > 1 && j - vorige - 1 <= maxGatO) {
+          const a = weg[i * no + vorige], z = weg[c];
+          for (let m = vorige + 1; m < j; m++) weg[i * no + m] = a + (z - a) * (m - vorige) / (j - vorige);
+        }
+        vorige = j;
+      }
+    }
+    const wegOp = (s, o) => { const c = cel(s, o); return c < 0 || Number.isNaN(weg[c]) ? null : weg[c]; };
+    // 5. onderkant van elke box per station: het hoogste punt van de weg binnen de breedte (B5)
+    const boxen = k.boxen.map((bx) => {
+      const bodem = new Float32Array(ns).fill(NaN);
+      const j0 = Math.max(0, Math.floor((bx.c - bx.B / 2 + half) / BO)), j1 = Math.min(no - 1, Math.floor((bx.c + bx.B / 2 + half) / BO));
+      for (let i = 0; i < ns; i++) {
+        let m = -Infinity;
+        for (let j = j0; j <= j1; j++) { const v = weg[i * no + j]; if (!Number.isNaN(v) && v > m) m = v; }
+        if (m > -Infinity) bodem[i] = m;
+      }
+      return { ...bx, bodem, vrijLangs: new Float32Array(ns).fill(NaN), vrijMin: null, kritiek: null, nConflict: 0 };
+    });
+    // 6. dak: alles boven de weg (meer dan minH), met ruisfilter in 3D; de wegpunten zelf (voor het tekenen)
+    const PS = [], PO = [], PZ = [], PC = [], PX = [], PY = [];
+    const CEL = 0.5, telR = new Map();
+    const sleutel = (s, o, z) => (Math.floor(s / CEL) * 1024 + (Math.floor(o / CEL) + 512)) * 16384 + (Math.floor(z / CEL) + 8192);
+    for (const { b, S, O } of bronnen) {
+      for (let i = 0; i < b.xs.length; i++) {
+        const s = S[i]; if (Number.isNaN(s) || s < k.s0 - 1 || s > k.s1 + 1) continue;
+        const wz = wegOp(s, O[i]); if (wz == null) continue;
+        const h = b.zs[i] - wz;
+        PS.push(s); PO.push(O[i]); PZ.push(b.zs[i]); PX.push(b.xs[i]); PY.push(b.ys[i]);
+        if (h < k.minH) { PC.push(0); continue; }
+        PC.push(1);
+        const key = sleutel(s, O[i], b.zs[i]); telR.set(key, (telR.get(key) || 0) + 1);
+      }
+    }
+    let ruis = 0, metDak = 0;
+    const dakS = [], dakO = [];
+    for (let p = 0; p < PS.length; p++) {
+      if (PC[p] !== 1) continue;
+      const cs = Math.floor(PS[p] / CEL), co = Math.floor(PO[p] / CEL), cz = Math.floor(PZ[p] / CEL);
+      let m = -1;
+      for (let a = -1; a <= 1; a++) for (let b2 = -1; b2 <= 1; b2++) for (let c2 = -1; c2 <= 1; c2++) m += telR.get(((cs + a) * 1024 + (co + b2 + 512)) * 16384 + (cz + c2 + 8192)) || 0;
+      if (m < k.minP) { PC[p] = 3; ruis++; continue; }
+      if (PS[p] < k.s0 || PS[p] > k.s1) continue;
+      dakS.push(PS[p]); dakO.push(PO[p]);
+      const i = Math.min(ns - 1, Math.max(0, Math.floor(PS[p] / BS)));
+      for (const bx of boxen) {
+        if (Math.abs(PO[p] - bx.c) > bx.B / 2) continue;
+        const z0 = bx.bodem[i]; if (Number.isNaN(z0)) continue;
+        const vrij = PZ[p] - z0;
+        if (vrij <= 0) continue;   // onder de box-onderkant (bv. een putdeksel naast de hoogste rand)
+        metDak++;
+        if (Number.isNaN(bx.vrijLangs[i]) || vrij < bx.vrijLangs[i]) bx.vrijLangs[i] = vrij;
+        if (bx.vrijMin == null || vrij < bx.vrijMin) { bx.vrijMin = vrij; bx.kritiek = { station: PS[p], offset: PO[p], z: PZ[p], bodem: z0, x: PX[p], y: PY[p] }; }
+        if (vrij < bx.H) { bx.nConflict++; PC[p] = 2; }
+      }
+    }
+    for (const bx of boxen) {
+      bx.speling = bx.vrijMin == null ? null : bx.vrijMin - bx.H;
+      bx.ok = bx.speling == null || bx.speling >= -1e-9;
+      bx.krap = bx.ok && bx.speling != null && bx.speling < k.M - 1e-9;
+    }
+    // 7. dekking: is de weg onder het dak (binnen de boxen) gemeten?
+    const binnen = (s, o) => boxen.some(bx => Math.abs(o - bx.c) <= bx.B / 2);
+    const dekking = dakS.length ? maakDekking({
+      s0: k.s0, s1: k.s1, o0: -half, o1: half, cel: 0.5,
+      gemeten: (cb) => { for (let c = 0; c < N; c++) if (gemeten[c]) cb((Math.floor(c / no) + 0.5) * BS, (c % no + 0.5) * BO - half, weg[c]); },
+      dak: (cb) => { for (let i = 0; i < dakS.length; i++) cb(dakS[i], dakO[i]); },
+      binnen, minOpp: 1, maxGat: 20, z: 'min',
+    }) : null;
+    // index op station (vakken van 1 m) voor het tekenen
+    const nb = Math.ceil(L + 2) + 1, start = new Int32Array(nb + 1), bin = new Int32Array(PS.length);
+    for (let p = 0; p < PS.length; p++) { const b = Math.max(0, Math.min(nb - 1, Math.floor(PS[p]))); bin[p] = b; start[b + 1]++; }
+    for (let b = 0; b < nb; b++) start[b + 1] += start[b];
+    const vul = start.slice(0, nb), volgorde = new Int32Array(PS.length);
+    for (let p = 0; p < PS.length; p++) volgorde[vul[bin[p]]++] = p;
+    const res = {
+      ...k, boxen, half, BS, BO, ns, no, wegOp, ruis, metDak, dekking,
+      S: Float32Array.from(PS), O: Float32Array.from(PO), Z: Float32Array.from(PZ), X: Float64Array.from(PX), Y: Float64Array.from(PY), cls: Uint8Array.from(PC),
+      nb, start, volgorde, asSl: asSleutelNu(), tijd: new Date(),
+      bodemOp: (bi, s) => { const v = boxen[bi].bodem[Math.max(0, Math.min(ns - 1, Math.floor(s / BS)))]; return Number.isNaN(v) ? null : v; },
+      vrijOp: (bi, s) => { const v = boxen[bi].vrijLangs[Math.max(0, Math.min(ns - 1, Math.floor(s / BS)))]; return Number.isNaN(v) ? null : v; },
+    };
+    res.ok = boxen.every(bx => bx.ok);
+    res.krap = res.ok && boxen.some(bx => bx.krap);
+    drResultaat = res;
+    return res;
+  }
+  /** Het resultaat, opnieuw berekend als de as intussen is gewijzigd. */
+  function drGeldig() {
+    if (!drResultaat || !drWolk) return null;
+    if (drResultaat.asSl !== asSleutelNu()) { try { voerDoorrijUit(); } catch { drResultaat = null; } }
+    return drResultaat;
+  }
+  function drVenster(r, s0, s1, cb) {
+    const b0 = Math.max(0, Math.floor(s0)), b1 = Math.min(r.nb - 1, Math.floor(s1));
+    for (let b = b0; b <= b1; b++) for (let q = r.start[b]; q < r.start[b + 1]; q++) { const p = r.volgorde[q]; if (r.S[p] >= s0 && r.S[p] <= s1) cb(p); }
+  }
+  /** Weghoogte voor de profiellijn binnen de strook (de lijn van A loopt bij "bovenkant" over het dak). */
+  function drWegOpXY(x, y) {
+    const r = drResultaat;
+    if (!r || doorrij.tonen === false || r.asSl !== asSleutelNu()) return null;
+    const so = stationOffsetVanPunt(x, y);
+    if (!so || Math.abs(so.offset) > r.half - 0.25) return null;
+    return r.wegOp(so.station, so.offset);
+  }
+
+  /** Gegevens voor een grafiek: dwars- of lengteprofiel. */
+  function drVoorGrafiek(reeks, isDwars, xVeld) {
+    if (doorrij.tonen === false || reeks.maatgevend) return null;
+    const r = drGeldig();
+    if (!r) return null;
+    const uit = { r, punten: [], hoogtes: [], boxen: [] };
+    if (isDwars && reeks.station != null) {
+      const st = reeks.station, int = Math.max(0.5, Number(dwarsIntervalVeld.value) || 5), v = Math.max(0.25, Math.min(1.0, int / 2));
+      uit.soort = 'dwars'; uit.st = st;
+      uit.inBereik = st >= r.s0 - 1e-6 && st <= r.s1 + 1e-6;
+      const xMin = reeks[0].offset, xMax = reeks[reeks.length - 1].offset;
+      r.boxen.forEach((bx, bi) => {
+        const z0 = r.bodemOp(bi, st);
+        if (!uit.inBereik || z0 == null) return;
+        const vrij = r.vrijOp(bi, st);
+        uit.boxen.push({ bx, z0, vrij });
+        uit.hoogtes.push(z0, z0 + bx.H + r.M);
+        if (vrij != null) uit.hoogtes.push(z0 + vrij);
+      });
+      const lijst = [];
+      let plafond = -Infinity; for (const b of uit.boxen) plafond = Math.max(plafond, b.z0 + Math.max(b.bx.H, b.vrij ?? 0) + 2);
+      drVenster(r, st - v, st + v, (p) => { if (r.O[p] >= xMin && r.O[p] <= xMax && (plafond === -Infinity || r.Z[p] <= plafond)) lijst.push(p); });
+      const stap = Math.max(1, Math.floor(lijst.length / 15000));
+      for (let j = 0; j < lijst.length; j += stap) { const p = lijst[j]; uit.punten.push([r.O[p], r.Z[p], r.cls[p]]); }
+    } else if (xVeld === 'station') {
+      uit.soort = 'langs';
+      r.boxen.forEach((bx, bi) => {
+        const lijnB = [], lijnV = [];
+        for (let i = 0; i < r.ns; i++) {
+          const s = (i + 0.5) * r.BS; if (s < r.s0 || s > r.s1) continue;
+          const z0 = bx.bodem[i]; if (Number.isNaN(z0)) { lijnB.push(null); lijnV.push(null); continue; }
+          lijnB.push([s, z0]); uit.hoogtes.push(z0, z0 + bx.H);
+          const vrij = bx.vrijLangs[i]; lijnV.push(Number.isNaN(vrij) ? null : [s, z0 + vrij]);
+        }
+        uit.boxen.push({ bx, lijnB, lijnV });
+      });
+      const b0 = r.boxen[0], lijst = [];
+      drVenster(r, r.s0, r.s1, (p) => { if (r.cls[p] && r.boxen.some(bx => Math.abs(r.O[p] - bx.c) <= bx.B / 2)) lijst.push(p); });
+      const stap = Math.max(1, Math.floor(lijst.length / 30000));
+      for (let j = 0; j < lijst.length; j += stap) { const p = lijst[j]; uit.punten.push([r.S[p], r.Z[p], r.cls[p]]); }
+      void b0;
+    } else return null;
+    for (const p of uit.punten) uit.hoogtes.push(p[1]);
+    return uit;
+  }
+
+  /** Box en kritiek punt in een 2D-kaart (scherm en PDF). naarPx(x, y) → [px, py]. */
+  function tekenDoorrijOpCanvas(ctx, naarPx, opt = {}) {
+    if (doorrij.tonen === false || asPunten.length < 2) return;
+    const r = drGeldig();
+    if (!r) return;
+    const pt = opt.pt || 1, W = opt.w ?? Infinity, Hc = opt.h ?? Infinity;
+    tekenDekkingOpCanvas(ctx, naarPx, r.dekking, { pt, w: W, h: Hc, labels: 0 });
+    // dak binnen de boxen: licht; in de box: rood
+    const stip = Math.max(1.5 * pt, Math.min(4 * pt, 0.08 * (opt.pxPerM || 4) * 1.6));
+    for (const [cls, kleur] of [[1, 'rgba(91,102,112,0.25)'], [2, 'rgba(198,71,43,0.85)']]) {
+      const lijst = [];
+      drVenster(r, r.s0, r.s1, (p) => { if (r.cls[p] === cls) lijst.push(p); });
+      const stap = Math.max(1, Math.floor(lijst.length / (opt.maxPunten || 40000)));
+      ctx.fillStyle = kleur;
+      for (let j = 0; j < lijst.length; j += stap) { const p = lijst[j]; const [px, py] = naarPx(r.X[p], r.Y[p]); if (px > -6 && py > -6 && px < W + 6 && py < Hc + 6) ctx.fillRect(px - stip / 2, py - stip / 2, stip, stip); }
+    }
+    const n = Math.max(2, Math.min(2000, Math.ceil(r.s1 - r.s0)));
+    for (const bx of r.boxen) {
+      for (const o of [bx.c - bx.B / 2, bx.c + bx.B / 2]) {
+        ctx.beginPath();
+        for (let i = 0; i <= n; i++) { const q = puntOpStationOffset(r.s0 + (r.s1 - r.s0) * i / n, o); const [px, py] = naarPx(q.x, q.y); if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); }
+        ctx.setLineDash([10 * pt, 4 * pt, 2 * pt, 4 * pt]); ctx.lineWidth = 1.4 * pt; ctx.strokeStyle = bx.ok ? (bx.krap ? DR_KLEUR.krap : DR_KLEUR.box) : DR_KLEUR.nok; ctx.stroke(); ctx.setLineDash([]);
+      }
+      if (bx.kritiek) {
+        const [cx, cy] = naarPx(bx.kritiek.x, bx.kritiek.y), straal = (opt.badge || 8) * pt;
+        ctx.beginPath(); ctx.arc(cx, cy, straal, 0, Math.PI * 2); ctx.fillStyle = bx.ok ? (bx.krap ? DR_KLEUR.krap : DR_KLEUR.ok) : DR_KLEUR.nok; ctx.fill();
+        ctx.lineWidth = 1.6 * pt; ctx.strokeStyle = '#fff'; ctx.stroke();
+        ctx.font = `700 ${Math.round(straal * 0.95)}px "Segoe UI", Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#fff'; ctx.fillText('min', cx, cy + 0.5 * pt);
+        ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+      }
+    }
+    tekenDekkingOpCanvas(ctx, naarPx, r.dekking, { pt, w: W, h: Hc, labels: 3, alleenLabels: true, labelNaast: Math.max(...r.boxen.map(bx => Math.abs(bx.c) + bx.B / 2)) + 0.3, midden: 0 });
+  }
+
+  /* ── punten inlezen ── */
+  async function laadDoorrijWolk(bestand, rol = 'weg') {
+    if (!xs) { toonFout('Open eerst de puntenwolk (A).'); return; }
+    if (asPunten.length < 2) { toonFout('Teken of lees eerst de as van de weg in: de punten worden in een strook langs de as gelezen.'); return; }
+    const half = drStrookHalf(), wat = rol === 'dak' ? 'Dak' : 'Doorrijhoogte';
+    statusEl.style.color = ''; statusEl.textContent = `${wat}: ${bestand.name} inlezen (strook ± ${komma(half, 1)} m langs de as)…`;
+    await new Promise(r => setTimeout(r, 10));
+    const sink = maakBegroeiingSink(half);
+    const voortgang = (n, t) => { statusEl.textContent = `${wat}: ${bestand.name}… ${Math.round(100 * n / Math.max(1, t))}% · ${sink.binnen.toLocaleString('nl-NL')} punten in de strook`; };
+    try {
+      if (bestand.tegelbron) await leesTegels(bestand, voortgang, sink, strookKader(half), tegelsLangsAs(half));
+      else if (/\.la[sz]$/i.test(bestand.name)) {
+        const header = await leesLasHeader(bestand);
+        // de klassenkeuze van het openen geldt ook hier (bv. zonder vegetatie)
+        const s2 = maakKlassenFilter(sink, bestand.pvKlassen ?? null);
+        if (header.isCompressed) await leesLazPunten(bestand, header, voortgang, true, s2);
+        else await leesLasPunten(bestand, header, voortgang, true, s2);
+      } else await leesPts(bestand, (n, t, f) => { statusEl.textContent = `${wat}: ${bestand.name}… ${Math.round((f ?? (n / Math.max(1, t))) * 100)}% · ${sink.binnen.toLocaleString('nl-NL')} punten in de strook`; }, sink);
+    } catch (err) { toonFout(`kon ${bestand.name} niet lezen: ${err.message}`); return; }
+    const r = sink.resultaat();
+    if (r.xs.length < 50) { toonFout(`${bestand.name}: (bijna) geen punten langs de as gevonden — ligt de as op de weg en is alles in RD (EPSG:28992)?`); return; }
+    const wolk = maakBrugWolk(bestand.name, r.xs, r.ys, r.zs);
+    wolk.half = half; wolk.asSleutel = asSleutelNu();
+    if (rol === 'dak') drDak = wolk; else drWolk = wolk;
+    drResultaat = null;
+    statusEl.textContent = `${wat}: ${bestand.name} — ${wolk.xs.length.toLocaleString('nl-NL')} punten in de strook${r.uitgedund ? ` (uitgedund in 3D, vakjes van ${Math.round(r.cel * 100)} cm)` : ''}`;
+    if (drWolk) { try { voerDoorrijUit(); } catch { drResultaat = null; } }
+    werkDoorrijPaneelBij();
+    bijwerkenProfielen(); tekenVlak();
+  }
+
+  /* ── dialoog ── */
+  const drDialoog = document.getElementById('drDialoog');
+  const DR_VELDEN = { drMarge: 'marge', drVan: 'stVan', drTot: 'stTot', drMinHoogte: 'minHoogte', drMinPunten: 'minPunten' };
+  /** De rijen van de boxen in het venster. */
+  function toonDrBoxen() {
+    const vak = document.getElementById('drBoxen'); if (!vak) return;
+    vak.innerHTML = doorrij.boxen.map((b, i) => `<div class="drBox" data-i="${i}">
+      <div class="rij"><span>Breedte B</span><input type="number" data-veld="breedte" step="0.05" min="0" value="${b.breedte ?? ''}"> m</div>
+      <div class="rij"><span>Hoogte H</span><input type="number" data-veld="hoogte" step="0.05" min="0" value="${b.hoogte ?? ''}"> m boven de weg</div>
+      <div class="rij" title="Midden van de box t.o.v. de as; positief = rechts (kijkrichting oplopend station)"><span>Verschuiving</span><input type="number" data-veld="verschuiving" step="0.1" value="${b.verschuiving ?? 0}"> m (+ = rechts)</div>
+    </div>`).join('');
+  }
+  function zetDoorrijVelden() {
+    for (const [id, sl] of Object.entries(DR_VELDEN)) { const e = document.getElementById(id); if (e) e.value = doorrij[sl] ?? ''; }
+    const t = document.getElementById('drTonen'); if (t) t.checked = doorrij.tonen !== false;
+    toonDrBoxen();
+  }
+  function leesDoorrijVelden() {
+    for (const [id, sl] of Object.entries(DR_VELDEN)) { const e = document.getElementById(id); if (e) doorrij[sl] = e.value; }
+    const t = document.getElementById('drTonen'); if (t) doorrij.tonen = t.checked;
+    for (const rij of document.querySelectorAll('#drBoxen .drBox')) {
+      const b = doorrij.boxen[Number(rij.dataset.i)]; if (!b) continue;
+      for (const e of rij.querySelectorAll('[data-veld]')) b[e.dataset.veld] = e.value;
+    }
+  }
+  const drM = (v) => v == null ? '—' : `${komma(v, 2)} m`;
+  const drSpeling = (v) => v == null ? '—' : `${v >= 0 ? '+' : '−'}${komma(Math.abs(v), 2)} m`;
+  /** Samenvatting [label, waarde, status]. */
+  function drRegels(r) {
+    const regels = [];
+    for (const bx of r.boxen) {
+      const kop = bx.naam ? `${bx.naam}: ` : '';
+      regels.push([`${kop}box`, `${komma(bx.B, 2)} m breed × ${komma(bx.H, 2)} m hoog${Math.abs(bx.c) < 1e-9 ? ', midden op de as' : `, ${komma(Math.abs(bx.c), 2)} m ${bx.c < 0 ? 'links' : 'rechts'} van de as`}`, null]);
+      if (bx.vrijMin == null) regels.push([`${kop}vrije hoogte`, 'geen dak boven de box gevonden', null]);
+      else {
+        regels.push([`${kop}kleinste vrije hoogte`, `${drM(bx.vrijMin)} bij st. ${komma(bx.kritiek.station, 1)}${paalAchter(bx.kritiek.station, ' (') ? paalAchter(bx.kritiek.station, ' (') + ')' : ''}, ${komma(Math.abs(bx.kritiek.offset), 2)} m ${bx.kritiek.offset < 0 ? 'links' : 'rechts'}`, null]);
+        regels.push([`${kop}speling`, `${drSpeling(bx.speling)} t.o.v. H${bx.nConflict ? ` · ${bx.nConflict.toLocaleString('nl-NL')} punten in de box` : ''}`, bx.ok ? (bx.krap ? 'let' : 'ok') : 'nok']);
+      }
+    }
+    regels.push(['Gecontroleerd', `st. ${komma(r.s0, 1)} – ${komma(r.s1, 1)} m (${komma(r.s1 - r.s0, 1)} m)`, null]);
+    regels.push(['Niet meegeteld', `alles lager dan ${komma(r.minH, 2)} m boven de weg${r.ruis ? ` · ${r.ruis.toLocaleString('nl-NL')} losse punten` : ''}`, null]);
+    if (r.dekking) dekkingRegels(regels, r.dekking, 'Weg gemeten onder het dak', 'binnen de box', () => ' · weg overbrugd');
+    const gat = r.dekking?.oppGatLijst || 0;
+    regels.push(['Oordeel', `${r.ok ? (r.krap ? 'VOLDOET (krap, minder dan de marge)' : 'VOLDOET') : 'VOLDOET NIET'}${gat ? ` — ${komma(gat, gat < 10 ? 1 : 0)} m² weg niet gemeten` : ''}`, r.ok ? (gat || r.krap ? 'let' : 'ok') : 'nok']);
+    return regels;
+  }
+  function toonDoorrijResultaat() {
+    const vak = document.getElementById('drResultaat'), chip = document.getElementById('drChip'), r = drResultaat;
+    if (chip) {
+      const gat = r?.dekking?.gaten.length ? ' · deels niet gemeten' : '';
+      const min = r ? r.boxen.filter(b => b.speling != null).sort((a, b) => a.speling - b.speling)[0] : null;
+      chip.textContent = !r ? (drWolk ? 'nog niet gecontroleerd' : 'niet gecontroleerd') : r.ok ? `✓ voldoet${min ? ` · ${drSpeling(min.speling)}` : ''}${gat}` : `✗ voldoet niet${min ? ` · ${drSpeling(min.speling)}` : ''}${gat}`;
+      chip.className = 'dvChip ' + (!r ? '' : r.ok ? (gat || r.krap ? 'let' : 'ok') : 'nok');
+    }
+    if (!vak) return;
+    if (!r) { vak.innerHTML = `<p class="hint">${drWolk ? 'Vul de maten in en klik op <b>Controleren</b>.' : 'Lees eerst de punten in.'}</p>`; return; }
+    vak.innerHTML = '<table class="dvTabel">' + drRegels(r).map(([l, w, s]) => `<tr class="${s || ''}${l === 'Oordeel' ? ' oordeel' : ''}"><th>${l}</th><td>${w}</td></tr>`).join('') + '</table>';
+  }
+  function werkDoorrijPaneelBij() {
+    const naam = document.getElementById('drNaam');
+    if (naam) { naam.textContent = drWolk ? `${drWolk.naam} · ${drWolk.xs.length.toLocaleString('nl-NL')} p.` : 'niet ingelezen'; naam.title = drWolk?.naam || ''; }
+    const dak = document.getElementById('drDakNaam');
+    if (dak) { dak.textContent = drDak ? `${drDak.naam} · ${drDak.xs.length.toLocaleString('nl-NL')} p.` : 'niet ingelezen'; dak.title = drDak?.naam || ''; }
+    const wis = document.getElementById('drWis'); if (wis) wis.hidden = !drWolk;
+    const dwis = document.getElementById('drDakWis'); if (dwis) dwis.hidden = !drDak;
+    const uitA = document.getElementById('drUitA'); if (uitA) { uitA.disabled = !laatsteBestand || asPunten.length < 2; uitA.title = laatsteBestand ? `Weg en dak uit ${laatsteBestand.name} lezen (alle punten in een strook langs de as)` : 'Puntenwolk A is uit een project geladen — kies het bestand met "Ander bestand…"'; }
+    for (const id of ['drAnderKnop', 'drDakKnop']) { const e = document.getElementById(id); if (e) e.disabled = asPunten.length < 2; }
+    const knop = document.getElementById('doorrijKnop'); if (knop) knop.disabled = !xs;
+    const auto = document.getElementById('drAutoTekst'); const k = drKader();
+    if (auto) auto.textContent = k ? (k.heel ? `hele as: ${komma(k.L, 1)} m` : `${komma(k.s1 - k.s0, 1)} m`) : '';
+    toonDoorrijResultaat();
+  }
+  let drTimer = null;
+  function drGewijzigd() {
+    leesDoorrijVelden();
+    clearTimeout(drTimer);
+    drTimer = setTimeout(() => {
+      if (drResultaat) { try { voerDoorrijUit(); } catch { drResultaat = null; } }
+      werkDoorrijPaneelBij();
+      tekenVlak(); tekenDwarsVoorHuidigeStation(); tekenLangs();
+    }, 250);
+  }
+  /** Naar het station met de kleinste vrije hoogte. */
+  function naarDoorrijKritiek(r) {
+    const bx = r.boxen.filter(b => b.kritiek).sort((a, b) => a.speling - b.speling)[0];
+    if (!bx || !dwarsStations.length) return;
+    let beste = 0; dwarsStations.forEach((s, i) => { if (Math.abs(s - bx.kritiek.station) < Math.abs(dwarsStations[beste] - bx.kritiek.station)) beste = i; });
+    huidigeStationIndex = beste;
+    tekenVlak(); tekenDwarsVoorHuidigeStation(); tekenLangs();
+  }
+  if (drDialoog) {
+    for (const id of Object.keys(DR_VELDEN)) document.getElementById(id)?.addEventListener('input', drGewijzigd);
+    document.getElementById('drBoxen')?.addEventListener('input', drGewijzigd);
+    document.getElementById('drTonen')?.addEventListener('change', drGewijzigd);
+    document.getElementById('doorrijKnop')?.addEventListener('click', () => { zetDoorrijVelden(); werkDoorrijPaneelBij(); drDialoog.showModal(); });
+    document.getElementById('drSluit')?.addEventListener('click', () => drDialoog.close());
+    document.getElementById('drAuto')?.addEventListener('click', () => { doorrij.stVan = ''; doorrij.stTot = ''; zetDoorrijVelden(); drGewijzigd(); });
+    document.getElementById('drUitA')?.addEventListener('click', async () => { if (laatsteBestand) await laadDoorrijWolk(laatsteBestand, 'weg'); });
+    for (const [veldId, rol] of [['drBestand', 'weg'], ['drDakBestand', 'dak']]) {
+      const veld = document.getElementById(veldId);
+      veld?.addEventListener('change', async () => { const f = veld.files?.[0]; veld.value = ''; if (f) await laadDoorrijWolk(f, rol); });
+    }
+    document.getElementById('drWis')?.addEventListener('click', () => { drWolk = null; drResultaat = null; werkDoorrijPaneelBij(); bijwerkenProfielen(); tekenVlak(); });
+    document.getElementById('drDakWis')?.addEventListener('click', () => { drDak = null; if (drResultaat) { try { voerDoorrijUit(); } catch { drResultaat = null; } } werkDoorrijPaneelBij(); bijwerkenProfielen(); tekenVlak(); });
+    document.getElementById('drControleer')?.addEventListener('click', () => {
+      leesDoorrijVelden();
+      try {
+        const r = voerDoorrijUit();
+        const min = r.boxen.filter(b => b.speling != null).sort((a, b) => a.speling - b.speling)[0];
+        statusEl.style.color = '';
+        statusEl.textContent = `Doorrijhoogte: ${r.ok ? 'voldoet' : 'voldoet niet'}${min ? ` · kleinste vrije hoogte ${drM(min.vrijMin)} bij st. ${komma(min.kritiek.station, 1)} (speling ${drSpeling(min.speling)})` : ' · geen dak boven de box gevonden'}`;
+        naarDoorrijKritiek(r);
+      } catch (err) { drResultaat = null; toonFout('Doorrijhoogte: ' + err.message); }
+      werkDoorrijPaneelBij();
+      bijwerkenProfielen(); tekenVlak();
     });
   }
 
@@ -9882,6 +10352,7 @@ ${r3d}
         waterKant: waterKant(),
         doorvaart: { ...doorvaart, gecontroleerd: !!dvResultaat },
         snoei: { ...snoei, gecontroleerd: !!snResultaat },
+        doorrij: JSON.parse(JSON.stringify(doorrij)),
         pdf: leesPdfInstellingen?.() ?? null,
         // logo's van de stempel (2.11.3): horen bij het project, niet alleen bij de pc; null = geen klantlogo / standaard makerlogo
         logos: { klant: klantLogo, maker: makerLogo },
@@ -10347,6 +10818,8 @@ ${r3d}
     if (dv) { hoogtes.push(dv.P + dv.H, dv.P); if (dv.D) hoogtes.push(dv.PD - dv.D); }
     const sn = opties.snoei !== undefined ? opties.snoei : snVoorGrafiek(reeks, isDwars, xVeld);
     if (sn && sn.hoogtes.length) { let a = Infinity, b = -Infinity; for (const h of sn.hoogtes) { if (h < a) a = h; if (h > b) b = h; } hoogtes.push(a, b); }
+    const dr = opties.doorrij !== undefined ? opties.doorrij : drVoorGrafiek(reeks, isDwars, xVeld);
+    if (dr && dr.hoogtes.length) { let a = Infinity, b = -Infinity; for (const h of dr.hoogtes) { if (h < a) a = h; if (h > b) b = h; } hoogtes.push(a, b); }
     if (peil != null) hoogtes.push(peil);   // waterlijn altijd binnen beeld
     if (puntenHier) { let a = Infinity, b = -Infinity; for (const z of puntenHier.z) { if (z < a) a = z; if (z > b) b = z; } hoogtes.push(a, b); }
     let hMin = Math.min(...hoogtes), hMax = Math.max(...hoogtes);
@@ -10788,6 +11261,47 @@ ${r3d}
         maatH(px(r.c - r.B / 2), px(r.c + r.B / 2), py(top + r.M) - 12 * tegen, komma(r.B, 2));
       }
       snBadges = sn.badges;
+    }
+    // doorrijhoogte: punten (weg grijs, dak donker, in de box rood), de box op de weg en de vrije hoogte tot het dak
+    if (dr) {
+      const r = dr.r, zijde = 2.2 / Math.sqrt(zS);
+      const groepen = { 0: '', 1: '', 2: '' };
+      for (const [x, z, c] of dr.punten) {
+        if (groepen[c] === undefined) continue;
+        groepen[c] += `M${(px(x) - zijde / 2).toFixed(1)},${(py(z) - zijde / 2).toFixed(1)}h${zijde.toFixed(2)}v${zijde.toFixed(2)}h${(-zijde).toFixed(2)}z`;
+      }
+      if (groepen[0]) dvEl('path', { d: groepen[0], fill: DR_KLEUR.weg, 'fill-opacity': 0.7 });
+      if (groepen[1]) dvEl('path', { d: groepen[1], fill: DR_KLEUR.dak, 'fill-opacity': 0.75 });
+      if (groepen[2]) dvEl('path', { d: groepen[2], fill: DR_KLEUR.nok });
+      const boxStijl = (bx) => ({ fill: bx.ok ? (bx.krap ? DR_KLEUR.krap : DR_KLEUR.ok) : DR_KLEUR.nok, 'fill-opacity': 0.07, stroke: DR_KLEUR.box, 'stroke-width': 1.5, 'stroke-dasharray': '10 4 2 4', 'vector-effect': 'non-scaling-stroke' });
+      const vrijStijl = { fill: 'none', stroke: DR_KLEUR.nok, 'stroke-width': 1.3, 'stroke-dasharray': '2 3', 'vector-effect': 'non-scaling-stroke' };
+      if (dr.soort === 'dwars') {
+        for (const { bx, z0, vrij } of dr.boxen) {
+          const L = bx.c - bx.B / 2, R = bx.c + bx.B / 2;
+          dvEl('rect', { x: px(L), width: Math.max(0, px(R) - px(L)), y: py(z0 + bx.H), height: Math.max(0, py(z0) - py(z0 + bx.H)), ...boxStijl(bx) });
+          if (r.M) dvEl('line', { x1: px(L), x2: px(R), y1: py(z0 + bx.H + r.M), y2: py(z0 + bx.H + r.M), stroke: DR_KLEUR.krap, 'stroke-width': 1.1, 'stroke-dasharray': '5 4', 'vector-effect': 'non-scaling-stroke' });
+          maatV(px(R) + 16 * tegen, py(z0), py(z0 + bx.H), komma(bx.H, 2));
+          maatH(px(L), px(R), py(z0 + bx.H) - 12 * tegen, komma(bx.B, 2));
+          if (vrij != null) {
+            const sp = vrij - bx.H, kl = sp < 0 ? 'dv-maatlijn rood' : 'dv-maatlijn';
+            maatV(px(L) - 16 * tegen, py(z0), py(z0 + vrij), `vrij ${komma(vrij, 2)}`, kl, true);
+          }
+        }
+      } else {
+        for (const { bx, lijnB, lijnV } of dr.boxen) {
+          const pad = (lijn, dz) => { let d = '', pen = false; for (const p of lijn) { if (!p) { pen = false; continue; } d += `${pen ? 'L' : 'M'}${px(p[0]).toFixed(1)},${py(p[1] + dz).toFixed(1)}`; pen = true; } return d; };
+          const st = boxStijl(bx);
+          if (lijnB.some(Boolean)) {
+            dvEl('path', { d: pad(lijnB, bx.H), fill: 'none', stroke: st.stroke, 'stroke-width': 1.5, 'stroke-dasharray': st['stroke-dasharray'], 'vector-effect': 'non-scaling-stroke' });
+            dvEl('path', { d: pad(lijnB, 0), fill: 'none', stroke: st.stroke, 'stroke-width': 1.1, 'stroke-opacity': 0.6, 'vector-effect': 'non-scaling-stroke' });
+          }
+          if (lijnV.some(Boolean)) dvEl('path', { d: pad(lijnV, 0), ...vrijStijl });
+          if (bx.kritiek) {
+            const x = px(bx.kritiek.station), sp = bx.speling;
+            maatV(x, py(bx.kritiek.bodem), py(bx.kritiek.z), `vrij ${komma(bx.vrijMin, 2)}`, sp < 0 ? 'dv-maatlijn rood' : 'dv-maatlijn');
+          }
+        }
+      }
     }
     // kadastrale perceelgrenzen (dwarsprofiel): verticale streeplijnen, sectie + nummer bovenaan per vak
     const kad = opties.kadaster !== undefined ? opties.kadaster : kadVoorGrafiek(reeks, isDwars);
@@ -11287,6 +11801,12 @@ ${r3d}
         if (sn.punten.some(p => p[2] === 2)) items.push(['blokje', 'begroeiing in de snoeimarge', SN_KLEUR.oranje]);
         if (sn.punten.some(p => p[2] === 1)) items.push(['blokje', 'overige begroeiing', SN_KLEUR.groen]);
         if (sn.badges.length) items.push(['snnr', 'snoeipunt (nr. in de snoeilijst)']);
+      }
+      if (dr && dr.boxen.length) {
+        for (const { bx } of dr.boxen) items.push(['snprofiel', `doorrijprofiel ${bx.naam ? bx.naam + ' ' : ''}${komma(bx.B, 2)} × ${komma(bx.H, 2)} m`]);
+        if (dr.punten.some(p => p[2] === 2)) items.push(['blokje', 'dak/obstakel in de box', DR_KLEUR.nok]);
+        if (dr.punten.some(p => p[2] === 1)) items.push(['blokje', 'dak / kunstwerk', DR_KLEUR.dak]);
+        if (dr.soort === 'langs' && dr.boxen.some(b => b.lijnV?.some(Boolean))) items.push(['hlijn', 'vrije hoogte (onderkant dak)', 'dr-vrij']);
       }
       if (kad && kad.grenzen.length) items.push(['kadgrens', 'kadastrale perceelgrens (sectie + nr.)']);
       if (pl) items.push(['paal', palen.modus === 'hm' ? 'hectometer' : 'dijkpaal']);
