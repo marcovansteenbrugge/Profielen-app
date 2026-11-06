@@ -3,7 +3,7 @@ plan: klassen-kiezen
 titel: Kiezen welke classificaties worden ingelezen
 versie: 1
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ▶ · F2 ▶           # berekend door de skill
+voortgang: F0 ✅ · F1 ✅ · F2 ▶           # berekend door de skill
 opgesteld: 2026-11-06
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -79,8 +79,8 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
 | F0 | ✅ gebouwd | Go: klassenfilter in `Schrijver`, `Opdracht.Klassen`, `klassen` in `omzet/start`, `-klassen` in pvomzet, `klassenKeuze` en `klassenBron` in info.json | 1. `go test ./...` in bron-exe slaagt, met een nieuwe test die met `Klassen: [2]` alleen klasse-2-punten in de vakken vindt. 2. pvomzet op LoZ.laz met `-klassen 2,11` geeft `aantal` 146.630.100 en `klassenBron` met alle zes klassen. 3. Zonder `klassen` is info.json gelijk aan nu, afgezien van de nieuwe velden. | B1 | M | Opus 5.5, medium | `F0:` |
-| F1 | ▶ vrijgegeven | Viewer: steekproef van de klassen, het venster, het filter in `importeerNaarTegels` en bij laden zonder map, keuze naar `omzet/start`, hergebruikcheck op `klassenKeuze`, knop "Klassen wijzigen…" | 1. Een nieuwe test (`tests/klassen_kiezen.test.js`) opent een LAS met klassen 2 en 6, kiest alleen 2 en toetst dat de vakken alleen klasse 2 bevatten, via het programma én via de viewer. 2. Opnieuw openen met een andere keuze zet opnieuw om, met dezelfde keuze worden de vakken hergebruikt. 3. Een LAS met één klasse toont geen venster. 4. Met "Klassen wijzigen…" klasse 6 erbij: daarna bevatten de vakken klasse 2 en 6, en de as blijft staan; afbreken laat de vakken met alleen klasse 2 staan (beide routes). 5. Screenshot van het venster op LoZ.laz. | F0, B1, B2 | M | Opus 5.5, medium | `F1:` |
-| F2 | ▶ vrijgegeven, na F1 | Opleveren: versie ophogen, LEESMIJ, handleiding, `node run_alle.js` groen, bouwen, installatietoets, commit en tag; jouw controle op LoZ.laz | 1. `node run_alle.js` eindigt met `fouten: geen`. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup staan in `dist`. 4. Marco bevestigt dat LoZ.laz met een beperkte keuze te openen en te profileren is. | F1, B3 | S | Opus 5.5, medium | `F2:` |
+| F1 | ✅ gebouwd | Viewer: steekproef van de klassen, het venster, het filter in `importeerNaarTegels` en bij laden zonder map, keuze naar `omzet/start`, hergebruikcheck op `klassenKeuze`, knop "Klassen wijzigen…" | 1. Een nieuwe test (`tests/klassen_kiezen.test.js`) opent een LAS met klassen 2 en 6, kiest alleen 2 en toetst dat de vakken alleen klasse 2 bevatten, via het programma én via de viewer. 2. Opnieuw openen met een andere keuze zet opnieuw om, met dezelfde keuze worden de vakken hergebruikt. 3. Een LAS met één klasse toont geen venster. 4. Met "Klassen wijzigen…" klasse 6 erbij: daarna bevatten de vakken klasse 2 en 6, en de as blijft staan; afbreken laat de vakken met alleen klasse 2 staan (beide routes). 5. Screenshot van het venster op LoZ.laz. | F0, B1, B2 | M | Opus 5.5, medium | `F1:` |
+| F2 | ▶ vrijgegeven | Opleveren: versie ophogen, LEESMIJ, handleiding, `node run_alle.js` groen, bouwen, installatietoets, commit en tag; jouw controle op LoZ.laz | 1. `node run_alle.js` eindigt met `fouten: geen`. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup staan in `dist`. 4. Marco bevestigt dat LoZ.laz met een beperkte keuze te openen en te profileren is. | F1, B3 | S | Opus 5.5, medium | `F2:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
 
@@ -111,6 +111,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
 | F0 | 2026-11-06 14:34 | 2026-11-06 14:38 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 14 / 7.268 | f87a006 | transcript (Claude Code 2.1.317) |
+| F1 | 2026-11-06 14:39 | 2026-11-06 15:05 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 94 / 61.118 | 494024c | transcript (Claude Code 2.1.317) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -122,12 +123,20 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F0 | 2026-11-06 14:38 | 1. `go test ./...` slaagt, met een nieuwe test voor `Klassen: [2]` | `go vet ./... && go test ./...` in bron-exe (met app-map): `ok ptsviewer`, `ok ptsviewer/omzet`; nieuwe test `TestOmzetKlassenKeuze` in `bron-exe/omzet/omzet_test.go` controleert dat de vakken alleen klasse 2 bevatten | gehaald |
 | F0 | 2026-11-06 14:38 | 2. pvomzet op LoZ.laz met `-klassen 2,11` geeft `aantal` 146.630.100 en `klassenBron` met alle zes klassen | `pvomzet -klassen 2,11` op LoZ.laz: `{"aantal":146630100,"seconden":38.19,"vakken":11}`; info.json `klassenKeuze` [2, 11], `klassenBron` met 2, 5, 6, 11, 66, 67; 2,3 GB in plaats van 6,7 GB | gehaald |
 | F0 | 2026-11-06 14:38 | 3. Zonder `klassen` is info.json gelijk aan nu, afgezien van de nieuwe velden | oude pvomzet (git archive HEAD d7c3d09) en nieuwe op `testdata/groot/dijk_16mln.las`: info.json zonder `gemaakt`/`duurImport` gelijk op `klassenKeuze` (null) en `klassenBron` na; vakken en overzichten bytegelijk (`cmp`) | gehaald |
+| F1 | 2026-11-06 15:04 | 1. Nieuwe test opent een LAS met klassen 2 en 6, kiest alleen 2; vakken bevatten alleen klasse 2, via het programma én via de viewer | `node klassen_kiezen.test.js`: stap 1 "1 vakken: [ 2 ] \| keuze [ 2 ] \| aan programma [2]" (pvomzet), stap 5 "5 viewer: [ 2 ] \| keuze [ 2 ] \| gemaakt door 2.12.0" (viewer); eind "fouten: geen" | gehaald |
+| F1 | 2026-11-06 15:04 | 2. Opnieuw openen met andere keuze zet opnieuw om, met dezelfde keuze worden de vakken hergebruikt | stap 2: "zelfde keuze: 0 omzettingen", "andere keuze: 1 omzetting(en) \| vakken [ 2, 6 ]" | gehaald |
+| F1 | 2026-11-06 15:04 | 3. Een LAS met één klasse toont geen venster | stap 7: "venster geopend: 0 \| knop zichtbaar: false" | gehaald |
+| F1 | 2026-11-06 15:04 | 4. Met Klassen… klasse 6 erbij: vakken bevatten 2 en 6 en de as blijft; afbreken laat de vakken staan (beide routes) | programma: stap 3 "erbij 6: [ 2, 6 ] \| as 280.0" (as vóór 280.0), stap 4 afbreken "omzetten afgebroken \| vakken [ 2, 6 ]", geen .pvtmp; viewer: stap 5 "erbij 6: [ 2, 6 ]", oude `tegels` weg; stap 6 schrijffout halverwege: "vakken [ 2, 6 ]", één tegelmap. De viewer-route heeft geen afbreekknop; daar is mislukken getoetst (zie punt 12) | gehaald |
+| F1 | 2026-11-06 15:04 | 5. Screenshot van het venster op LoZ.laz | `tests/uit/klassen_kiezen_LoZ.png`: venster na 0,9 s met klassen 2, 5, 6, 11, 66, 67 en "± 89% van de punten (steekproef)" met 5 uitgevinkt | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
 
 | Fase | Wat week af van het plan | Waarom |
 |---|---|---|
+| F1 | Criterium 4 "afbreken (beide routes)": de viewer-route heeft geen afbreekknop; daar is een schrijffout halverwege getoetst in plaats van afbreken | Afbreken bestaat alleen bij het omzetten door het programma |
+| F1 | Testserver (`tests/hulp.js`): wijzigingstijd niet meer afgekapt (`mtimeMs \| 0` → `Math.floor`) en een instelbare pauze vóór het omzetten (`natief.omzetPauze`) | De afgekapte tijd liet hergebruik in de tests nooit slagen; de pauze maakt afbreken betrouwbaar te testen |
+| F1 | De bestaande tests maaiveld, natieve_map, omzetten_parity, omzetten_viewer, projectmap en zoom_vakken klikken nu het klassenvenster weg (`H.klassenInlezen`) | dijk_begroeid.las heeft drie klassen, dus het venster verschijnt |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
