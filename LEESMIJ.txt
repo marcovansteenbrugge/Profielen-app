@@ -1,4 +1,4 @@
-Lutrea Profielviewer 2.13.0 (voorheen PTS-viewer)
+Lutrea Profielviewer 2.14.0 (voorheen PTS-viewer)
 ================================================
 Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
 De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
@@ -48,6 +48,22 @@ Mapversie (alternatief)
 
 Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
 adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.14.0 — Doorrijprofiel volgens RWS
+--------------------------------------------
+- In het venster Doorrijhoogte het deel "Doorrijprofiel (RWS)", naar de
+  Productspecificaties Doorrijprofielen van Rijkswaterstaat (1 juli 2022): profiel 1
+  en 2 net binnen de rand van het dak, doorrijhoogtes op meetpunten (kant verharding
+  uit de BGT, strepen en ophangconstructies aanklikken in het dwarsprofiel), uit de
+  ruwe punten binnen 10 cm, met aantal punten en spreiding.
+- Doorrijbreedte op 0,5-1,0 m boven de weg tussen obstakels (zonder obstakel de kant
+  verharding), in de profielen en van 30 m voor tot 30 m na het dak.
+- Minimale doorrijhoogte per rijbaan, ook buiten de profielen.
+- De PDF krijgt per profiel een blad in RWS-stijl: maten in drie decimalen met een
+  punt (4.661), de laagste in rood, en een wit tekstvak met weg, rijbaan, station,
+  meetdatum, profiel, object en minimale doorrijhoogte.
+- Geen officieel RWS-product: foto's, verificatierapport en de eisen aan de meting zelf
+  (precisie 1 cm) vallen erbuiten.
 
 Nieuw in 2.13.0 — Doorrijhoogte
 -------------------------------

@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Nov 6, 2026 · @Marco van Steenbrugge · versie 2.13.0
+Nov 6, 2026 · @Marco van Steenbrugge · versie 2.14.0
 
 ## Wat is de Profielviewer
 
@@ -390,6 +390,17 @@ De doorrijhoogte toetst de vrije hoogte boven een weg (of fietspad) onder een da
 **Hoe hij rekent.** De weg is per vakje de onderste laag. Waar onder het dak geen weg gemeten is (een drone ziet daar weinig), herkent de viewer dat het vakje alleen het dak raakt en overbrugt hij de weg uit de weg ervoor en erna; die plekken staan op de dekkingskaart. Het dak is alles wat hoger dan "negeer lager dan" boven de weg ligt; losse punten tellen niet mee. De box staat per station op het hoogste punt van de weg binnen de boxbreedte (veilige kant). De vrije hoogte is het laagste dakpunt boven de box-onderkant; de speling is vrije hoogte − H.
 
 **Wat je ziet.** In het dwarsprofiel de box(en) op de weg met B en H, "vrij x,xx" tot het dak en de punten (weg grijs, dak donker, in de box rood). In het lengteprofiel de box langs de weg en de onderkant van het dak als rode stippellijn; de profiellijn volgt binnen de strook de weg, niet het dak. In het bovenaanzicht de randen van de box, het kritieke punt ("min") en de niet-gemeten plekken. De PDF krijgt een blad **Doorrijhoogte** (dwarsprofiel bij de kleinste vrije hoogte, tabel per box, oordeel) en een **dekkingskaart**.
+
+**Doorrijprofiel volgens RWS.** In hetzelfde venster maakt het deel **Doorrijprofiel (RWS)** een doorrijprofiel zoals de Productspecificaties Doorrijprofielen van Rijkswaterstaat (1 juli 2022) het beschrijven. Klik eerst op **Controleren**, dan op **Profielen meten**:
+
+- **Profiel 1 en 2** komen automatisch net binnen de rand van het dak (profiel 1 aan de kant van het laagste station); vul zelf een station in om ze te verplaatsen. Met **Toon** zie je het profiel in het dwarsprofiel (◀ ▶ gaat terug naar de gewone profielen).
+- **Meetpunten:** de kant verharding komt uit de BGT (haal die eerst op). Strepen, 1 m uit de kantstreep en ophangconstructies klik je aan: kies de soort, klik **Meetpunten aanklikken** en klik in het dwarsprofiel (Esc = klaar).
+- **Doorrijhoogtes** komen uit de ruwe, niet uitgedunde punten binnen 10 cm van het meetpunt, met het aantal punten en de spreiding. RWS eist een precisie van 1 cm: of de meting dat haalt, zie je aan de spreiding.
+- **Doorrijbreedte** op 0,5–1,0 m boven de weg tussen obstakels (geleiderail, wand, kolom); zonder obstakel de kant verharding. Ook de kleinste breedte van 30 m vóór tot 30 m ná het dak.
+- **Minimale doorrijhoogte per rijbaan:** de kleinste vrije hoogte boven de box van die rijbaan, ook buiten de profielen.
+- Vul **weg/straat**, **object**, **meetdatum** (standaard uit het LAS-bestand) en **bijzonderheden** in. De PDF krijgt per profiel een blad met de maten in drie decimalen met een punt (4.661), de laagste in rood, en een wit tekstvak (keuze "Doorrijprofielen RWS" in het PDF-venster).
+
+Het blad is opgezet naar de RWS-specificatie, maar is geen officieel RWS-product: foto's, het verificatierapport en de eisen aan de meting zelf vallen erbuiten.
 
 Voor een vaarweg onder een brug blijft de **Doorvaartcontrole** (hierboven) de toets.
 
