@@ -5817,7 +5817,7 @@
   /** Dekkingskaart van de doorvaarttoets als beeld (PNG): station horizontaal, L boven, R onder.
    *  Grijs = onderzijde gemeten, donker gearceerd = onderzijde niet gemeten, blauw gearceerd = bodem niet gemeten. */
   /** jsPDF (standaardfont) kent geen ²: m² → m2. */
-  const pdfTekst = (t) => String(t).replace(/²/g, '2');
+  const pdfTekst = (t) => String(t).replace(/²/g, '2').replace(/−/g, '-');   // ook het minteken (U+2212) kent het standaardfont niet
   const DEKKING_MARGE = { l: 12, r: 3, t: 3, b: 9, leg: 12 };   // mm rond de dekkingskaart (as-labels, legenda)
   function dekkingsKaartBeeld(r, wPx, hPx, pxPerMm, opname = null) {
     const dH = r.dekkingH, dD = r.dekkingD;
@@ -5884,8 +5884,9 @@
     let lx = kopL;
     const item = (teken, tekst) => { teken(lx, ly); g.fillStyle = '#42505F'; g.textBaseline = 'middle'; g.fillText(tekst, lx + 6 * mm, ly + 1.5 * mm); lx += 6 * mm + g.measureText(tekst).width + 5 * mm; };
     g.font = `${2.4 * mm}px Helvetica, Arial, sans-serif`;
-    if (dH) item((x, y) => { g.fillStyle = '#D5DBE2'; g.fillRect(x, y, 4.5 * mm, 3 * mm); }, `onderzijde gemeten (${komma(Math.min(dH.pct, dH.pct >= 99.95 ? 100 : 99.9), 1)} %)`);
-    if (dH) item((x, y) => { g.fillStyle = arceer('#2C3444'); g.fillRect(x, y, 4.5 * mm, 3 * mm); g.strokeStyle = '#2C3444'; g.strokeRect(x, y, 4.5 * mm, 3 * mm); }, 'onderzijde niet gemeten');
+    const wat = r.dekkingNaam || 'onderzijde';
+    if (dH) item((x, y) => { g.fillStyle = '#D5DBE2'; g.fillRect(x, y, 4.5 * mm, 3 * mm); }, `${wat} gemeten (${komma(Math.min(dH.pct, dH.pct >= 99.95 ? 100 : 99.9), 1)} %)`);
+    if (dH) item((x, y) => { g.fillStyle = arceer('#2C3444'); g.fillRect(x, y, 4.5 * mm, 3 * mm); g.strokeStyle = '#2C3444'; g.strokeRect(x, y, 4.5 * mm, 3 * mm); }, `${wat} niet gemeten`);
     if (dD) item((x, y) => { g.fillStyle = arceer('#1E6FA6'); g.fillRect(x, y, 4.5 * mm, 3 * mm); g.strokeStyle = '#1E6FA6'; g.strokeRect(x, y, 4.5 * mm, 3 * mm); }, `bodem niet gemeten (${komma(Math.min(dD.pct, dD.pct >= 99.95 ? 100 : 99.9), 1)} % gemeten)`);
     if (alle.length) item((x, y) => { g.fillStyle = '#C6472B'; for (const [a, b] of [[1, 1], [2.5, 2], [3.5, 0.6]]) g.fillRect(x + a * mm, y + b * mm, 0.8 * mm, 0.8 * mm); }, 'conflict');
     return opname ? null : c.toDataURL('image/png');
@@ -12220,6 +12221,7 @@ ${r3d}
       blad3D: v('pdf3DBlad') ? v('pdf3DBlad').checked : true,
       doorvaart: v('pdfDoorvaart') ? v('pdfDoorvaart').checked : true,
       snoei: v('pdfSnoei') ? v('pdfSnoei').checked : true,
+      doorrij: v('pdfDoorrij') ? v('pdfDoorrij').checked : true,
       opdrachtgever: v('pdfOpdrachtgever').value.trim(),
       omschrijving: v('pdfOmschrijving').value.trim(),
       getekend: v('pdfGetekend').value.trim(),
@@ -12259,7 +12261,7 @@ ${r3d}
     zet('pdfDpi', inst.dpi);
     vink('pdfLosseBladen', inst.losseBladen);
     zet('pdfProjectnaam', inst.projectnaam); zet('pdfProjectnummer', inst.projectnummer);
-    zet('pdfTekeningnummer', inst.tekeningnummer); zet('pdfOpmerkingen', inst.opmerkingen); zet('pdfBladindeling', inst.bladindeling); zet('pdfTeksthoogte', inst.teksthoogte); vink('pdf3D', inst.beeld3D); vink('pdf3DBlad', inst.blad3D); if (inst.doorvaart != null) vink('pdfDoorvaart', inst.doorvaart); if (inst.snoei != null) vink('pdfSnoei', inst.snoei);
+    zet('pdfTekeningnummer', inst.tekeningnummer); zet('pdfOpmerkingen', inst.opmerkingen); zet('pdfBladindeling', inst.bladindeling); zet('pdfTeksthoogte', inst.teksthoogte); vink('pdf3D', inst.beeld3D); vink('pdf3DBlad', inst.blad3D); if (inst.doorvaart != null) vink('pdfDoorvaart', inst.doorvaart); if (inst.snoei != null) vink('pdfSnoei', inst.snoei); if (inst.doorrij != null) vink('pdfDoorrij', inst.doorrij);
     zet('pdfOpdrachtgever', inst.opdrachtgever); zet('pdfOmschrijving', inst.omschrijving);
     zet('pdfGetekend', inst.getekend); zet('pdfGecontroleerd', inst.gecontroleerd);
     zet('pdfStatusVeld', inst.status); zet('pdfRevisie', inst.revisie);
@@ -12290,6 +12292,7 @@ ${r3d}
     if (inst.blad3D) delen.push('3D-beeld');
     if (inst.doorvaart && dvPdfMogelijk()) delen.push('doorvaartcontrole');
     if (inst.snoei && begroeiing && snKader()) delen.push('snoeilijst');
+    if (inst.doorrij && drWolk && drKader()) delen.push('doorrijhoogte');
     if (inst.lengteprofiel) delen.push('lengteprofiel');
     if (inst.dwarsprofielen) delen.push(`${n} dwarsprofiel${n === 1 ? '' : 'en'}`);
     let bladTekst = '';
@@ -14126,6 +14129,114 @@ ${r3d}
               `(${brugBoven ? 'dek = bovenzijde brug' : 'dek = ingesloten tussen gemeten vakjes; lees de bovenzijde in voor een betere begrenzing'}). Bodem: de meetpunten van ${bronBestandsnaam || 'puntenwolk A'}, niet het terreinmodel. ` +
               'Waar niet gemeten is zegt de toets niets: daar kan iets lager hangen of hoger liggen. Rand = laagste onderzijde (hoogste bodem) direct rondom de plek.';
             doc.splitTextToSize(voet, vak.w).slice(0, 3).forEach((regel, j) => doc.text(regel, vak.x, Math.min(vak.y + vak.h - 1, ty + 3 * TS + j * 3.2 * TS)));
+          }
+        }
+      }
+    }
+
+    // ── doorrijhoogte op een eigen blad ──
+    if (inst.doorrij && drWolk && drKader()) {
+      let r = null;
+      try { r = voerDoorrijUit(); } catch (err) { meldingen.push('Doorrijhoogte: ' + err.message); }
+      if (r) {
+        const nodig = volgendBladNodig();
+        const oordeel = r.ok ? (r.krap ? 'voldoet (krap)' : 'voldoet') : 'voldoet niet';
+        const kr = r.boxen.filter(b => b.kritiek).sort((a, b) => a.speling - b.speling)[0];
+        const st = kr ? kr.kritiek.station : (r.s0 + r.s1) / 2;
+        // uitsnede van het dwarsprofiel rond de boxen
+        const oLo = Math.min(...r.boxen.map(b => b.c - b.B / 2)) - 3, oHi = Math.max(...r.boxen.map(b => b.c + b.B / 2)) + 3;
+        const vol = berekenDwarsprofiel(st);
+        const reeks = vol.filter(p => p.offset >= oLo - 1e-9 && p.offset <= oHi + 1e-9);
+        for (const sl of ['station', 'bgt', 'punten']) if (vol[sl] !== undefined) reeks[sl] = vol[sl];
+        let lo = Infinity, hi = -Infinity;
+        for (const p of reeks) if (p.hoogte != null) { if (p.hoogte < lo) lo = p.hoogte; if (p.hoogte > hi) hi = p.hoogte; }
+        r.boxen.forEach((bx, bi) => { const z0 = r.bodemOp(bi, st); if (z0 != null) { lo = Math.min(lo, z0); hi = Math.max(hi, z0 + Math.max(bx.H + r.M, r.vrijOp(bi, st) ?? 0) + 0.5); } });
+        if (!isFinite(lo)) { lo = 0; hi = 5; }
+        const bereik = Math.max(1, (hi - lo) * 1.25);
+        const kopMm = 8 * TS, grafMaxH = vak.h * 0.55;
+        const breedteM = Math.max(1, (reeks[reeks.length - 1]?.offset ?? oHi) - (reeks[0]?.offset ?? oLo));
+        const mmPerMMax = Math.min((vak.w - plotMarges) / breedteM, (grafMaxH - (MARGE_T + 34) / VIRT_PER_MM) / bereik);
+        const N = [...STANDAARD_SCHALEN, 175, 225, 350, 450, 600].sort((a, b) => a - b).find(n => 1000 / n <= mmPerMMax) || 50000;
+        const mmPerM = 1000 / N;
+        const grafW = breedteM * mmPerM + plotMarges, grafH = Math.min(grafMaxH, bereik * mmPerM + (MARGE_T + 34) / VIRT_PER_MM);
+        nieuwePagina(`Doorrijhoogte — ${oordeel}`, `${schaalTekst(N)} (hoogte niet overdreven)`);
+        const pg = paginas[paginas.length - 1];
+        if (nodig && reeks.length >= 2) {
+          onVoortgang?.('Doorrijhoogte tekenen…');
+          doc.setFontSize(12 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
+          doc.text(`Doorrijhoogte — ${oordeel}`, vak.x, vak.y + 5 * TS);
+          doc.setFontSize(8 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
+          doc.text(`dwarsprofiel bij de kleinste vrije hoogte — station ${komma(st, 1)} m${paalAchter(st, ' (') ? paalAchter(st, ' (') + ')' : ''} · ${schaalTekst(N)}`, vak.x + vak.w, vak.y + 5 * TS, { align: 'right' });
+          zetHost(grafW, grafH);
+          svgEl.removeAttribute('width'); svgEl.removeAttribute('height');
+          tekenGrafiek(svgEl, reeks, 'offset', 'offset (m)', 0, matenWaarde(maatDwarsVeld, 5), 1, null, null, null, { legenda: !kolomModus, legendaUit: pg.legenda });
+          const data = await beeldVanSvg(svgEl, naarPx(grafW), naarPx(grafH), N);
+          svgEl.innerHTML = '';
+          const gx = vak.x + Math.max(0, (vak.w - grafW) / 2);
+          doc.addImage(data, 'JPEG', gx, vak.y + kopMm, grafW, grafH);
+          doc.setDrawColor(220, 227, 232); doc.setLineWidth(0.2);
+          doc.rect(gx, vak.y + kopMm, grafW, grafH);
+          // tabel met uitgangspunten en uitkomst per box
+          let ty = vak.y + kopMm + grafH + 10 * TS;
+          const rh = 5.6 * TS, labelW = 62 * TS, tabW = Math.min(vak.w, 230 * TS);
+          doc.setFontSize(10 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
+          doc.text('Uitgangspunten en resultaat', vak.x, ty); ty += 3 * TS;
+          doc.setDrawColor(30, 127, 166); doc.setLineWidth(0.4); doc.line(vak.x, ty, vak.x + tabW, ty); ty += rh;
+          const kleur = (s) => s === 'ok' ? [22, 128, 61] : s === 'nok' ? [198, 71, 43] : s === 'let' ? [178, 106, 0] : [27, 42, 56];
+          for (const [label, waarde, s] of drRegels(r)) {
+            if (ty > vak.y + vak.h - 2) { meldingen.push('Doorrijhoogte: niet alle regels passen op het blad.'); break; }
+            const isOordeel = label === 'Oordeel';
+            if (isOordeel) { ty += 1.5 * TS; doc.setDrawColor(200, 207, 214); doc.setLineWidth(0.2); doc.line(vak.x, ty - rh + 1.2 * TS, vak.x + tabW, ty - rh + 1.2 * TS); ty += 1.5 * TS; }
+            doc.setFontSize((isOordeel ? 11 : 8.5) * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
+            doc.text(pdfTekst(label), vak.x, ty);
+            doc.setFont('helvetica', s || isOordeel ? 'bold' : 'normal'); doc.setTextColor(...kleur(s));
+            doc.text(kortTekst(doc, pdfTekst(waarde), tabW - labelW), vak.x + labelW, ty);
+            ty += rh;
+          }
+          doc.setFontSize(6.5 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
+          const voet = `Weg = de onderste laag van ${drWolk.naam}${drDak ? `, dak ook uit ${drDak.naam}` : ''}; dak = alle meetpunten meer dan ${komma(r.minH, 2)} m boven de weg (losse punten niet). ` +
+            'De box staat per station op het hoogste punt van de weg binnen de boxbreedte. Vrije hoogte = laagste dakpunt boven de box-onderkant; speling = vrije hoogte − H. Het lengteprofiel toont de box en de onderkant van het dak langs de hele as.';
+          doc.splitTextToSize(pdfTekst(voet), vak.w).slice(0, 3).forEach((regel, j) => doc.text(regel, vak.x, Math.min(vak.y + vak.h - 1, ty + 2 * TS + j * 3.2 * TS)));
+        }
+        // ── dekkingskaart: is de weg onder het dak gemeten? ──
+        if (r.dekking) {
+          const nodigD = volgendBladNodig();
+          const gat = r.dekking.oppGatLijst || 0;
+          const titel = `Dekkingskaart doorrijhoogte — ${gat ? `weg ${komma(gat, gat < 10 ? 1 : 0)} m2 niet gemeten` : 'weg onder het dak volledig gemeten'}`;
+          const conflicten = []; drVenster(r, r.s0, r.s1, (p) => { if (r.cls[p] === 2) conflicten.push({ station: r.S[p], offset: r.O[p] }); });
+          const r2 = { dekkingH: r.dekking, s0: r.s0, s1: r.s1, c: (oLo + oHi) / 2, B: oHi - oLo - 4, ok: r.ok, conflictenH: conflicten, dekkingNaam: 'weg onder het dak' };
+          const kLo = r2.c - r2.B / 2 - 2, kHi = r2.c + r2.B / 2 + 2, M = DEKKING_MARGE;
+          const mmPerMK = Math.min((vak.w - M.l - M.r) / (r.s1 - r.s0), (vak.h * 0.62 - M.t - M.b - M.leg) / (kHi - kLo));
+          const NK = [...STANDAARD_SCHALEN, 175, 225, 350, 450, 600].sort((a, b) => a - b).find(n => 1000 / n <= mmPerMK) || 50000;
+          const mmK = 1000 / NK, kw = (r.s1 - r.s0) * mmK + M.l + M.r, kh = (kHi - kLo) * mmK + M.t + M.b + M.leg;
+          nieuwePagina(titel, schaalTekst(NK));
+          const pgD = paginas[paginas.length - 1];
+          pgD.legenda = [{ symbool: 'blokje', klasse: '#C6472B', tekst: 'dak/obstakel in de box', sleutel: 'drc' }];
+          if (nodigD) {
+            onVoortgang?.('Dekkingskaart doorrijhoogte…');
+            doc.setFontSize(12 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
+            doc.text(titel, vak.x, vak.y + 5 * TS);
+            doc.setFontSize(8 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
+            doc.text(`bovenaanzicht langs de as (station horizontaal, L boven) · ${schaalTekst(NK)} · vakjes van ${komma(r.dekking.cel, 2)} m`, vak.x + vak.w, vak.y + 5 * TS, { align: 'right' });
+            const kx = vak.x + Math.max(0, (vak.w - kw) / 2), ky = vak.y + 9 * TS;
+            const beeld = dxf ? doc.vang({ soort: 'dekking', r: r2, N: NK, wPx: naarPx(kw), hPx: naarPx(kh), pxPerMm: naarPx(1000) / 1000 }) : dekkingsKaartBeeld(r2, naarPx(kw), naarPx(kh), naarPx(1000) / 1000);
+            if (beeld) doc.addImage(beeld, 'PNG', kx, ky, kw, kh);
+            doc.setDrawColor(220, 227, 232); doc.setLineWidth(0.2); doc.rect(kx, ky, kw, kh);
+            let ty = ky + kh + 10 * TS;
+            const rh = 5.4 * TS;
+            doc.setFontSize(10 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
+            doc.text('Weg niet gemeten onder het dak (binnen de boxen)', vak.x, ty); ty += 3 * TS;
+            doc.setDrawColor(30, 127, 166); doc.setLineWidth(0.4); doc.line(vak.x, ty, vak.x + vak.w, ty); ty += rh;
+            doc.setFontSize(7.5 * TS); doc.setFont('helvetica', 'normal');
+            if (!r.dekking.gaten.length) { doc.setTextColor(22, 128, 61); doc.text('Geen: de weg is onder het dak binnen de boxen overal gemeten.', vak.x + 1, ty); ty += rh; }
+            r.dekking.gaten.forEach((g, i) => {
+              if (ty > vak.y + vak.h - 8 * TS) return;
+              doc.setTextColor(27, 42, 56); doc.text(`${i + 1}. ${pdfTekst(gatTekst(g))}`, vak.x + 1, ty); ty += rh;
+            });
+            doc.setFontSize(6.5 * TS); doc.setTextColor(107, 122, 140);
+            const voetD = 'Een vakje telt als gemeten als er een meetpunt van de weg in ligt. Waar de weg onder het dak niet gemeten is, is hij overbrugd uit de weg ervoor en erna (tot 30 m); ' +
+              'daar is de vrije hoogte een schatting. Rode punten: dak of obstakel binnen de box.';
+            doc.splitTextToSize(voetD, vak.w).slice(0, 3).forEach((regel, j) => doc.text(regel, vak.x, Math.min(vak.y + vak.h - 1, ty + 3 * TS + j * 3.2 * TS)));
           }
         }
       }

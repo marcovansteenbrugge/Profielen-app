@@ -114,7 +114,38 @@ function maakWolk() {
   await p.waitForTimeout(1500);
   if (!(await p.isVisible('#drDialoog[open]'))) { await p.click('#doorrijKnop'); await p.waitForTimeout(400); }
 
+  // 7. (F2) PDF met het blad Doorrijhoogte (box en kleinste vrije hoogte) en de dekkingskaart
+  if (await p.isVisible('#drDialoog[open]')) { await p.click('#drControleer'); await p.waitForTimeout(800); await p.click('#drSluit'); }
+  else { await p.click('#doorrijKnop'); await p.click('#drControleer'); await p.waitForTimeout(800); await p.click('#drSluit'); }
+  r = await p.evaluate(() => window.__pvTest.doorrij());
+  await p.click('#printKnop'); await p.waitForTimeout(400);
+  await p.evaluate(() => { const z = (k, v) => { const e = document.getElementById(k); if (!e) return; if (typeof v === 'boolean') e.checked = v; else e.value = v; e.dispatchEvent(new Event('change')); }; z('pdfLuchtfoto', false); z('pdfFormaat', 'A3'); z('pdfProjectnaam', 'Test doorrijhoogte'); z('pdf3D', false); z('pdfDoorrij', true); });
+  const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 300000 }), p.click('#pdfMaak')]);
+  const pdfPad = path.join(H.UIT, 'doorrijhoogte.pdf');
+  await dl.saveAs(pdfPad);
+  console.log('7 PDF:', (await p.textContent('#status')).trim().slice(0, 120));
+  const { spawnSync } = require('child_process');
+  const py = spawnSync('python', ['-I', '-c', [
+    'import sys, pymupdf',
+    'd = pymupdf.open(sys.argv[1])',
+    'for i, pg in enumerate(d):',
+    '    t = " ".join(pg.get_text().split())',
+    '    if t.startswith("Doorrijhoogte") or ("Doorrijhoogte -" in t[:400] and "Uitgangspunten" in t):',
+    '        print("BLAD", i + 1, t[:1500]); pg.get_pixmap(dpi=70).save(sys.argv[2])',
+    '    if "Dekkingskaart doorrijhoogte" in t: print("DEKKING", i + 1)',
+  ].join(String.fromCharCode(10)), pdfPad, path.join(H.UIT, 'doorrijhoogte_pdfblad.png')], { encoding: 'utf8' });
+  const tekst = py.stdout || '';
+  console.log('7 uit de PDF:', tekst.slice(0, 600).replace(/\s+/g, ' '), py.stderr ? py.stderr.slice(0, 200) : '');
+  const b1pdf = r.boxen[0];
+  const vrijTekst = `${b1pdf.vrijMin.toFixed(2).replace('.', ',')} m`, spelingTekst = `${b1pdf.speling < 0 ? '-' : '+'}${Math.abs(b1pdf.speling).toFixed(2).replace('.', ',')} m`;
+  if (!/BLAD \d+/.test(tekst)) fouten.push('7: het blad Doorrijhoogte staat niet in de PDF');
+  if (!tekst.includes(vrijTekst) || !tekst.includes(spelingTekst)) fouten.push(`7: kleinste vrije hoogte (${vrijTekst}) of speling (${spelingTekst}) niet op het blad`);
+  if (!/DEKKING \d+/.test(tekst)) fouten.push('7: de dekkingskaart van de doorrijhoogte staat niet in de PDF');
+  if (!/VOLDOET NIET/.test(tekst)) fouten.push('7: oordeel niet op het blad');
+
   // schermafdruk: venster, dan dwars- en lengteprofiel
+  if (await p.isVisible('#pdfDialoog[open]')) await p.keyboard.press('Escape');
+  if (!(await p.isVisible('#drDialoog[open]'))) { await p.click('#doorrijKnop'); await p.waitForTimeout(400); }
   await p.screenshot({ path: path.join(H.UIT, 'doorrijhoogte_venster.png') });
   await p.click('#drSluit');
   await p.waitForTimeout(500);
