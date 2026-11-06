@@ -915,6 +915,10 @@
   const profielR = () => { const v = Number(dwarsRechtsVeld?.value); return Number.isFinite(v) && v >= 0 ? v : 10; };
   const profielBreedte = () => Math.max(1, profielL() + profielR());
   const profielHalfMax = () => Math.max(profielL(), profielR(), 0.5);
+  /* Punten in het dwarsprofiel (2.12.0): alle meetpunten binnen ± strook van de profiellijn. */
+  const profielPuntenVeld = document.getElementById('profielPunten'), profielStrookVeld = document.getElementById('profielStrook');
+  const puntenInProfiel = () => !!profielPuntenVeld?.checked;
+  const profielStrook = () => { const v = Number(profielStrookVeld?.value); return Number.isFinite(v) && v > 0 ? Math.min(5, Math.max(0.05, v)) : 0.5; };
   const kortGetal = (v) => String(+Number(v).toFixed(2)).replace('.', ',');
   dwarsBreedteVeld?.addEventListener('change', () => {
     const b = Math.max(1, Number(dwarsBreedteVeld.value) || 20);
@@ -2375,7 +2379,8 @@
   function profielSleutel() {
     return JSON.stringify([asPunten.map(p => [+p.x.toFixed(3), +p.y.toFixed(3)]),
       profielL(), profielR(), Number(dwarsIntervalVeld.value), Number(stapLangsVeld.value),
-      palen.profielenOpPalen && palen.modus !== 'm' ? `${palen.modus}|${palen.versie}|${palen.hmStart}|${palen.hmRichting}|${palen.maxAfstand}` : '']);
+      palen.profielenOpPalen && palen.modus !== 'm' ? `${palen.modus}|${palen.versie}|${palen.hmStart}|${palen.hmRichting}|${palen.maxAfstand}` : '',
+      puntenInProfiel() ? profielStrook() : 0]);
   }
   const volleCache = new Map();   // sleutel → volle profielen (per as bewaard)
   function volleProfielenGeldig() {
@@ -2386,7 +2391,9 @@
   }
 
   /** Verzamelt alle meetpunten binnen ±tol van elke dwarsprofiellijn en van de as. */
-  function maakProfielVerzamelaar(stations, pL, pR, tol) {
+  /** Met `strook` > 0 bewaart hij ook alle punten binnen ± strook van elke dwarsprofiellijn
+   *  (offset, hoogte, klasse), voor de punten in het dwarsprofiel. */
+  function maakProfielVerzamelaar(stations, pL, pR, tol, strook = 0) {
     const breedte = pL + pR;
     const asSt = asStukken();
     const dwarsSt = stations.map((st, i) => {
@@ -2395,28 +2402,34 @@
     });
     const alle = dwarsSt.map(d => ({ ...d, soort: 'dwars' })).concat(asSt.map(a => ({ ...a, soort: 'as' })));
     const cel = Math.max(0.5, Math.min(5, breedte / 8));
-    const idx = maakLijnIndex(alle, tol, cel);
+    const idx = maakLijnIndex(alle, Math.max(tol, strook), cel);
     const dwars = stations.map(() => ({ o: [], z: [] }));
+    const punten = strook > 0 ? stations.map(() => ({ o: [], z: [], k: [] })) : null;
     const langs = { s: [], z: [] };
     let gezien = 0;
     return {
-      voegToe(x, y, z) {
+      voegToe(x, y, z, r, g, b, k) {
         gezien++;
         const lijst = idx.zoek(x, y);
         if (!lijst) return;
         for (let i = 0; i < lijst.length; i++) {
           const st = alle[lijst[i]];
           const pr = projecteer(st, x, y);
-          if (pr.d > tol) continue;
           if (st.soort === 'dwars') {
+            if (punten && pr.d <= strook) { const q = punten[st.i]; q.o.push(pr.t - pL); q.z.push(z); q.k.push(k || 0); }
+            if (pr.d > tol) continue;
             const d = dwars[st.i]; d.o.push(pr.t - pL); d.z.push(z);
           } else {
+            if (pr.d > tol) continue;
             langs.s.push(st.s0 + pr.t); langs.z.push(z);
           }
         }
       },
       get aantalGezien() { return gezien; },
-      resultaat() { return { dwars, langs }; },
+      resultaat() {
+        const p = punten && punten.map(q => ({ o: Float32Array.from(q.o), z: Float32Array.from(q.z), k: Uint8Array.from(q.k) }));
+        return { dwars, langs, punten: p };
+      },
     };
   }
 
@@ -2458,6 +2471,61 @@
     return uit;
   }
 
+  /** Profiellijn uit de punten in de strook (punten in het profiel, B1): per vakje van `bin` m de onderste laag
+   *  (alleen klasse 2 als het profiel die heeft), zodat de lijn onder een boom over de weg loopt. Een vakje waarin
+   *  de grond niet geraakt is (alleen kroonpunten) ligt aan beide kanten meer dan 0,5 m boven het laagste vakje
+   *  binnen 1 m: dat vervalt en het gat wordt overbrugd. Lege stukken langer dan `maxGat` m worden een onderbreking. */
+  function maaiveldUitPunten(q, van, tot, bin = 0.1, maxGat = 1.5) {
+    const n = Math.max(1, Math.round((tot - van) / bin));
+    let metKlasse = false;
+    for (let i = 0; i < q.k.length; i++) if (q.k[i] === 2) { metKlasse = true; break; }
+    const vakken = Array.from({ length: n + 1 }, () => []);
+    for (let i = 0; i < q.o.length; i++) {
+      if (metKlasse && q.k[i] !== 2) continue;
+      const k = Math.round((q.o[i] - van) / bin);
+      if (k >= 0 && k <= n) vakken[k].push(q.z[i]);
+    }
+    const pos = [], h = [], aantal = [];
+    for (let k = 0; k <= n; k++) {
+      const v = vakken[k];
+      if (!v.length) continue;
+      v.sort((a, b) => a - b);
+      // de onderste laag: rond het 3e laagste punt (2% bij veel punten), niet het 10%-punt, want bij een stam
+      // of een muur in het vakje zijn de punten erboven vaak ver in de meerderheid
+      const ref = v[Math.min(v.length - 1, Math.max(2, Math.round(0.02 * v.length)))];
+      const laag = v.filter(z => Math.abs(z - ref) <= 0.15), m = laag.length;
+      pos.push(van + k * bin); h.push(m % 2 ? laag[(m - 1) / 2] : (laag[m / 2 - 1] + laag[m / 2]) / 2); aantal.push(v.length);
+    }
+    const uit = [];
+    let laatste = null;
+    for (let i = 0, a = 0; i < pos.length; i++) {
+      // alleen een piek vervalt (aan beide kanten lager), geen helling, talud of muur
+      while (pos[a] < pos[i] - 1 - 1e-9) a++;
+      let minL = Infinity, minR = Infinity;
+      for (let j = a; j < i; j++) if (h[j] < minL) minL = h[j];
+      for (let j = i + 1; j < pos.length && pos[j] <= pos[i] + 1 + 1e-9; j++) if (h[j] < minR) minR = h[j];
+      if (h[i] > minL + 0.5 && h[i] > minR + 0.5) continue;
+      if (laatste !== null && pos[i] - laatste > maxGat) uit.push({ offset: (pos[i] + laatste) / 2, hoogte: null, bgtLabel: null });
+      uit.push({ offset: pos[i], hoogte: h[i], aantal: aantal[i], bgtLabel: null });
+      laatste = pos[i];
+    }
+    return uit;
+  }
+
+  /** Punten in het profiel uitdunnen voor PDF en DXF (B3): hooguit één punt per vakje van `cel` m (offset × hoogte),
+   *  en nooit meer dan `max`; zit hij daarboven, dan wordt het vakje groter. */
+  function dunProfielPuntenUit(q, cel = 0.02, max = 20000) {
+    for (let c = cel; ; c *= 1.5) {
+      const gezien = new Set(), o = [], z = [], k = [];
+      for (let i = 0; i < q.o.length; i++) {
+        const s = Math.round(q.o[i] / c) * 1e6 + Math.round(q.z[i] / c);
+        if (gezien.has(s)) continue;
+        gezien.add(s); o.push(q.o[i]); z.push(q.z[i]); k.push(q.k[i]);
+      }
+      if (o.length <= max) return { o: Float32Array.from(o), z: Float32Array.from(z), k: Uint8Array.from(k) };
+    }
+  }
+
   /** Profielen uit alle punten: hele bestand één keer doorlopen. */
   async function maakVolleProfielen() {
     markeerBezig('alle punten', laatsteBestand?.name || "");
@@ -2469,7 +2537,8 @@
     const breedte = profielBreedte(), pL = profielL(), pR = profielR();
     const pa = origPuntAfstand || gemPuntAfstand || 0.1;
     const tol = Math.max(0.03, Math.min(0.5, pa * 0.75));
-    const verzamelaar = alleenGrondVan(maakProfielVerzamelaar(dwarsStations, pL, pR, tol));
+    const strook = puntenInProfiel() ? profielStrook() : 0;
+    const verzamelaar = alleenGrondVan(maakProfielVerzamelaar(dwarsStations, pL, pR, tol, strook));
     const knop = document.getElementById('volleDichtheidKnop');
     volleBezig = true; volleStop = false;
     if (knop) { knop.disabled = false; knop.textContent = '■ Stop'; knop.title = 'Het doorlopen van alle punten stoppen'; }
@@ -2482,7 +2551,7 @@
       };
       if (bestand.tegelbron) {
         // alleen de vakken waar de profielen en de as doorheen lopen
-        await leesTegels(bestand, voortgang, verzamelaar, profielKader(breedte, tol), tegelsLangsAs(Math.max(pL, pR) + tol));
+        await leesTegels(bestand, voortgang, verzamelaar, profielKader(breedte, Math.max(tol, strook)), tegelsLangsAs(Math.max(pL, pR) + Math.max(tol, strook)));
       } else if (/\.la[sz]$/i.test(bestand.name)) {
         const header = await leesLasHeader(bestand);
         if (header.isCompressed) await leesLazPunten(bestand, header, voortgang, true, verzamelaar);
@@ -2500,15 +2569,22 @@
       dwarsStations.forEach((st, i) => {
         const d = r.dwars[i];
         totaalDwars += d.o.length;
-        dwars.set(st, maakReeks(d.o, d.z, -pL, pR, bin, 1.0, 'offset', null));
+        const mv = r.punten ? maaiveldUitPunten(r.punten[i], -pL, pR) : null;
+        dwars.set(st, mv && mv.filter(p => p.hoogte !== null).length >= 2 ? mv : maakReeks(d.o, d.z, -pL, pR, bin, 1.0, 'offset', null));
       });
       const s = stationsLangsAs(); const totaal = s[s.length - 1];
       const binL = Math.max(bin, Math.min(Number(stapLangsVeld.value) || 1, 0.25));
       const langs = maakReeks(r.langs.s, r.langs.z, 0, totaal, binL, 2.0, 'station', null);
-      volleProfielen = { sleutel: profielSleutel(), dwars, langs, tol, bin, totaalDwars, aantalPunten: verzamelaar.aantalGezien, bestand: bestand.name };
+      let punten = null, totaalPunten = 0;
+      if (r.punten) {
+        punten = new Map();
+        dwarsStations.forEach((st, i) => { punten.set(st, r.punten[i]); totaalPunten += r.punten[i].o.length; });
+      }
+      volleProfielen = { sleutel: profielSleutel(), dwars, langs, tol, bin, totaalDwars, aantalPunten: verzamelaar.aantalGezien, bestand: bestand.name, punten, strook };
       volleCache.set(volleProfielen.sleutel, volleProfielen);
       const duur = Math.round((performance.now() - t0) / 1000);
-      statusEl.textContent = `Profielen uit alle ${verzamelaar.aantalGezien.toLocaleString('nl-NL')} punten · ${totaalDwars.toLocaleString('nl-NL')} meetpunten binnen ±${Math.round(tol * 100)} cm van de dwarsprofielen · vakjes van ${Math.round(bin * 100)} cm · ${duur} s`;
+      statusEl.textContent = `Profielen uit alle ${verzamelaar.aantalGezien.toLocaleString('nl-NL')} punten · ${totaalDwars.toLocaleString('nl-NL')} meetpunten binnen ±${Math.round(tol * 100)} cm van de dwarsprofielen · vakjes van ${Math.round(bin * 100)} cm`
+        + (punten ? ` · ${totaalPunten.toLocaleString('nl-NL')} punten in de profielen (strook ±${kortGetal(strook)} m)` : '') + ` · ${duur} s`;
       bijwerkenProfielen();
     } catch (err) {
       if (err.message === 'gestopt') statusEl.textContent = 'Profielen uit alle punten: gestopt — de profielen komen weer uit de surface';
@@ -2717,7 +2793,10 @@
   }
   const hoogteOpB = (x, y) => hoogteOpWolk(wolkB, x, y);
   // alleen voor de automatische tests
-  window.__pvTest = { naarScherm: (x, y) => wereldNaarScherm(x, y), dwars: () => { const r = berekenDwarsprofiel(dwarsStations[huidigeStationIndex]); return [r[0]?.offset, r[r.length - 1]?.offset, r.length, volleProfielenGeldig()]; }, detailVakken: () => detailCache.size, percelen: () => percelen.length, bgt: () => bgtLagen.length, hoogteOp: (x, y) => hoogteOp(x, y), puntOpStationOffset: (s, o) => puntOpStationOffset(s, o), lengte: () => { const s = stationsLangsAs(); return s[s.length - 1]; } };
+  window.__pvTest = { naarScherm: (x, y) => wereldNaarScherm(x, y), dwars: () => { const r = berekenDwarsprofiel(dwarsStations[huidigeStationIndex]); return [r[0]?.offset, r[r.length - 1]?.offset, r.length, volleProfielenGeldig()]; }, detailVakken: () => detailCache.size, percelen: () => percelen.length, bgt: () => bgtLagen.length, hoogteOp: (x, y) => hoogteOp(x, y), puntOpStationOffset: (s, o) => puntOpStationOffset(s, o), lengte: () => { const s = stationsLangsAs(); return s[s.length - 1]; },
+    profielPuntenUitgedund: (max) => { const st = dwarsStations[huidigeStationIndex]; const q = volleProfielenGeldig() && volleProfielen.punten?.get(st); return q ? dunProfielPuntenUit(q, 0.02, max).o.length : null; },
+    dwarsLijn: () => berekenDwarsprofiel(dwarsStations[huidigeStationIndex]).map(p => [p.offset, p.hoogte]),
+    profielPunten: () => { const st = dwarsStations[huidigeStationIndex]; const q = volleProfielenGeldig() && volleProfielen.punten?.get(st); return q ? { station: st, strook: volleProfielen.strook, o: Array.from(q.o), z: Array.from(q.z), k: Array.from(q.k) } : null; } };
 
   function hoogteOp(x, y) {
     if (!delaunay) return null;
@@ -3014,6 +3093,7 @@
     vulBrugHoogtes(reeks, (p) => puntOpStationOffset(station, p.offset));
     reeks.bgt = bgtDoorsnede(station, profielL(), profielR());
     reeks.station = station;
+    reeks.punten = (volleProfielenGeldig() && volleProfielen.punten?.get(station)) || null;
     return reeks;
   }
 
@@ -4781,6 +4861,25 @@
     volleHandmatigUit = false;
     await maakVolleProfielen();
   });
+  /* Punten in het dwarsprofiel: aan = de profielen (opnieuw) uit alle punten, met de punten binnen de strook erbij. */
+  try {
+    if (profielStrookVeld && localStorage.getItem('ptsviewer-profielstrook')) profielStrookVeld.value = localStorage.getItem('ptsviewer-profielstrook');
+    if (profielPuntenVeld) profielPuntenVeld.checked = localStorage.getItem('ptsviewer-profielpunten') === '1';
+  } catch { /* geen opslag */ }
+  async function puntenInProfielBijgewerkt() {
+    try {
+      localStorage.setItem('ptsviewer-profielpunten', puntenInProfiel() ? '1' : '0');
+      localStorage.setItem('ptsviewer-profielstrook', String(profielStrook()));
+    } catch { /* geen opslag */ }
+    if (volleBezig) volleStop = true;
+    if (!puntenInProfiel() || !laatsteBestand || asPunten.length < 2 || !dwarsStations.length) { bijwerkenProfielen(); return; }
+    if (volleProfielenGeldig()) { bijwerkenProfielen(); return; }
+    while (volleBezig) await new Promise(r => setTimeout(r, 50));
+    volleHandmatigUit = false;
+    await maakVolleProfielen();
+  }
+  profielPuntenVeld?.addEventListener('change', puntenInProfielBijgewerkt);
+  profielStrookVeld?.addEventListener('change', () => { profielStrookVeld.value = String(profielStrook()); if (puntenInProfiel()) puntenInProfielBijgewerkt(); else try { localStorage.setItem('ptsviewer-profielstrook', String(profielStrook())); } catch { /* */ } });
   document.getElementById('detailStrookKnop')?.addEventListener('click', async () => {
     if (!laatsteBestand || !assen.some(a => a.punten.length >= 2)) return;
     if (detailStrook) { await laadBestand(laatsteBestand, true, null); return; }
@@ -5002,6 +5101,8 @@
     if (inst.dwarsLinks != null && inst.dwarsRechts != null) { dwarsLinksVeld.value = inst.dwarsLinks; dwarsRechtsVeld.value = inst.dwarsRechts; dwarsBreedteVeld.value = String(profielL() + profielR()); }
     else if (inst.dwarsBreedte != null) { dwarsBreedteVeld.value = inst.dwarsBreedte; dwarsLinksVeld.value = String(inst.dwarsBreedte / 2); dwarsRechtsVeld.value = String(inst.dwarsBreedte / 2); }
     if (inst.dwarsInterval != null) dwarsIntervalVeld.value = inst.dwarsInterval;
+    if (inst.profielStrook != null && profielStrookVeld) profielStrookVeld.value = inst.profielStrook;
+    if (inst.profielPunten != null && profielPuntenVeld) profielPuntenVeld.checked = !!inst.profielPunten;
     if (inst.maatDwars != null) maatDwarsVeld.value = inst.maatDwars;
     if (inst.dwarsOverdrijving != null) dwarsOverdrijvingVeld.value = inst.dwarsOverdrijving;
     if (inst.langsOverdrijving != null) langsOverdrijvingVeld.value = inst.langsOverdrijving;
@@ -8666,6 +8767,11 @@ ${r3d}
       this.groei(x1, y1, z1); this.groei(x2, y2, z2);
       this.doel.buf.push(k.s + DxfSchrijver.stijl(st) + g(100, 'AcDbLine') + g(10, x1) + g(20, y1) + g(30, z1) + g(11, x2) + g(21, y2) + g(31, z2));
     }
+    punt(laag, x, y, z = 0, st = null) {
+      const g = DxfSchrijver.g, k = this.kop('POINT', laag);
+      this.groei(x, y, z);
+      this.doel.buf.push(k.s + DxfSchrijver.stijl(st) + g(100, 'AcDbPoint') + g(10, x) + g(20, y) + g(30, z));
+    }
     polylijn(laag, punten, drieD = false, gesloten = false, st = null) {
       if (punten.length < 2) return;
       const g = DxfSchrijver.g;
@@ -9059,6 +9165,13 @@ ${r3d}
           }
           continue;
         }
+        if (tag === 'path' && /\bpunten\b/.test(c.getAttribute('class') || '')) {
+          // punten in het dwarsprofiel: als POINT op een eigen laag, niet als duizenden nul-lijntjes
+          const k = DXF_KLEUR(cs.stroke), pts = [];
+          for (const m of (c.getAttribute('d') || '').matchAll(/M(-?[\d.]+),(-?[\d.]+)/g)) pts.push(T([+m[1], +m[2]]));
+          if (k && pts.length) ops.push({ t: 'punten', pts, rgb: k.rgb, laag: 'PV_PROF_PUNTEN' });
+          continue;
+        }
         let paden = [];
         if (tag === 'line') paden = [{ p: [[getal(c.getAttribute('x1')), getal(c.getAttribute('y1'))], [getal(c.getAttribute('x2')), getal(c.getAttribute('y2'))]], dicht: false }];
         else if (tag === 'rect') { const x = getal(c.getAttribute('x')), y = getal(c.getAttribute('y')), w = getal(c.getAttribute('width')), h = getal(c.getAttribute('height')); if (w <= 0 || h <= 0) continue; paden = [{ p: [[x, y], [x + w, y], [x + w, y + h], [x, y + h]], dicht: true }]; }
@@ -9127,7 +9240,8 @@ ${r3d}
     }
     ops = samen;
     for (const o of ops) {
-      const laag = d.laag(o.laag || laagStd, 7);
+      const laag = d.laag(o.laag || laagStd, o.t === 'punten' ? 8 : 7);
+      if (o.t === 'punten') { for (const p of o.pts) { const q = map(p[0], p[1]); d.punt(laag, q[0], q[1], 0, { rgb: o.rgb }); } n += o.pts.length; continue; }
       if (o.t === 'tekst') {
         const p = map(o.x, o.y), q = map(o.x + o.dx, o.y + o.dy);
         const hoek = Math.atan2(q[1] - p[1], q[0] - p[0]) * 180 / Math.PI;
@@ -9533,6 +9647,7 @@ ${r3d}
       boomLagen,
       instellingen: {
         dwarsBreedte: profielBreedte(), dwarsLinks: profielL(), dwarsRechts: profielR(),
+        profielPunten: puntenInProfiel(), profielStrook: profielStrook(),
         dwarsInterval: Number(dwarsIntervalVeld.value),
         maatDwars: Number(maatDwarsVeld.value),
         dwarsOverdrijving: Number(dwarsOverdrijvingVeld.value),
@@ -9967,6 +10082,7 @@ ${r3d}
   const grafiekMargeR = (legenda) => legenda ? GRAFIEK_LEGENDA_W + GRAFIEK_MARGE_R : GRAFIEK_MARGE_R;
   const komma = (v, d = 2) => (Math.abs(v) < 0.5 * Math.pow(10, -d) ? 0 : v).toFixed(d).replace('.', ',');
 
+  let puntenUitsnedeTeller = 0;
   function tekenGrafiek(svgEl, reeks, xVeld, xLabel, midden, matenInterval, overdrijving, zoomState, bomen, peil = null, opties = {}) {
     svgEl.innerHTML = '';
     // Twee puntenwolken: A = de gewone (hoogte), B = vergelijkingswolk (hoogteB).
@@ -9978,10 +10094,13 @@ ${r3d}
     const extraB = metB && tA && tB;
     if (metB && !tA && !tB) return;
     if (hoofdIsB) {
-      const bgt = reeks.bgt;
+      const bgt = reeks.bgt, punten = reeks.punten;
       reeks = reeks.map(p => ({ ...p, hoogte: p.hoogteB ?? null, hoogteB: null }));
-      reeks.bgt = bgt;
+      reeks.bgt = bgt; reeks.punten = punten;
     }
+    // punten in het dwarsprofiel (alleen bij wolk A als hoofdlijn)
+    let puntenLaag = null;
+    const puntenHier = xVeld === 'offset' && !hoofdIsB && reeks.punten && reeks.punten.o.length ? reeks.punten : null;
     const geldig = reeks.filter(p => p.hoogte !== null);
     if (geldig.length < 2) return;
 
@@ -10009,6 +10128,7 @@ ${r3d}
     const sn = opties.snoei !== undefined ? opties.snoei : snVoorGrafiek(reeks, isDwars, xVeld);
     if (sn && sn.hoogtes.length) { let a = Infinity, b = -Infinity; for (const h of sn.hoogtes) { if (h < a) a = h; if (h > b) b = h; } hoogtes.push(a, b); }
     if (peil != null) hoogtes.push(peil);   // waterlijn altijd binnen beeld
+    if (puntenHier) { let a = Infinity, b = -Infinity; for (const z of puntenHier.z) { if (z < a) a = z; if (z > b) b = z; } hoogtes.push(a, b); }
     let hMin = Math.min(...hoogtes), hMax = Math.max(...hoogtes);
     if (hMax - hMin < 0.2) { const m = (hMax + hMin) / 2; hMin = m - 0.1; hMax = m + 0.1; }
     const marge = (hMax - hMin) * 0.1;
@@ -10475,6 +10595,45 @@ ${r3d}
       }
     }
 
+    // punten in het dwarsprofiel, onder de lijn: grijs, de grondpunten (klasse 2, of zonder klasse
+    // binnen 15 cm van de lijn) iets donkerder. Eén pad per soort met stipjes (nullengte-streepjes).
+    if (puntenHier) {
+      // op het scherm alle punten; in de PDF en de DXF (een losse svg) uitgedund
+      const q = opties.punten || (svgEl === svgDwars ? puntenHier : dunProfielPuntenUit(puntenHier));
+      let metKlasse = false;
+      for (let i = 0; i < q.k.length; i++) if (q.k[i] === 2) { metKlasse = true; break; }
+      const lijnOp = new Map();
+      for (const p of reeks) if (p.hoogte !== null) lijnOp.set(Math.round(p.offset * 10), p.hoogte);
+      // alleen binnen het tekenvlak: op het scherm met een uitsnede (zoom blijft werken), in de PDF en de DXF
+      // (geen zoom) door wat erbuiten valt niet mee te nemen — een hoge kroon loopt anders over de kop heen
+      const uitvoer = svgEl !== svgDwars, yBoven = margeT, yOnder = hoog - margeB;
+      let dGrond = '', dOverig = '';
+      for (let i = 0; i < q.o.length; i++) {
+        const X = px(q.o[i]), Y = py(q.z[i]);
+        if (uitvoer && (Y < yBoven || Y > yOnder || X < margeL || X > plotR)) continue;
+        const l = metKlasse ? null : lijnOp.get(Math.round(q.o[i] * 10));
+        const grond = metKlasse ? q.k[i] === 2 : (l != null && q.z[i] <= l + 0.15);
+        const s = `M${X.toFixed(1)},${Y.toFixed(1)}h0`;
+        if (grond) dGrond += s; else dOverig += s;
+      }
+      const id = 'pvPuntenUitsnede' + (++puntenUitsnedeTeller);
+      const uitsnede = document.createElementNS(ns, 'clipPath'); uitsnede.setAttribute('id', id);
+      const kader = document.createElementNS(ns, 'rect');
+      kader.setAttribute('x', margeL); kader.setAttribute('y', yBoven); kader.setAttribute('width', Math.max(0, plotR - margeL)); kader.setAttribute('height', Math.max(0, yOnder - yBoven));
+      uitsnede.append(kader);
+      puntenLaag = document.createElementNS(ns, 'g');
+      puntenLaag.setAttribute('clip-path', `url(#${id})`);
+      const binnen = document.createElementNS(ns, 'g');
+      if (zoomState) binnen.setAttribute('transform', g.getAttribute('transform') || '');
+      for (const [dd, klasse] of [[dOverig, 'punten'], [dGrond, 'punten punten-grond']]) {
+        if (!dd) continue;
+        const pp = document.createElementNS(ns, 'path');
+        pp.setAttribute('d', dd); pp.setAttribute('class', klasse); pp.setAttribute('vector-effect', 'non-scaling-stroke');
+        binnen.append(pp);
+      }
+      puntenLaag.append(uitsnede, binnen);
+    }
+
     // de lijn zelf — knip bij een gat (buiten het net) in plaats van erover heen te trekken
     let d = '';
     let bezig = false;
@@ -10890,7 +11049,11 @@ ${r3d}
       if (metB) {
         if (tA) items.push(['lijn', 'A: ' + (bronBestandsnaam || 'puntenwolk A'), 'lijn']);
         if (tB) items.push(['lijn', 'B: ' + wolkB.naam, 'lijn lijn-b']);
-      } else items.push(['lijn', reeks.maatgevend ? 'bodem: hoogste over de boxlengte' : 'gemeten profiel', 'lijn']);
+      } else items.push(['lijn', reeks.maatgevend ? 'bodem: hoogste over de boxlengte' : puntenHier ? 'maaiveld (onderste laag)' : 'gemeten profiel', 'lijn']);
+      if (puntenHier) {
+        items.push(['blokje', `punten binnen ±${komma(volleProfielen?.strook ?? profielStrook(), 2)} m`, '#A3ADB8']);
+        items.push(['blokje', 'punten op het maaiveld', '#5B6670']);
+      }
       if (heeftO) items.push(['lijn', reeks.maatgevend ? 'onderzijde brug: laagste over de boxlengte' : 'onderzijde brug', 'lijn lijn-onder']);
       if (heeftD) items.push(['lijn', 'bovenzijde brug', 'lijn lijn-dek']);
       if (dv) items.push(['dvprofiel', `doorvaartprofiel B ${komma(dv.B, 2)} × H ${komma(dv.H, 2)} m${dv.D ? `, diepgang ${komma(dv.D, 2)}` : ''}`, 'dv-profiel']);
@@ -11006,7 +11169,7 @@ ${r3d}
       voet(`profielbreedte ${komma(xMax - xMin, xMax - xMin >= 100 ? 0 : 1)} m`);
     }
 
-    svgEl.append(rasterLaag, g, asLaag);
+    svgEl.append(rasterLaag, ...(puntenLaag ? [puntenLaag] : []), g, asLaag);
   }
 
   /** Kiest indexen uit `geldig` om van een hoogtemaatje te voorzien: op elke
@@ -11164,6 +11327,8 @@ ${r3d}
     .maatlijn{stroke:#DCE3E8;stroke-width:1}
     .tekst{fill:#6B7A8C;font:13.8px "Segoe UI",system-ui,sans-serif}
     .lijn{stroke:#1E7FA6;stroke-width:1.8;fill:none}
+    .punten{stroke:#A3ADB8;stroke-width:2.2;stroke-linecap:round;fill:none}
+    .punten.punten-grond{stroke:#5B6670}
     .huidig-station{stroke:#C6472B;stroke-width:1.2;stroke-dasharray:4 3}
     .maat{fill:#1B2A38;font:600 14.5px "Segoe UI",system-ui,sans-serif}
     .maat-stip{fill:#1B2A38}

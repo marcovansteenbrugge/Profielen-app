@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Oct 30, 2026 · @Marco van Steenbrugge · versie 2.11.4
+Nov 6, 2026 · @Marco van Steenbrugge · versie 2.12.0
 
 ## Wat is de Profielviewer
 
@@ -10,14 +10,14 @@ Daarnaast zitten er twee toetsen in. De **doorvaartcontrole** kijkt of een schip
 
 **Starten**
 
-1. Dubbelklik `Lutrea-Profielviewer-2.11.4-setup.exe` en volg de stappen. Er zijn geen beheerdersrechten nodig: de viewer komt in `%LOCALAPPDATA%\Programs\Lutrea Profielviewer`. Start hem daarna via het **startmenu → Lutrea Profielviewer** (een bureaublad-snelkoppeling kun je in de setup aanvinken).
+1. Dubbelklik `Lutrea-Profielviewer-2.12.0-setup.exe` en volg de stappen. Er zijn geen beheerdersrechten nodig: de viewer komt in `%LOCALAPPDATA%\Programs\Lutrea Profielviewer`. Start hem daarna via het **startmenu → Lutrea Profielviewer** (een bureaublad-snelkoppeling kun je in de setup aanvinken).
 2. De eerste keer kan Windows "Windows heeft uw pc beschermd" tonen: kies **Meer informatie → Toch uitvoeren**. Het programma is (nog) niet digitaal ondertekend.
 3. De viewer opent in een eigen programmavenster (WebView2, zit in Windows 10 en 11; Chrome of Edge is niet nodig). Venster dicht = programma stopt. Het venster onthoudt plek en grootte.
-4. Controleer het versienummer naast de titel linksboven (nu **2.11.4**).
+4. Controleer het versienummer naast de titel linksboven (nu **2.12.0**).
 
 **Bijwerken en verwijderen.** Een nieuwe versie installeer je door de nieuwe setup te draaien; sluit eerst de viewer (staat hij nog open, dan vraagt de setup je dat). Verwijderen gaat via **Windows-instellingen → Apps → Lutrea Profielviewer**. Je instellingen, stempel, logo's en recente projecten blijven bewaard, en je projectmappen worden nooit aangeraakt.
 
-**Zonder installeren.** Mag of kun je niet installeren, dubbelklik dan de losse `Lutrea-Profielviewer-2.11.4.exe`. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling. Instellingen zijn dezelfde als bij de geïnstalleerde viewer.
+**Zonder installeren.** Mag of kun je niet installeren, dubbelklik dan de losse `Lutrea-Profielviewer-2.12.0.exe`. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling. Instellingen zijn dezelfde als bij de geïnstalleerde viewer.
 
 **Al open?** Start je de viewer nog een keer, dan komt het venster dat al open is naar voren; er komt geen tweede venster.
 
@@ -177,6 +177,8 @@ Zodra de as er is, rekent de viewer beide profielen uit. Alles wat je hier inste
 | kadaster | Vinkje: kadastrale perceelgrenzen (sectie + nummer) in het dwarsprofiel, ook in de PDF en DXF. Uit = weg. Alleen als er kadaster is opgehaald |
 | maten elke | Om de hoeveel meter een zwart hoogtegetal; 0 = alleen de rode BGT-hoogtes |
 | verh. 1: | Overdrijving van de hoogte (1 = ware verhouding) |
+| punten | Vinkje: alle meetpunten uit een strook rond de profiellijn als grijze stipjes in het dwarsprofiel, ook in de PDF en de DXF. De lijn volgt dan het maaiveld (zie hieronder) |
+| strook ± | Hoe ver voor en achter de profiellijn de punten vandaan mogen komen, standaard ±0,5 m (0,05 tot 5 m). Smal = scherpe doorsnede, breder = meer van de boom |
 | ◀ ▶ | Vorig / volgend station |
 
 **Wat er in het dwarsprofiel staat**
@@ -187,6 +189,15 @@ Zodra de as er is, rekent de viewer beide profielen uit. Alles wat je hier inste
 - **Legenda** rechts, met alleen wat er in dit profiel staat, en onderaan de profielbreedte. Op het scherm verschijnt de legenda als het paneel breed genoeg is; sleep anders de middelste balk naar links.
 - **BGT-band of maatketting** onder het profiel (stap 2).
 - **Kadastrale perceelgrenzen** als paarse streeplijnen met sectie en nummer, als het kadaster is opgehaald en het vinkje **kadaster** aan staat.
+
+**Punten in het dwarsprofiel (vanaf 2.12.0).** Zet het vinkje **punten** aan om de vorm van bomen, stammen, hekken en de weg onder de kroon te zien. De viewer leest dan één keer alle punten rond de profiellijnen uit het bestand. Met een projectmap gaat dat snel, omdat alleen de vakken langs de as gelezen worden. Tijdens het lezen staat de knop **Alle punten** op **■ Stop**.
+- De punten zijn grijs. De punten op het maaiveld (klasse 2, of zonder klasse de onderste laag) zijn donkergrijs.
+- De **lijn volgt het maaiveld**: per 10 cm de onderste laag van de punten in de strook. Onder een boom loopt hij dus over de weg, niet over de kroon. Bij een brug ligt de lijn op de bodem, en het brugdek zie je als punten.
+- Een vakje waarin de grond onder de kroon niet geraakt is, geeft geen piek: dat stukje wordt overbrugd. Een talud, muur of opsluitband blijft gewoon staan.
+- In de PDF en de DXF worden de punten uitgedund tot één punt per 2 × 2 cm, met hooguit 20.000 per profiel. In de DXF staan ze als POINT op de laag **PV_PROF_PUNTEN**.
+- Wat boven of onder het vak van het profiel valt, wordt niet getekend. Zie je in de PDF de kroon niet helemaal, kies dan minder profielen per pagina of een grotere verhouding.
+- Staat **maaiveld** (klasse 2) aan bij de puntenwolk, dan leest de viewer alleen grondpunten, dus ook geen bomen. Zet het uit om de bomen te zien.
+- Het vinkje en de strook gaan mee in het project.
 
 **Zoomen in een profiel.** Muiswiel = in- en uitzoomen, slepen = verschuiven, ⬚ = zoomen op een rechthoek, ⤢ = alles weer in beeld. De getallen blijven leesbaar en schuiven mee.
 

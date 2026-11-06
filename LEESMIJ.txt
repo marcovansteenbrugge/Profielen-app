@@ -1,9 +1,9 @@
-Lutrea Profielviewer 2.11.4 (voorheen PTS-viewer)
+Lutrea Profielviewer 2.12.0 (voorheen PTS-viewer)
 ================================================
 Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
 De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
 
-Installeren (gewone manier): Lutrea-Profielviewer-2.11.4-setup.exe
+Installeren (gewone manier): Lutrea-Profielviewer-2.12.0-setup.exe
 ------------------------------------------------------------------
 Dubbelklik de setup en volg de stappen. Je hebt geen beheerdersrechten nodig: de viewer
 komt in je eigen programmamap (%LOCALAPPDATA%\Programs\Lutrea Profielviewer).
@@ -48,6 +48,20 @@ Mapversie (alternatief)
 
 Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
 adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.12.0 — Alle punten in het dwarsprofiel
+-------------------------------------------------
+- Nieuw vinkje "punten" bij het dwarsprofiel, met een strook (standaard ±0,5 m): alle
+  meetpunten rond de profiellijn staan dan als grijze stipjes in het profiel. Je ziet de
+  vorm van bomen en stammen, hekken, en de weg die onder de kroon doorloopt.
+- De lijn volgt dan het maaiveld: de onderste laag van de punten, dus onder een boom over
+  de weg in plaats van over de kroon. Bij een brug ligt de lijn op de bodem, het brugdek
+  zie je als punten.
+- De punten komen ook op de PDF en in de DXF (als POINT op de laag PV_PROF_PUNTEN),
+  uitgedund tot één punt per 2 x 2 cm en hooguit 20.000 per profiel.
+- Het lezen gebeurt één keer; met een projectmap alleen de vakken langs de as. Staat
+  "maaiveld" (klasse 2) aan bij de puntenwolk, dan zie je alleen grondpunten: zet het uit
+  om de bomen te zien.
 
 Nieuw in 2.11.4 — Installer
 -----------------------------
