@@ -23,7 +23,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 |---|---|---|---|---|---|
 | F0 | Knop en venster Doorrijhoogte, de berekening (weg en dak uit één wolk, vrije hoogte en speling per station) en de box op de weg in de profielen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 21:18 | B1, B2, B5 | ✅ 2026-11-06 21:54 |
 | F1 | Voorwaarden kiezen uit een lijst of eigen maten, marge, meerdere boxen tegelijk | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 21:18 | B3, B4 | ✅ 2026-11-06 21:57 |
-| F2 | PDF-blad Doorrijhoogte met dekkingskaart | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 21:18 | - | - |
+| F2 | PDF-blad Doorrijhoogte met dekkingskaart | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 21:18 | - | ✅ 2026-11-06 22:06 |
 | F3 | Uitleveren (tests, LEESMIJ, handleiding, exe en setup), met jouw controle op LoZ.laz | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 21:18 | B6 | - |
 
 Letterlijk akkoord (F0 tot en met F3, via chat): "Akkoord, bouw F0–F3", als antwoord op de vraag "Akkoord met B1–B6 zoals voorgesteld, en bouwen op planversie 1, fase F0 t/m F3?"
@@ -157,5 +157,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-06 21:18 | B1 tot en met B6 akkoord (ons voorstel) en vrijgave F0 tot en met F3 op planversie 1: "Akkoord, bouw F0–F3" | Marco van Steenbrugge, via chat |
 | 2026-11-06 21:54 | F0 gebouwd: knop en venster Doorrijhoogte, weg en dak uit één wolk, box op de weg; testversie in dist\test. Twee fouten hersteld die ook LoZ.laz raakten (uitdunnen, vakken in stukken lezen) | Claude Opus 5.5 (agent) |
 | 2026-11-06 21:57 | F1 gebouwd: voorwaarden uit een lijst (of eigen maten) en tot vier boxen tegelijk | Claude Opus 5.5 (agent) |
+| 2026-11-06 22:06 | F2 gebouwd: PDF-blad Doorrijhoogte en dekkingskaart | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

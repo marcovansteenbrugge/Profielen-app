@@ -3,7 +3,7 @@ plan: doorrijhoogte
 titel: Doorrijhoogte: vrije hoogte onder een dak of kunstwerk toetsen
 versie: 1
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ✅ · F2 ▶ · F3 ▶           # berekend door de skill
+voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ▶           # berekend door de skill
 opgesteld: 2026-11-06
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -81,8 +81,8 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 |---|---|---|---|---|---|---|---|
 | F0 | ✅ gebouwd | Knop en venster "Doorrijhoogte", rekenstuk (weg uit de onderste laag met overbrugde gaten, dak erboven, vrije hoogte en speling per station, kritiek punt), box op de weg in dwars- en lengteprofiel, geen schip | 1. Nieuwe test `tests/doorrijhoogte.test.js` met een gemaakte wolk (weg met dwarshelling en een dak op bekende hoogte, deels zonder weg eronder): gemeten vrije hoogte wijkt < 2 cm af van de bekende, het kritieke station klopt. 2. Bij een dak lager dan H: oordeel "voldoet niet" met de juiste tekortkoming. 3. De vakken onder het dak zonder weg staan als niet gemeten op de dekkingskaart en tellen niet als weg. 4. Schermafdruk van venster en dwarsprofiel op LoZ.laz, alleen met het originele bestand. 5. De bestaande doorvaarttest blijft groen. | B1, B2, B5 | L | Opus 5.5, medium | `F0:` |
 | F1 | ✅ gebouwd | Voorwaarden-lijst, eigen maten, marge, meerdere boxen tegelijk | 1. Test: kiezen uit de lijst zet B en H; eigen maten werken. 2. Test met twee boxen (4,20 × 3,50 en 2,50 × 2,00 met verschuiving): elk een eigen oordeel en kritiek punt. 3. Instellingen komen terug na opslaan en heropenen van het project. | F0, B3, B4 | M | Opus 5.5, medium | `F1:` |
-| F2 | ▶ vrijgegeven | PDF-blad "Doorrijhoogte" met box, kritieke doorsnede, lengteprofiel met vrije hoogte, tabel per voorwaarde en dekkingskaart | 1. Test maakt de PDF; het blad staat erin met de juiste kleinste vrije hoogte en speling. 2. Render van het blad op LoZ.laz bekeken (schermafdruk). | F1 | M | Opus 5.5, medium | `F2:` |
-| F3 | ▶ vrijgegeven, na F2 | Opleveren: versie, LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met `fouten: geen`. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat de doorrijhoogte onder het dak bij LoZ.laz klopt. | F2, B6 | S | Opus 5.5, medium | `F3:` |
+| F2 | ✅ gebouwd | PDF-blad "Doorrijhoogte" met box, kritieke doorsnede, lengteprofiel met vrije hoogte, tabel per voorwaarde en dekkingskaart | 1. Test maakt de PDF; het blad staat erin met de juiste kleinste vrije hoogte en speling. 2. Render van het blad op LoZ.laz bekeken (schermafdruk). | F1 | M | Opus 5.5, medium | `F2:` |
+| F3 | ▶ vrijgegeven | Opleveren: versie, LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met `fouten: geen`. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat de doorrijhoogte onder het dak bij LoZ.laz klopt. | F2, B6 | S | Opus 5.5, medium | `F3:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
 
@@ -113,6 +113,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 |---|---|---|---|---|---|---|---|---|
 | F0 | 2026-11-06 21:18 | 2026-11-06 21:54 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 136 / 72.561 | b38991d | transcript (Claude Code 2.1.317) |
 | F1 | 2026-11-06 21:55 | 2026-11-06 21:57 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 14 / 9.878 | b7552ff | transcript (Claude Code 2.1.317) |
+| F2 | 2026-11-06 21:58 | 2026-11-06 22:06 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 22 / 17.526 | e493150 | transcript (Claude Code 2.1.317) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -129,12 +130,15 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F1 | 2026-11-06 21:57 | 1. Kiezen uit de lijst zet B en H; eigen maten werken | `node doorrijhoogte.test.js` stap 4: "fietspad" → breedte 2, hoogte 2.5, naam fietspad; daarna "eigen maten" met 3,5 × 4,2 bewaard | gehaald |
 | F1 | 2026-11-06 21:57 | 2. Twee boxen (4,20 × 3,50 en 2,50 × 2,00 met verschuiving): elk een eigen oordeel en kritiek punt | stap 5: rijbaan ok=false, speling −0,847, st. 60; fietspad (c 4,5) ok=true, speling +0,760 (verwacht 0,763), st. 60; "fietspad" in het resultaat | gehaald |
 | F1 | 2026-11-06 21:57 | 3. Instellingen komen terug na opslaan en heropenen van het project | stap 6 (`maakProjectBlob` → `laadProjectBestand`): beide boxen terug, fietspad met verschuiving 4.5, rijbaan H 4.2; "fouten: geen" | gehaald |
+| F2 | 2026-11-06 22:06 | 1. Test maakt de PDF; het blad staat erin met de juiste kleinste vrije hoogte en speling | `node doorrijhoogte.test.js` stap 7 (PyMuPDF): "BLAD 3 Doorrijhoogte - voldoet niet", "rijbaan: kleinste vrije hoogte 3,35 m", "speling -0,85 m", fietspad "+0,76 m"; "DEKKING" blad gevonden; "fouten: geen" | gehaald |
+| F2 | 2026-11-06 22:06 | 2. Render van het blad bekeken (schermafdruk) | `tests/uit/doorrijhoogte_pdfblad.png` (blad 3, A3): dwarsprofiel 1:75 met twee boxen, vrij 3,35 (rood) en 3,26, tabel per box, oordeel VOLDOET NIET; voettekst na herstel van het minteken leesbaar. De render is op de testwolk gemaakt; op LoZ.laz volgt dat bij de controle in F3 | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
 
 | Fase | Wat week af van het plan | Waarom |
 |---|---|---|
+| F2 | Het lengteprofiel met de vrije hoogte staat niet op het blad Doorrijhoogte zelf, maar op het gewone blad Lengteprofiel (box en onderkant dak komen daar vanzelf mee); het blad verwijst ernaar | Zelfde tekenfunctie als op het scherm; een tweede uitsnede maakte het blad te vol |
 | F0 | Reparatie in `maakBegroeiingSink` en `maakBrugSink`: het 3D-uitdunvakje groeide bij elke portie punten (bij LoZ.laz tot 10 km); nu eerst uitdunnen met het huidige vakje | Gevonden bij de proef op LoZ.laz; trof ook snoeicheck en doorvaart bij zeer dichte wolken |
 | F0 | Reparatie in `leesTegels`: vakken in stukken van 32 MB lezen (Range) in plaats van in één keer | "Profielen uit alle punten mislukt: Failed to fetch" bij Marco (vakken van ± 450 MB); trof ook punten in het profiel, detailstrook en doorrijhoogte |
 | F0 | Testversie `dist	est\Lutrea-Profielviewer-2.13.0-test-doorrijhoogte.exe` gebouwd op verzoek van Marco | "je mag al een test versie maken" |
