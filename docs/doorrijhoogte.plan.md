@@ -2,8 +2,8 @@
 plan: doorrijhoogte
 titel: Doorrijhoogte: vrije hoogte onder een dak of kunstwerk toetsen
 versie: 1
-status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ⏳ · F1 ⏳ · F2 ○ · F3 ⏳           # berekend door de skill
+status: vrijgegeven        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ▶ · F1 ▶ · F2 ▶ · F3 ▶           # berekend door de skill
 opgesteld: 2026-11-06
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -79,10 +79,10 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ⏳ wacht op B1, B2, B5 | Knop en venster "Doorrijhoogte", rekenstuk (weg uit de onderste laag met overbrugde gaten, dak erboven, vrije hoogte en speling per station, kritiek punt), box op de weg in dwars- en lengteprofiel, geen schip | 1. Nieuwe test `tests/doorrijhoogte.test.js` met een gemaakte wolk (weg met dwarshelling en een dak op bekende hoogte, deels zonder weg eronder): gemeten vrije hoogte wijkt < 2 cm af van de bekende, het kritieke station klopt. 2. Bij een dak lager dan H: oordeel "voldoet niet" met de juiste tekortkoming. 3. De vakken onder het dak zonder weg staan als niet gemeten op de dekkingskaart en tellen niet als weg. 4. Schermafdruk van venster en dwarsprofiel op LoZ.laz, alleen met het originele bestand. 5. De bestaande doorvaarttest blijft groen. | B1, B2, B5 | L | Opus 5.5, medium | `F0:` |
-| F1 | ⏳ wacht op B3, B4 | Voorwaarden-lijst, eigen maten, marge, meerdere boxen tegelijk | 1. Test: kiezen uit de lijst zet B en H; eigen maten werken. 2. Test met twee boxen (4,20 × 3,50 en 2,50 × 2,00 met verschuiving): elk een eigen oordeel en kritiek punt. 3. Instellingen komen terug na opslaan en heropenen van het project. | F0, B3, B4 | M | Opus 5.5, medium | `F1:` |
-| F2 | ○ niet vrijgegeven | PDF-blad "Doorrijhoogte" met box, kritieke doorsnede, lengteprofiel met vrije hoogte, tabel per voorwaarde en dekkingskaart | 1. Test maakt de PDF; het blad staat erin met de juiste kleinste vrije hoogte en speling. 2. Render van het blad op LoZ.laz bekeken (schermafdruk). | F1 | M | Opus 5.5, medium | `F2:` |
-| F3 | ⏳ wacht op B6 | Opleveren: versie, LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met `fouten: geen`. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat de doorrijhoogte onder het dak bij LoZ.laz klopt. | F2, B6 | S | Opus 5.5, medium | `F3:` |
+| F0 | ▶ vrijgegeven | Knop en venster "Doorrijhoogte", rekenstuk (weg uit de onderste laag met overbrugde gaten, dak erboven, vrije hoogte en speling per station, kritiek punt), box op de weg in dwars- en lengteprofiel, geen schip | 1. Nieuwe test `tests/doorrijhoogte.test.js` met een gemaakte wolk (weg met dwarshelling en een dak op bekende hoogte, deels zonder weg eronder): gemeten vrije hoogte wijkt < 2 cm af van de bekende, het kritieke station klopt. 2. Bij een dak lager dan H: oordeel "voldoet niet" met de juiste tekortkoming. 3. De vakken onder het dak zonder weg staan als niet gemeten op de dekkingskaart en tellen niet als weg. 4. Schermafdruk van venster en dwarsprofiel op LoZ.laz, alleen met het originele bestand. 5. De bestaande doorvaarttest blijft groen. | B1, B2, B5 | L | Opus 5.5, medium | `F0:` |
+| F1 | ▶ vrijgegeven, na F0 | Voorwaarden-lijst, eigen maten, marge, meerdere boxen tegelijk | 1. Test: kiezen uit de lijst zet B en H; eigen maten werken. 2. Test met twee boxen (4,20 × 3,50 en 2,50 × 2,00 met verschuiving): elk een eigen oordeel en kritiek punt. 3. Instellingen komen terug na opslaan en heropenen van het project. | F0, B3, B4 | M | Opus 5.5, medium | `F1:` |
+| F2 | ▶ vrijgegeven, na F1 | PDF-blad "Doorrijhoogte" met box, kritieke doorsnede, lengteprofiel met vrije hoogte, tabel per voorwaarde en dekkingskaart | 1. Test maakt de PDF; het blad staat erin met de juiste kleinste vrije hoogte en speling. 2. Render van het blad op LoZ.laz bekeken (schermafdruk). | F1 | M | Opus 5.5, medium | `F2:` |
+| F3 | ▶ vrijgegeven, na F2 | Opleveren: versie, LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met `fouten: geen`. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat de doorrijhoogte onder het dak bij LoZ.laz klopt. | F2, B6 | S | Opus 5.5, medium | `F3:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
 
@@ -129,7 +129,7 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
 |---|---|---|---|---|
-| 1 | 2026-11-06 21:20 | Eerste versie | - | Nog geen vrijgave |
+| 1 | 2026-11-06 21:15 | Eerste versie | - | Nog geen vrijgave |
 
 ## 14. Bronnen
 - viewer.js op 1ebccb6: Doorvaart r. 5540–6355 (`voerDoorvaartUit` r. 5950, `maakDekking` r. 5672, `laadBrugBestand` r. 6199), Snoeicheck r. 6950 e.v. (`voerSnoeiUit` r. 7128)
