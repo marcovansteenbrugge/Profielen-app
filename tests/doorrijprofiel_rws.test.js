@@ -17,6 +17,9 @@ function maakData() {
   const punt = (s, o, z) => r.push(`${(X0 + s).toFixed(3)} ${(Y0 - o).toFixed(3)} ${z.toFixed(4)}`);
   for (let i = 0; i <= 1000; i++) for (let j = -80; j <= 80; j++) punt(i / 10, j / 10, weg(i / 10, j / 10));
   for (let i = 400; i <= 600; i++) for (let j = -60; j <= 60; j++) { punt(i / 10, j / 10, DAK); punt(i / 10, j / 10, DAK + 0.7); }
+  // (F1) geleiderails: links op −4,6 m over de hele as, rechts op +4,4 m tot st. 50; kolom op st. 25 van +2,85 tot +3,15 m
+  for (let i = 0; i <= 1000; i++) for (let k = 0; k <= 6; k++) { const s = i / 10, h = 0.6 + k * 0.05; punt(s, -4.6, weg(s, -4.6) + h); if (s <= 50) punt(s, 4.4, weg(s, 4.4) + h); }
+  for (let i = 0; i <= 6; i++) for (let j = 0; j <= 6; j++) for (let k = 0; k <= 30; k++) { const s = 24.85 + i * 0.05, o = 2.85 + j * 0.05; punt(s, o, weg(s, o) + k * 0.1); }
   const pts = path.join(UIT, 'weg_met_dak.pts');
   fs.writeFileSync(pts, `${r.length}\n${r.join('\n')}\n`);
   const as = path.join(UIT, 'as_weg.geojson');
@@ -85,6 +88,16 @@ function maakData() {
   await p.click('#drMeetLijst .drMpWeg'); await p.waitForTimeout(300);
   rws = await p.evaluate(() => window.__pvTest.rws());
   if (rws[0].meetpunten.some(m => m.soort === 'markering')) fouten.push('2: meetpunt niet weggehaald');
+
+  // 4. (F1) doorrijbreedte op 0,5–1,0 m: profiel 1 tussen de rails (9,00), profiel 2 rail links en kant verharding rechts (8,60),
+  //    kleinste breedte bij de kolom op st. 25 (7,45)
+  rws = await p.evaluate(() => window.__pvTest.rws());
+  const bmin = await p.evaluate(() => window.__pvTest.rwsBreedteMin());
+  console.log('4 doorrijbreedte:', JSON.stringify(rws.map(pr => pr.breedte)), '| kleinste:', JSON.stringify(bmin && { b: bmin.breedte, st: bmin.station, L: bmin.links, R: bmin.rechts }));
+  if (!rws[0].breedte || Math.abs(rws[0].breedte.breedte - 9.0) >= 0.01 || rws[0].breedte.links.soort !== 'obstakel' || rws[0].breedte.rechts.soort !== 'obstakel') fouten.push('4: doorrijbreedte profiel 1 niet 9,00 m tussen de rails');
+  if (!rws[1].breedte || Math.abs(rws[1].breedte.breedte - 8.6) >= 0.01 || rws[1].breedte.rechts.soort !== 'kant verharding') fouten.push('4: zonder rail rechts moet de kant verharding de breedte begrenzen (8,60 m)');
+  if (!bmin || Math.abs(bmin.breedte - 7.45) >= 0.01 || Math.abs(bmin.station - 25) > 0.5) fouten.push('4: de kolom 15 m voor het dak bepaalt niet de kleinste breedte (7,45 m bij st. 25)');
+  if (!/Doorrijbreedte/.test(await p.textContent('#drRwsResultaat'))) fouten.push('4: doorrijbreedte niet in de tabel');
 
   // 3. minimale doorrijhoogte per rijbaan = kleinste vrije hoogte van de box
   const r = await p.evaluate(() => window.__pvTest.doorrij());
