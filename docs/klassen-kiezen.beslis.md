@@ -4,14 +4,14 @@ titel: Kiezen welke classificaties worden ingelezen
 plan: klassen-kiezen.plan.md
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
 voorgelegd: 2026-11-06 14:31          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
-status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+status: gebouwd        # berekend door de skill, nooit met de hand gezet
 ---
 
 > Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
 
 # Beslisdocument: Kiezen welke classificaties worden ingelezen
 
-> **Nu van jou gevraagd:** het laatste deel van je controle (F2): een dwarsprofiel over de brug op LoZ.laz, met "punten" aan. Daarna volgt de tag.
+> **Nu van jou gevraagd:** niets. 2.12.1 is gecontroleerd en opgeleverd.
 > **Later nodig:** niets.
 
 Bij het openen van een LAS of LAZ krijg je straks eerst een venstertje waarin je per classificatie (maaiveld, weg, gebouw, …) aanvinkt wat je wilt inlezen. Alleen dat komt in de vakken, zodat een zeer dichte wolk als LoZ.laz werkbaar wordt. Met de knop "Klassen wijzigen…" vink je later een klasse bij of af, zodat je de wolk stap voor stap aankleedt. Inzoomen werkt zoals nu (ingezoomd meer punten), alleen met de gekozen klassen. Het werk is verdeeld in drie fasen.
@@ -23,7 +23,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 |---|---|---|---|---|---|
 | F0 | Het programma zet alleen de gekozen klassen om en noteert de keuze | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 14:34 | B1 | ✅ 2026-11-06 14:38 |
 | F1 | Het venster met de vinkjes in de viewer, en de knop "Klassen wijzigen…" om later een klasse bij of af te vinken | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 14:34 | B1, B2 | ✅ 2026-11-06 15:05 |
-| F2 | Uitleveren (tests, LEESMIJ, handleiding, exe en setup), met jouw controle op LoZ.laz | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 14:34 | B3 | - |
+| F2 | Uitleveren (tests, LEESMIJ, handleiding, exe en setup), met jouw controle op LoZ.laz | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 14:34 | B3 | ✅ 2026-11-07 00:55 |
 
 Letterlijk akkoord (F0 tot en met F2, via chat): "Akkoord, bouw F0–F2", als antwoord op de vraag "Akkoord met B1–B3 zoals voorgesteld, en bouwen op planversie 1, fase F0 t/m F2?"
 
@@ -99,8 +99,10 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-06 14:33 | Plan versie 1 aangevuld vóór enig besluit, op wens van Marco ("ja doe eerste dat je.. dan kan ik kiezen hoe ver ik hem aankleed"): knop "Klassen wijzigen…", alternatief bij B1 is nu vakken per klasse, uitdunnen blijft buiten dit plan | Claude Opus 5.5 (agent) |
 | 2026-11-06 14:34 | B1, B2, B3 akkoord (ons voorstel) en vrijgave F0 tot en met F2 op planversie 1: "Akkoord, bouw F0–F2" | Marco van Steenbrugge, via chat |
 | 2026-11-06 14:38 | F0 gebouwd: het programma zet alleen de gekozen klassen om (LoZ.laz met maaiveld en weg: 146,6 mln punten, 2,3 GB, 38 s) | Claude Opus 5.5 (agent) |
-| 2026-11-06 15:05 | F1 gebouwd: het venster en de knop Klassen…; testversie gebouwd in dist	est | Claude Opus 5.5 (agent) |
+| 2026-11-06 15:05 | F1 gebouwd: het venster en de knop Klassen…; testversie gebouwd in dist\test | Claude Opus 5.5 (agent) |
 | 2026-11-06 15:24 | F2: 2.12.1 gebouwd (alle tests en installatietoets groen), commit d6a108d; tag wacht op je controle | Claude Opus 5.5 (agent) |
 | 2026-11-06 15:25 | Controle F2 deels: inladen werkt ("ja het werkt bij het inladen"), profielen over de brug nog niet getest | Marco van Steenbrugge, via chat |
+| 2026-11-07 00:49 | Controle F2 afgerond: "Ja, het klopt" en "heb alles kunnen testen" | Marco van Steenbrugge, via chat |
+| 2026-11-07 00:55 | F2 gebouwd na toetsing per criterium; tag v2.12.1 gezet | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

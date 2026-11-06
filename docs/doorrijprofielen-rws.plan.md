@@ -2,8 +2,8 @@
 plan: doorrijprofielen-rws
 titel: Doorrijprofielen volgens RWS (profiel 1 en 2, meetpunten, doorrijbreedte)
 versie: 1
-status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ▶           # berekend door de skill
+status: gebouwd        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ✅           # berekend door de skill
 opgesteld: 2026-11-06
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -85,7 +85,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | F0 | ✅ gebouwd | Profiel 1 en 2, meetpunten (BGT + aanklikken), hoogtes uit ruwe punten met aantal en spreiding, minimale doorrijhoogte per rijbaan, tabel en pijlen in het dwarsprofiel | 1. Nieuwe test met gemaakte wolk (weg met helling, dak met bekende onderkant, BGT-randen): profiel 1 en 2 op de dakranden (± 0,25 m), hoogtes op de meetpunten < 1 cm van de bekende waarden. 2. Een aangeklikt meetpunt verschijnt in de tabel en verdwijnt na verwijderen. 3. Minimale doorrijhoogte per rijbaan gelijk aan de kleinste vrije hoogte uit 2.13.0. 4. Schermafdruk op LoZ.laz. | B1, B2, B3 | L | Opus 5.5, medium | `F0:` |
 | F1 | ✅ gebouwd | Doorrijbreedte op 0,5–1,0 m in de profielen en tot 30 m ervoor en erna | 1. Test met twee "geleiderails" op bekende afstand en een kolom 15 m voor het dak: breedte < 1 cm van de bekende, de kolom bepaalt de kleinste breedte. 2. Zonder obstakel: kant verharding als begrenzing. | F0, B4 | M | Opus 5.5, medium | `F1:` |
 | F2 | ✅ gebouwd | PDF-blad per profiel per rijbaan in RWS-stijl, met tekstvak | 1. Test maakt de PDF: per profiel een blad, maten met drie decimalen en punt, minimale doorrijhoogte rood in het tekstvak. 2. Render bekeken (schermafdruk). | F1, B5, B6 | M | Opus 5.5, medium | `F2:` |
-| F3 | ▶ vrijgegeven | Opleveren 2.14.0: LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met "Alle tests geslaagd". 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat profiel 1 en 2 bij de Bergstraat kloppen. | F2, B7 | S | Opus 5.5, medium | `F3:` |
+| F3 | ✅ gebouwd | Opleveren 2.14.0: LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met "Alle tests geslaagd". 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat profiel 1 en 2 bij de Bergstraat kloppen. | F2, B7 | S | Opus 5.5, medium | `F3:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
 
@@ -117,6 +117,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 | F0 | 2026-11-06 23:04 | 2026-11-06 23:31 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 66 / 38.189 | a63ff94 | transcript (Claude Code 2.1.317) |
 | F1 | 2026-11-06 23:31 | 2026-11-06 23:33 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 4 / 6.910 | 65a99fe | transcript (Claude Code 2.1.317) |
 | F2 | 2026-11-06 23:33 | 2026-11-06 23:35 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 12 / 14.378 | 159c000 | transcript (Claude Code 2.1.317) |
+| F3 | 2026-11-06 23:35 | 2026-11-07 00:55 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 18 / 7.147 | f186711 | transcript (Claude Code 2.1.317); tokens gemeten tot de bouw, de wachttijd op de controle telt niet mee |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -137,6 +138,7 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F3 | 2026-11-06 23:46 | 2. `.	oolsouw_installer.ps1 -Toets` eindigt met `fouten: geen` | "geïnstalleerde exe is de gebouwde exe van 2.14.0", "versie in Windows-instellingen is 2.14.0", "fouten: geen" | gehaald |
 | F3 | 2026-11-06 23:46 | 3. Exe, zip en setup in `dist` | `Lutrea-Profielviewer-2.14.0.exe` (13.581.312 bytes), `_compleet_2.14.0.zip` (6.556.004), `-2.14.0-setup.exe` (6.119.682); commit f186711 | gehaald |
 | F3 | 2026-11-06 23:46 | 4. Marco bevestigt dat profiel 1 en 2 bij de Bergstraat kloppen | nog niet beoordeeld: wacht op Marco | niet toetsbaar |
+| F3 | 2026-11-07 00:55 | 4. Marco bevestigt dat profiel 1 en 2 bij de Bergstraat kloppen | Marco van Steenbrugge, 2026-11-07 00:49, via chat: "Ja, het klopt" (op de vraag "Kloppen profiel 1 en 2 en het RWS-blad bij de Bergstraat in 2.14.0?") en daarna "heb alles kunnen testen" | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".

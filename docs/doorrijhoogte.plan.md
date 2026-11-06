@@ -2,8 +2,8 @@
 plan: doorrijhoogte
 titel: Doorrijhoogte: vrije hoogte onder een dak of kunstwerk toetsen
 versie: 1
-status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ▶           # berekend door de skill
+status: gebouwd        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ✅           # berekend door de skill
 opgesteld: 2026-11-06
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -82,7 +82,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | F0 | ✅ gebouwd | Knop en venster "Doorrijhoogte", rekenstuk (weg uit de onderste laag met overbrugde gaten, dak erboven, vrije hoogte en speling per station, kritiek punt), box op de weg in dwars- en lengteprofiel, geen schip | 1. Nieuwe test `tests/doorrijhoogte.test.js` met een gemaakte wolk (weg met dwarshelling en een dak op bekende hoogte, deels zonder weg eronder): gemeten vrije hoogte wijkt < 2 cm af van de bekende, het kritieke station klopt. 2. Bij een dak lager dan H: oordeel "voldoet niet" met de juiste tekortkoming. 3. De vakken onder het dak zonder weg staan als niet gemeten op de dekkingskaart en tellen niet als weg. 4. Schermafdruk van venster en dwarsprofiel op LoZ.laz, alleen met het originele bestand. 5. De bestaande doorvaarttest blijft groen. | B1, B2, B5 | L | Opus 5.5, medium | `F0:` |
 | F1 | ✅ gebouwd | Voorwaarden-lijst, eigen maten, marge, meerdere boxen tegelijk | 1. Test: kiezen uit de lijst zet B en H; eigen maten werken. 2. Test met twee boxen (4,20 × 3,50 en 2,50 × 2,00 met verschuiving): elk een eigen oordeel en kritiek punt. 3. Instellingen komen terug na opslaan en heropenen van het project. | F0, B3, B4 | M | Opus 5.5, medium | `F1:` |
 | F2 | ✅ gebouwd | PDF-blad "Doorrijhoogte" met box, kritieke doorsnede, lengteprofiel met vrije hoogte, tabel per voorwaarde en dekkingskaart | 1. Test maakt de PDF; het blad staat erin met de juiste kleinste vrije hoogte en speling. 2. Render van het blad op LoZ.laz bekeken (schermafdruk). | F1 | M | Opus 5.5, medium | `F2:` |
-| F3 | ▶ vrijgegeven | Opleveren: versie, LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met `fouten: geen`. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat de doorrijhoogte onder het dak bij LoZ.laz klopt. | F2, B6 | S | Opus 5.5, medium | `F3:` |
+| F3 | ✅ gebouwd | Opleveren: versie, LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert op LoZ.laz | 1. `node run_alle.js` eindigt met `fouten: geen`. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat de doorrijhoogte onder het dak bij LoZ.laz klopt. | F2, B6 | S | Opus 5.5, medium | `F3:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
 
@@ -114,6 +114,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 | F0 | 2026-11-06 21:18 | 2026-11-06 21:54 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 136 / 72.561 | b38991d | transcript (Claude Code 2.1.317) |
 | F1 | 2026-11-06 21:55 | 2026-11-06 21:57 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 14 / 9.878 | b7552ff | transcript (Claude Code 2.1.317) |
 | F2 | 2026-11-06 21:58 | 2026-11-06 22:06 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 22 / 17.526 | e493150 | transcript (Claude Code 2.1.317) |
+| F3 | 2026-11-06 22:06 | 2026-11-07 00:55 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 46 / 14.134 | dca7102 | transcript (Claude Code 2.1.317); tokens gemeten tot de bouw, de wachttijd op de controle telt niet mee |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -132,6 +133,10 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F1 | 2026-11-06 21:57 | 3. Instellingen komen terug na opslaan en heropenen van het project | stap 6 (`maakProjectBlob` → `laadProjectBestand`): beide boxen terug, fietspad met verschuiving 4.5, rijbaan H 4.2; "fouten: geen" | gehaald |
 | F2 | 2026-11-06 22:06 | 1. Test maakt de PDF; het blad staat erin met de juiste kleinste vrije hoogte en speling | `node doorrijhoogte.test.js` stap 7 (PyMuPDF): "BLAD 3 Doorrijhoogte - voldoet niet", "rijbaan: kleinste vrije hoogte 3,35 m", "speling -0,85 m", fietspad "+0,76 m"; "DEKKING" blad gevonden; "fouten: geen" | gehaald |
 | F2 | 2026-11-06 22:06 | 2. Render van het blad bekeken (schermafdruk) | `tests/uit/doorrijhoogte_pdfblad.png` (blad 3, A3): dwarsprofiel 1:75 met twee boxen, vrij 3,35 (rood) en 3,26, tabel per box, oordeel VOLDOET NIET; voettekst na herstel van het minteken leesbaar. De render is op de testwolk gemaakt; op LoZ.laz volgt dat bij de controle in F3 | gehaald |
+| F3 | 2026-11-06 22:48 | 1. `node run_alle.js` eindigt met `fouten: geen` | `node run_alle.js` vóór de bouw van 2.13.0: 22 tests "OK", elke test "fouten: geen" (sessietranscript) | gehaald |
+| F3 | 2026-11-06 22:48 | 2. `.	oolsouw_installer.ps1 -Toets` eindigt met `fouten: geen` | uitvoer: "geïnstalleerde exe is de gebouwde exe van 2.13.0", "versie in Windows-instellingen is 2.13.0", "fouten: geen" | gehaald |
+| F3 | 2026-11-06 22:48 | 3. Exe, zip en setup in `dist` | `Lutrea-Profielviewer-2.13.0.exe` (13.547.520 bytes), `_compleet_2.13.0.zip` (6.535.599), `-2.13.0-setup.exe` (6.114.175); commit dca7102 | gehaald |
+| F3 | 2026-11-07 00:55 | 4. Marco bevestigt dat de doorrijhoogte onder het dak bij LoZ.laz klopt | Marco van Steenbrugge, 2026-11-07 00:49, via chat: "Ja, het klopt" (op de vraag "Kloppen profiel 1 en 2 en het RWS-blad bij de Bergstraat in 2.14.0?") en daarna "heb alles kunnen testen"; de doorrijhoogte is getest in 2.14.0, dat 2.13.0 bevat | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".

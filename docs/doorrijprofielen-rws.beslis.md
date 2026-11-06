@@ -4,14 +4,14 @@ titel: Doorrijprofielen volgens RWS (profiel 1 en 2, meetpunten, doorrijbreedte)
 plan: doorrijprofielen-rws.plan.md
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
 voorgelegd: 2026-11-06 22:59          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
-status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+status: gebouwd        # berekend door de skill, nooit met de hand gezet
 ---
 
 > Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
 
 # Beslisdocument: Doorrijprofielen volgens RWS (profiel 1 en 2, meetpunten, doorrijbreedte)
 
-> **Nu van jou gevraagd:** je controle van 2.14.0 op LoZ.laz (F3): profiel 1 en 2 bij de Bergstraat, met de BGT erbij. Daarna volgen de tags.
+> **Nu van jou gevraagd:** niets. 2.14.0 is gecontroleerd en opgeleverd.
 > **Later nodig:** niets.
 
 De doorrijhoogte uit 2.13.0 wordt uitgebreid tot een doorrijprofiel zoals Rijkswaterstaat het vraagt: twee profielen aan de voor- en achterkant van het kunstwerk, hoogtes op vaste meetpunten, de minimale doorrijhoogte per rijbaan, de doorrijbreedte, en een PDF-blad per profiel met drie decimalen en een tekstvak. Het werk is verdeeld in vier fasen.
@@ -24,7 +24,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F0 | Profiel 1 en 2, meetpunten, hoogtes uit de ruwe punten, minimale doorrijhoogte per rijbaan | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B1, B2, B3 | ✅ 2026-11-06 23:31 |
 | F1 | Doorrijbreedte op 0,5–1,0 m | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B4 | ✅ 2026-11-06 23:33 |
 | F2 | PDF-blad per profiel in RWS-stijl, met tekstvak | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B5, B6 | ✅ 2026-11-06 23:35 |
-| F3 | Uitleveren als 2.14.0, met jouw controle op LoZ.laz | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B7 | - |
+| F3 | Uitleveren als 2.14.0, met jouw controle op LoZ.laz | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-06 23:04 | B7 | ✅ 2026-11-07 00:55 |
 
 Letterlijk akkoord (F0 tot en met F3, via chat): "Akkoord, bouw F0–F3", als antwoord op de vraag "Akkoord met B1–B7 zoals voorgesteld, en bouwen op planversie 1, fase F0 t/m F3?"
 
@@ -178,5 +178,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-06 23:33 | F1 gebouwd: doorrijbreedte op 0,5–1,0 m in de profielen en van 30 m voor tot 30 m na het dak | Claude Opus 5.5 (agent) |
 | 2026-11-06 23:35 | F2 gebouwd: PDF-blad per profiel in RWS-stijl met tekstvak | Claude Opus 5.5 (agent) |
 | 2026-11-06 23:46 | F3: 2.14.0 gebouwd (alle tests en installatietoets groen), commit f186711; tag wacht op je controle | Claude Opus 5.5 (agent) |
+| 2026-11-07 00:49 | Controle F3 bij de Bergstraat: "Ja, het klopt" en "heb alles kunnen testen" | Marco van Steenbrugge, via chat |
+| 2026-11-07 00:55 | F3 gebouwd na toetsing per criterium; tag v2.14.0 gezet | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
