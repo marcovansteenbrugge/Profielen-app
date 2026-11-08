@@ -13,7 +13,42 @@
     --ink:#1B2A38; --ink-soft:#425064; --ink-dim:#6B7A8C;
     --paper:#F3F5F6; --surface:#FFFFFF; --line:#DCE3E8;
     --red:#C6472B; --teal:#1E7FA6; --gold:#A9781F;
+    /* accentkleur van de tool (2.15.0): alleen voor het scherm, nooit voor tekening, PDF of DXF */
+    --accent:#1E7FA6; --accent-licht:#E8F3F8; --accent-donker:#145A76;
   }
+  /* tools (2.15.0): elke tool alleen zijn eigen toets, in zijn eigen kleur; 'alles' = zoals vóór 2.15.0 */
+  body[data-werksoort="profielen"]{--accent:#C2650A; --accent-licht:#FDF1E4; --accent-donker:#7A3E05}
+  body[data-werksoort="doorvaart"]{--accent:#185FA5; --accent-licht:#E6F1FB; --accent-donker:#0C447C}
+  body[data-werksoort="doorrij"]{--accent:#A32D2D; --accent-licht:#FCEBEB; --accent-donker:#791F1F}
+  body[data-werksoort="snoei"]{--accent:#3B6D11; --accent-licht:#EAF3DE; --accent-donker:#27500A}
+  body[data-werksoort="profielen"] #lint .groep[aria-label="Toets"]{display:none}
+  body[data-werksoort="doorvaart"] :is(#snoeiKnop, #snChip, #doorrijKnop, #drChip),
+  body[data-werksoort="doorrij"] :is(#doorvaartKnop, #dvChip, #snoeiKnop, #snChip),
+  body[data-werksoort="snoei"] :is(#doorvaartKnop, #dvChip, #doorrijKnop, #drChip){display:none !important}
+  body:not([data-werksoort="alles"]) #lint .toetsRaster{grid-template-columns:auto}
+  body:not([data-werksoort="doorvaart"]):not([data-werksoort="alles"]) label.vink:has(#pdfDoorvaart),
+  body:not([data-werksoort="snoei"]):not([data-werksoort="alles"]) label.vink:has(#pdfSnoei),
+  body:not([data-werksoort="doorrij"]):not([data-werksoort="alles"]) label.vink:has(:is(#pdfDoorrij, #pdfRws)){display:none}
+  body:not([data-werksoort="alles"]) #lint{border-bottom:4px solid var(--accent)}
+  body:not([data-werksoort="alles"]) .paneel .kop:not(.tweede){background:var(--accent-licht); box-shadow:inset 3px 0 0 var(--accent)}
+  body:not([data-werksoort="alles"]) .pdf-kop{background:var(--accent-licht); border-bottom:2px solid var(--accent)}
+  body:not([data-werksoort="alles"]) .pdf-kop h2{color:var(--accent-donker)}
+  #toolLabel{display:none; align-items:center; gap:5px; align-self:flex-start; background:var(--accent); color:#fff; border-radius:999px; padding:2px 10px 2px 8px; font-size:11.5px; font-weight:600; white-space:nowrap}
+  #toolLabel svg{width:14px; height:14px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+  body:not([data-werksoort="alles"]) #toolLabel{display:inline-flex}
+  body[data-werksoort="alles"] #andereToolKnop{display:none}
+  .toolTegels{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:10px}
+  @media (max-width:700px){ .toolTegels{grid-template-columns:repeat(2, minmax(0, 1fr))} }
+  .toolTegel{display:flex; flex-direction:column; align-items:flex-start; gap:4px; text-align:left; padding:12px; border-radius:10px; border:2px solid transparent; background:var(--t-licht); color:var(--t-donker); cursor:pointer}
+  .toolTegel:hover{background:var(--t-licht); border-color:var(--t-kleur)}
+  .toolTegel.gekozen{border-color:var(--t-kleur)}
+  .toolTegel svg{width:24px; height:24px; stroke:var(--t-kleur); fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}
+  .toolTegel b{font-size:14px}
+  .toolTegel span{font-size:11.5px; color:var(--t-kleur)}
+  .toolTegel[data-w="profielen"]{--t-kleur:#C2650A; --t-licht:#FDF1E4; --t-donker:#7A3E05}
+  .toolTegel[data-w="doorvaart"]{--t-kleur:#185FA5; --t-licht:#E6F1FB; --t-donker:#0C447C}
+  .toolTegel[data-w="doorrij"]{--t-kleur:#A32D2D; --t-licht:#FCEBEB; --t-donker:#791F1F}
+  .toolTegel[data-w="snoei"]{--t-kleur:#3B6D11; --t-licht:#EAF3DE; --t-donker:#27500A}
   *{box-sizing:border-box}
   body{
     margin:0; background:var(--paper); color:var(--ink);
@@ -35,7 +70,7 @@
   }
   input[type=number]{width:64px; cursor:text}
   button:hover{background:#E4E9EC}
-  button.aan{background:var(--teal); color:#fff; border-color:var(--teal)}
+  button.aan{background:var(--accent); color:#fff; border-color:var(--accent)}
   button:disabled{opacity:.45; cursor:default}
   label.veld{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-soft)}
   #status{font-size:12.5px; color:var(--ink-dim); white-space:nowrap}
@@ -56,7 +91,7 @@
   #langsPaneel{grid-column:3; grid-row:1}
   #dwarsPaneel{grid-column:3; grid-row:3}
   .splitter{background:var(--line)}
-  .splitter:hover, .splitter.actief{background:var(--teal)}
+  .splitter:hover, .splitter.actief{background:var(--accent)}
   #kolomSplitter{grid-column:2; grid-row:1 / 4; cursor:col-resize}
   #rijSplitter{grid-column:3; grid-row:2; cursor:row-resize}
   canvas{display:block; width:100%; height:100%; cursor:crosshair}
@@ -173,7 +208,7 @@
   .pdf-lijf .hint.waarschuw{color:var(--red)}
   .pdf-voet{display:flex; align-items:center; gap:10px; padding:12px 20px; border-top:1px solid var(--line); background:var(--paper)}
   .pdf-voet .info{flex:1; font-size:12.5px; color:var(--ink-soft)}
-  .pdf-voet #pdfStatus{display:block; color:var(--teal); font-weight:600}
+  .pdf-voet #pdfStatus{display:block; color:var(--accent); font-weight:600}
   #afsluitKnop{margin-left:auto}
   .zoomgroep{display:inline-flex; gap:0}
   .zoomgroep button{border-radius:0; margin-left:-1px}
@@ -188,7 +223,7 @@
   #afsluitKnop:hover{background:var(--red); color:#fff; border-color:var(--red)}
   .afgesloten{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; background:var(--paper); color:var(--ink-soft); font-size:15px; z-index:100}
   .afgesloten img{height:40px}
-  button.primair{background:var(--teal); color:#fff; border-color:var(--teal)}
+  button.primair{background:var(--accent); color:#fff; border-color:var(--accent)}
   button.primair:hover{background:#176A8B}
 
 
@@ -208,7 +243,7 @@
   #lint .toetsRaster .dvChip{max-width:118px}
   #lint .merkBlok{display:flex; flex-direction:column; justify-content:center; gap:4px; padding-right:10px}
   #lint .groep{display:flex; flex-direction:column; gap:4px; padding:0 11px; border-left:1px solid var(--line); min-width:0}
-  #lint .groep h2{margin:0 0 1px; font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--teal)}
+  #lint .groep h2{margin:0 0 1px; font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent)}
   #lint .rij{display:flex; align-items:center; gap:6px; min-height:28px}
   #lint button{padding:3px 9px}
   #lint .groep[aria-label="Project"] button{padding:3px 6px}
@@ -239,7 +274,7 @@
   #statusBalk #status{overflow:hidden; text-overflow:ellipsis}
   .paneel .kop .paneelTitel{font-weight:700; color:var(--ink); font-size:12.5px; margin-right:4px}
   .paneel .kop.tweede{background:#FAFBFC; padding-top:4px; padding-bottom:4px}
-  .paneel .kop .kopje{font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--teal)}
+  .paneel .kop .kopje{font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--accent)}
   .paneel .kop .kopgroep{display:inline-flex; align-items:center; gap:6px 8px; white-space:nowrap; padding-right:10px; margin-right:2px; border-right:1px solid var(--line)}
   .paneel .kop .kopgroep:last-of-type{border-right:none}
   .paneel .kop .kopgroep .kopje{margin-right:2px}
@@ -346,7 +381,7 @@
      vóór het printen). */
 </style>
 </head>
-<body>
+<body data-werksoort="alles">
 <div id="opstartScherm">
   <img src="merk-lutrea.png" alt="Lutrea">
   <div class="draai"></div>
@@ -393,6 +428,7 @@
   <div class="merkBlok">
     <span class="merk"><img src="merk-lutrea.png" alt="Lutrea"></span>
     <h1>Profielviewer <span id="appVersie" title="Versie van de Profielviewer" style="font-size:11px;font-weight:500;color:var(--ink-dim);vertical-align:middle">2.14.0</span></h1>
+    <span id="toolLabel" title="De tool van dit project"><svg viewBox="0 0 24 24" aria-hidden="true"><path id="toolIcoon" d=""/></svg><span id="toolNaam"></span></span>
   </div>
 
   <section class="groep" aria-label="Puntenwolk">
@@ -448,6 +484,7 @@
       <input type="file" id="projectLadenVeld" accept=".json" hidden>
       <button type="button" id="projectNieuwKnop" title="Nieuw project: het huidige project sluiten en leeg beginnen (Ctrl+N)">Nieuw</button>
       <button type="button" id="projectOpenKnop" title="Een projectmap openen (of een los projectbestand van vóór 2.9.0) (Ctrl+O)">Openen…</button>
+      <button type="button" id="andereToolKnop" title="Dit project in een andere tool zetten (bijvoorbeeld als je bij het starten de verkeerde koos)">Andere tool…</button>
     </div>
     <div class="rij">
       <button id="projectOpslaanKnop" disabled title="Opslaan in de projectmap (de vorige versie gaat naar backup\); nog geen projectmap → je kiest er één (Ctrl+S)">Opslaan</button>
@@ -893,6 +930,15 @@
     <button id="poLos" title="Een los projectbestand (.json van vóór 2.9.0) openen">Los bestand (.json)…</button>
     <button id="poAnnuleer">Annuleren</button>
     <button id="poMap" class="primair" title="Een projectmap kiezen (de map met het .pvproj-bestand)">Projectmap openen…</button></div>
+</dialog>
+
+<dialog id="toolDialoog" class="dvDialoog" style="width:min(680px, calc(100vw - 32px))">
+  <div class="pdf-kop"><img src="merk-lutrea.png" alt=""><h2>Andere tool</h2><span class="zacht">dit project in een andere tool zetten</span></div>
+  <div style="padding:16px 20px; display:grid; gap:12px; font-size:13.5px">
+    <p style="margin:0">Het project gaat mee: as, profielen, puntenwolk en uitkomsten blijven bewaard. Je ziet daarna alleen de knoppen van de gekozen tool.</p>
+    <div class="toolTegels" id="tdTegels"></div>
+  </div>
+  <div class="pdf-voet"><span class="info" id="tdInfo"></span><button id="tdAnnuleer">Annuleren</button></div>
 </dialog>
 
 <dialog id="nwbDialoog" class="dvDialoog" style="width:min(430px, calc(100vw - 32px)); position:fixed; left:auto; right:16px; top:120px; margin:0; max-height:calc(100vh - 150px)">

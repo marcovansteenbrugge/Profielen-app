@@ -34,6 +34,14 @@
   // is altijd dezelfde array als assen[actieveAs].punten.
   let assen = [{ naam: 'As 1', punten: asPunten }];
   let actieveAs = 0;
+  // Tool (2.15.0): wat je vandaag doet. 'alles' = alle knoppen zoals vóór 2.15.0 (tests en de overgang).
+  const WERKSOORTEN = {
+    profielen: { naam: 'Profielen Tool', kort: 'as, lengte- en dwarsprofielen', kleur: '#C2650A', icoon: 'M4 19h16M4 15l4-6 4 3 4-6 4 4' },
+    doorvaart: { naam: 'Doorvaarthoogte', kort: 'brug boven het water', kleur: '#185FA5', icoon: 'M3 18c2 1.4 4 1.4 6 0s4-1.4 6 0 4 1.4 6 0M6 14h12l-2 2H8zM12 4v10M12 5l5 7h-5' },
+    doorrij:   { naam: 'Doorrijhoogte', kort: 'viaduct of dak boven de weg', kleur: '#A32D2D', icoon: 'M3 6h11v10H3zM14 10h4l3 3v3h-7M5 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0M15 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0' },
+    snoei:     { naam: 'Snoeien', kort: 'bomen langs een pad', kleur: '#3B6D11', icoon: 'M12 3l5 7h-3l4 6H6l4-6H7zM12 16v5' },
+  };
+  let werksoort = 'alles';
   let tekenModus = false;
   let asSleepPunt = -1, asHoverPunt = -1, asSleepBewogen = false, negeerVolgendeKlik = false;
   let bronBestandsnaam = null;  // naam van het ingelezen .pts/.las/.laz-bestand, voor "project opslaan"
@@ -835,6 +843,61 @@
   const svgDwars      = document.getElementById('svgDwars');
   const dwarsLeeg      = document.getElementById('dwarsLeeg');
   const statusEl      = document.getElementById('status');
+
+  /* ──────── Tools: Profielen Tool, Doorvaarthoogte, Doorrijhoogte, Snoeien (2.15.0) ────────
+     Elke tool toont alleen zijn eigen toets en heeft een eigen accentkleur in het scherm (index.html,
+     body[data-werksoort]). Tekening, PDF en DXF houden hun vaste kleuren. Het project onthoudt de tool. */
+  function zetWerksoort(w) {
+    if (w !== 'alles' && !WERKSOORTEN[w]) w = 'alles';
+    werksoort = w;
+    document.body.dataset.werksoort = w;
+    const ws = WERKSOORTEN[w];
+    const naam = document.getElementById('toolNaam'), icoon = document.getElementById('toolIcoon');
+    if (naam) naam.textContent = ws ? ws.naam : '';
+    if (icoon) icoon.setAttribute('d', ws ? ws.icoon : '');
+    document.title = ws ? `${ws.naam} · Lutrea Profielviewer` : 'Lutrea Profielviewer';
+    if (typeof tekenVlak === 'function' && xs) tekenVlak();
+  }
+  /** Mag de toets van deze tool (doorvaart, doorrij, snoei) meedoen in de huidige tool? */
+  const magToets = (t) => werksoort === 'alles' || werksoort === t;
+  /** Tool van een project; een project van vóór 2.15.0 heeft er geen: dan raden uit de inhoud (B8). */
+  function werksoortVanProject(project) {
+    const inst = project?.instellingen || {};
+    if (WERKSOORTEN[inst.werksoort]) return { w: inst.werksoort, geraden: false };
+    const dr = inst.doorrij, drStd = JSON.stringify({ ...DR_STANDAARD, gecontroleerd: false });
+    if (dr?.gecontroleerd) return { w: 'doorrij', geraden: true };
+    if (inst.doorvaart?.gecontroleerd || project?.brug) return { w: 'doorvaart', geraden: true };
+    if (inst.snoei?.gecontroleerd || project?.begroeiing) return { w: 'snoei', geraden: true };
+    if (dr && JSON.stringify({ ...dr, gecontroleerd: false }) !== drStd) return { w: 'doorrij', geraden: true };
+    return { w: 'profielen', geraden: true };
+  }
+  function toonToolKeuze() {
+    const dlg = document.getElementById('toolDialoog'), vak = document.getElementById('tdTegels');
+    vak.innerHTML = '';
+    for (const [w, ws] of Object.entries(WERKSOORTEN)) {
+      const k = maakToolTegel(w, ws);
+      if (w === werksoort) { k.classList.add('gekozen'); k.disabled = true; k.title = 'Dit is de huidige tool'; }
+      k.onclick = () => {
+        dlg.close();
+        zetWerksoort(w);
+        statusEl.style.color = ''; statusEl.textContent = `Project staat nu in ${ws.naam}; bij Opslaan wordt dat in het project bewaard`;
+      };
+      vak.appendChild(k);
+    }
+    document.getElementById('tdAnnuleer').onclick = () => dlg.close();
+    dlg.showModal();
+  }
+  function maakToolTegel(w, ws) {
+    const k = document.createElement('button');
+    k.type = 'button'; k.className = 'toolTegel'; k.dataset.w = w;
+    k.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ws.icoon}"/></svg><b></b><span></span>`;
+    k.querySelector('b').textContent = ws.naam;
+    k.querySelector('span').textContent = ws.kort;
+    return k;
+  }
+  document.getElementById('andereToolKnop')?.addEventListener('click', toonToolKeuze);
+  // tijdelijk (tot het startscherm er is) en voor tests: ?werksoort=doorrij in de adresregel
+  { const w = new URLSearchParams(location.search).get('werksoort'); if (w) zetWerksoort(w); }
 
   /* Fouten zichtbaar maken in de statusbalk i.p.v. alleen in de console —
      anders lijkt het alsof er "gewoon niets gebeurt". */
@@ -3658,7 +3721,7 @@
       ctxVlak.strokeStyle = 'rgba(255,255,255,0.9)';
       ctxVlak.lineWidth = 5;
       ctxVlak.stroke();
-      ctxVlak.strokeStyle = '#1B2A38';
+      ctxVlak.strokeStyle = WERKSOORTEN[werksoort]?.kleur || '#1B2A38';
       ctxVlak.lineWidth = 2;
       ctxVlak.stroke();
 
@@ -5360,6 +5423,13 @@
     snoei = { ...SN_STANDAARD, ...(inst.snoei || {}) };
     delete snoei.gecontroleerd;
     doorrij = { ...JSON.parse(JSON.stringify(DR_STANDAARD)), ...(inst.doorrij ? JSON.parse(JSON.stringify(inst.doorrij)) : {}) };
+    delete doorrij.gecontroleerd;
+    // tool van het project (2.15.0); in de stand 'alles' (tests, overgang) blijft alles zichtbaar
+    if (werksoort !== 'alles') {
+      const { w, geraden } = werksoortVanProject(project);
+      zetWerksoort(w);
+      if (geraden) setTimeout(() => { statusEl.style.color = ''; statusEl.textContent += ` · project zonder tool: geopend als ${WERKSOORTEN[w].naam} (geraden uit de inhoud; wijzigen met Andere tool…)`; }, 0);
+    }
     if (!Array.isArray(doorrij.boxen) || !doorrij.boxen.length) doorrij.boxen = JSON.parse(JSON.stringify(DR_STANDAARD.boxen));
     drResultaat = null;
     if (inst.toonLangsprofiel != null) {
@@ -10683,7 +10753,8 @@ ${r3d}
         waterKant: waterKant(),
         doorvaart: { ...doorvaart, gecontroleerd: !!dvResultaat },
         snoei: { ...snoei, gecontroleerd: !!snResultaat },
-        doorrij: JSON.parse(JSON.stringify(doorrij)),
+        doorrij: { ...JSON.parse(JSON.stringify(doorrij)), gecontroleerd: !!drResultaat },
+        werksoort: werksoort === 'alles' ? undefined : werksoort,
         pdf: leesPdfInstellingen?.() ?? null,
         // logo's van de stempel (2.11.3): horen bij het project, niet alleen bij de pc; null = geen klantlogo / standaard makerlogo
         logos: { klant: klantLogo, maker: makerLogo },
@@ -12598,10 +12669,10 @@ ${r3d}
     const delen = [];
     if (inst.bovenaanzicht) delen.push('bovenaanzicht');
     if (inst.blad3D) delen.push('3D-beeld');
-    if (inst.doorvaart && dvPdfMogelijk()) delen.push('doorvaartcontrole');
-    if (inst.snoei && begroeiing && snKader()) delen.push('snoeilijst');
-    if (inst.doorrij && drWolk && drKader()) delen.push('doorrijhoogte');
-    if (inst.rws && drRws && drResultaat) delen.push('doorrijprofielen RWS');
+    if (magToets('doorvaart') && inst.doorvaart && dvPdfMogelijk()) delen.push('doorvaartcontrole');
+    if (magToets('snoei') && inst.snoei && begroeiing && snKader()) delen.push('snoeilijst');
+    if (magToets('doorrij') && inst.doorrij && drWolk && drKader()) delen.push('doorrijhoogte');
+    if (magToets('doorrij') && inst.rws && drRws && drResultaat) delen.push('doorrijprofielen RWS');
     if (inst.lengteprofiel) delen.push('lengteprofiel');
     if (inst.dwarsprofielen) delen.push(`${n} dwarsprofiel${n === 1 ? '' : 'en'}`);
     let bladTekst = '';
@@ -14297,7 +14368,7 @@ ${r3d}
     const plotMarges = (MARGE_L + MARGE_R) / VIRT_PER_MM; // mm aan assen/labels
 
     // ── doorvaartcontrole op een eigen blad ──
-    if (inst.doorvaart && dvPdfMogelijk()) {
+    if (magToets('doorvaart') && inst.doorvaart && dvPdfMogelijk()) {
       let r = null;
       try { r = voerDoorvaartUit(); } catch (err) { meldingen.push('Doorvaartcontrole: ' + err.message); }
       if (r) {
@@ -14444,7 +14515,7 @@ ${r3d}
     }
 
     // ── doorrijhoogte op een eigen blad ──
-    if (inst.doorrij && drWolk && drKader()) {
+    if (magToets('doorrij') && inst.doorrij && drWolk && drKader()) {
       let r = null;
       try { r = voerDoorrijUit(); } catch (err) { meldingen.push('Doorrijhoogte: ' + err.message); }
       if (r) {
@@ -14552,7 +14623,7 @@ ${r3d}
     }
 
     // ── doorrijprofielen in RWS-stijl: een blad per profiel (plan doorrijprofielen-rws, F2) ──
-    if (inst.rws && drRws && drResultaat) {
+    if (magToets('doorrij') && inst.rws && drRws && drResultaat) {
       const r = drResultaat, rw = rwsInst();
       const meetdatum = rw.meetdatum || document.getElementById('drRwsMeetdatum')?.placeholder || '';
       const rws3 = (v) => v == null ? '-' : v.toFixed(3);   // B5: drie decimalen met een punt
@@ -14640,7 +14711,7 @@ ${r3d}
     }
 
     // ── snoeilijst op eigen blad(en) ──
-    if (inst.snoei && begroeiing && snKader()) {
+    if (magToets('snoei') && inst.snoei && begroeiing && snKader()) {
       let r = null;
       try { r = voerSnoeiUit(); } catch (err) { meldingen.push('Snoeicheck: ' + err.message); }
       if (r) {
@@ -15120,6 +15191,8 @@ ${r3d}
     window.__pvOpenPad = (pad) => openProjectMap(natieveMap(pad));
     if (natief.openen) setTimeout(() => openProjectMap(natieveMap(natief.openen)), 0);
   }
+  Object.assign(window.__pvTest || {}, { werksoort: () => werksoort, zetWerksoort: (w) => zetWerksoort(w), werksoortVanProject: (p) => werksoortVanProject(p),
+    projectTekst: async () => await maakProjectBlob().text(), laadProjectTekst: (t) => laadProjectBestand(new File([t], 'project.json')) });
   // klaar met opstarten: opstartscherm weg
   document.getElementById('opstartScherm')?.remove();
 })();
