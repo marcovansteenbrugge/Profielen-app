@@ -11,8 +11,8 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Startscherm met vier tools, elk in een eigen kleur
 
-> **Nu van jou gevraagd:** niets; F0 en F1 worden gebouwd.
-> **Later nodig:** B6 en B9 (vóór F2, het opleveren).
+> **Nu van jou gevraagd:** B6 (naam van het programma) en B9 (versie), en de vrijgave van F2 (opleveren als 2.15.0, met jouw controle).
+> **Later nodig:** niets.
 
 Bij het starten kies je wat je vandaag doet: Profielen Tool (oranje), Doorvaarthoogte (blauw), Doorrijhoogte (rood) of Snoeien (groen). Op hetzelfde scherm vul je de projectnaam in en kies of maak je de projectmap. Daarna zie je alleen die tool, in zijn eigen kleur, en het project onthoudt welke tool het is. Het werk is verdeeld in drie fasen.
 
@@ -22,7 +22,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
 | F0 | Elke tool in zijn eigen kleur en met alleen zijn eigen knoppen; het project onthoudt de tool | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-08 11:54 | B1, B2, B3, B4, B7, B8 | ✅ 2026-11-08 12:13 |
-| F1 | Het startscherm: tegels, projectnaam, map kiezen of maken, recente projecten met kleur | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-08 11:54 | B5 | - |
+| F1 | Het startscherm: tegels, projectnaam, map kiezen of maken, recente projecten met kleur | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-08 11:54 | B5 | ✅ 2026-11-08 12:41 |
 | F2 | Uitleveren als 2.15.0, met jouw controle | ○ nog niet | - | B6, B9 | - |
 
 Letterlijk akkoord (F0 tot en met F1, via chat): "Akkoord, bouw F0–F1", als antwoord op de vraag "Akkoord met B2, B3, B7 en B8 zoals voorgesteld, en bouwen op planversie 1, fase F0 en F1?"
@@ -209,5 +209,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-08 11:53 | Plan opgesteld en voorgelegd, na de schets van het startscherm en het kleurvoorstel in de chat | Claude Opus 5.5 (agent) |
 | 2026-11-08 11:54 | B2, B3, B7 en B8 akkoord (ons voorstel) en vrijgave F0 en F1 op planversie 1: "Akkoord, bouw F0–F1"; Marco als beslisser bevestigd in eerdere plannen | Marco van Steenbrugge, via chat |
 | 2026-11-08 12:13 | F0 gebouwd: elke tool in zijn eigen kleur, alleen de eigen toets, het project onthoudt de tool, knop Andere tool… | Claude Opus 5.5 (agent) |
+| 2026-11-08 12:41 | F1 gebouwd: startscherm met vier tools, projectnaam, nieuwe map maken, recente projecten in de kleur van hun tool | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
