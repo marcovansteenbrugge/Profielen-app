@@ -10,7 +10,9 @@ const ROOT = path.resolve(__dirname, '..');
 const UIT = path.join(__dirname, 'uit');
 fs.mkdirSync(UIT, { recursive: true });
 const POORT = Number(process.env.PV_POORT || 8132);
-const URL = `http://127.0.0.1:${POORT}/index.html`;
+// ?start=uit: zonder startscherm en met alle knoppen (werksoort 'alles'), zoals vóór 2.15.0
+const BASIS = `http://127.0.0.1:${POORT}/index.html`;
+const URL = `${BASIS}?start=uit`;
 const data = (...d) => path.join(ROOT, 'testdata', ...d);
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.wasm': 'application/wasm', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml' };
@@ -39,10 +41,12 @@ function natiefVerzoek(req, res, url) {
   // recente projecten (recent.go): in het geheugen, laatste 8
   if (route === 'recent' && req.method === 'GET') return json(natief.recent.map(r => ({ ...r, bestaat: fs.existsSync(r.pad) })));
   if (route === 'recent' || route === 'recent/weg') return lees().then(b => {
-    const { pad } = JSON.parse(String(b) || '{}');
+    const { pad, soort: s0 } = JSON.parse(String(b) || '{}');
     if (!pad) return stuur(400, 'ongeldige opdracht');
+    // tool (2.15.0): zonder tool blijft de bekende staan, een onbekende tool telt niet
+    const soort = ['profielen', 'doorvaart', 'doorrij', 'snoei'].includes(s0) ? s0 : natief.recent.find(r => r.pad.toLowerCase() === pad.toLowerCase())?.soort;
     natief.recent = natief.recent.filter(r => r.pad.toLowerCase() !== pad.toLowerCase());
-    if (route === 'recent') { if (!binnen(pad)) return stuur(403, 'pad buiten toegestane mappen'); natief.recent.unshift({ naam: path.basename(pad), pad, tijd: Date.now() }); natief.recent = natief.recent.slice(0, 8); }
+    if (route === 'recent') { if (!binnen(pad)) return stuur(403, 'pad buiten toegestane mappen'); natief.recent.unshift({ naam: path.basename(pad), pad, tijd: Date.now(), ...(soort ? { soort } : {}) }); natief.recent = natief.recent.slice(0, 8); }
     stuur(204);
   });
   if (route.startsWith('fs/schrijf/') && route !== 'fs/schrijf/start') {
@@ -183,4 +187,4 @@ async function klassenInlezen(p, klassen = null) {
   if (klassen) await p.$$eval('#klLijst input[type=checkbox]', (vs, ks) => { for (const v of vs) v.checked = ks.includes(+v.value); vs[0]?.dispatchEvent(new Event('change', { bubbles: true })); }, klassen);
   await p.click('#klInlezen');
 }
-module.exports = { chromium: pw.chromium, ROOT, UIT, URL, POORT, data, start, browserOpties, natief, pvomzet, klassenInlezen };
+module.exports = { chromium: pw.chromium, ROOT, UIT, URL, BASIS, POORT, data, start, browserOpties, natief, pvomzet, klassenInlezen };

@@ -42,6 +42,8 @@
     snoei:     { naam: 'Snoeien', kort: 'bomen langs een pad', kleur: '#3B6D11', icoon: 'M12 3l5 7h-3l4 6H6l4-6H7zM12 16v5' },
   };
   let werksoort = 'alles';
+  // ?start=uit (tests): geen startscherm en een project laat de stand 'alles' staan; anders gaan de tools aan
+  const toolsAan = new URLSearchParams(location.search).get('start') !== 'uit';
   let tekenModus = false;
   let asSleepPunt = -1, asHoverPunt = -1, asSleepBewogen = false, negeerVolgendeKlik = false;
   let bronBestandsnaam = null;  // naam van het ingelezen .pts/.las/.laz-bestand, voor "project opslaan"
@@ -896,8 +898,136 @@
     return k;
   }
   document.getElementById('andereToolKnop')?.addEventListener('click', toonToolKeuze);
-  // tijdelijk (tot het startscherm er is) en voor tests: ?werksoort=doorrij in de adresregel
+  // voor tests: ?werksoort=doorrij in de adresregel (dan geen startscherm)
   { const w = new URLSearchParams(location.search).get('werksoort'); if (w) zetWerksoort(w); }
+
+  /* ──────── Startscherm (2.15.0): tool, projectnaam, projectmap (kiezen of nieuw), recente projecten ──────── */
+  let ssMap = null;   // gekozen of nieuw gemaakte projectmap
+  const mapTekst = (map) => map?.pvPad || map?.name || '';
+  function laatsteTool() { try { const w = localStorage.getItem('pv.laatsteTool'); return WERKSOORTEN[w] ? w : 'profielen'; } catch { return 'profielen'; } }
+  function onthoudTool(w) { try { if (WERKSOORTEN[w]) localStorage.setItem('pv.laatsteTool', w); } catch { /* geen opslag */ } }
+  async function heeftProjectbestand(map) {
+    try { for await (const [n, h] of map.entries()) if (h.kind === 'file' && n.toLowerCase().endsWith('.pvproj')) return true; } catch { /* niet leesbaar */ }
+    return false;
+  }
+  /** Recente projectmappen: in de exe de lijst van het programma (paden), anders IndexedDB. */
+  async function leesRecenteProjecten() {
+    if (natief) { try { return await (await natiefVraag('recent', null)).json(); } catch (err) { console.warn('recente projecten lezen mislukt:', err); return []; } }
+    try { return (await leesRecent(await recentDb())).sort((a, b) => b.tijd - a.tijd); } catch { return []; }
+  }
+  /** Eén recent project openen; → true als het geopend wordt. info = element voor een melding. */
+  async function openRecentProject(r, info, sluit) {
+    if (r.pad) {
+      if (!r.bestaat) {
+        info.textContent = `${r.pad} is niet gevonden (verplaatst of verwijderd?). Hij is uit de lijst gehaald.`;
+        natiefVraag('recent/weg', null, { methode: 'POST', kop: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pad: r.pad }) }).catch(() => {});
+        return false;
+      }
+      sluit(); await openProjectMap(natieveMap(r.pad)); return true;
+    }
+    try {
+      if (await r.handle.requestPermission({ mode: 'readwrite' }) !== 'granted') { info.textContent = 'Geen toestemming voor deze map.'; return false; }
+      sluit(); await openProjectMap(r.handle); return true;
+    } catch (err) { info.textContent = `Openen lukte niet (map verplaatst of verwijderd?): ${err.message}`; return false; }
+  }
+  function maakToolStip(soort) {
+    const st = document.createElement('span');
+    st.className = 'toolStip';
+    if (WERKSOORTEN[soort]) { st.style.background = WERKSOORTEN[soort].kleur; st.title = WERKSOORTEN[soort].naam; }
+    return st;
+  }
+  function ssKiesTool(w) {
+    zetWerksoort(w);
+    document.querySelectorAll('#ssTegels .toolTegel').forEach(t => t.classList.toggle('gekozen', t.dataset.w === w));
+    document.getElementById('ssStart').textContent = `Start ${WERKSOORTEN[w].naam}`;
+  }
+  async function ssZetMap(map) {
+    ssMap = map;
+    const vak = document.getElementById('ssMap'), info = document.getElementById('ssInfo');
+    vak.textContent = mapTekst(map); vak.classList.add('gekozen');
+    const naam = document.getElementById('ssNaam');
+    if (await heeftProjectbestand(map)) {
+      info.style.color = 'var(--ink-soft)';
+      info.textContent = `In ${map.name} staat al een project: Start opent het (met zijn eigen tool).`;
+    } else { info.textContent = ''; if (!naam.value.trim()) naam.value = map.name; }
+  }
+  async function toonStartscherm() {
+    const dlg = document.getElementById('startDialoog');
+    if (!dlg) return;
+    ssMap = null;
+    const info = document.getElementById('ssInfo'), naam = document.getElementById('ssNaam'), vak = document.getElementById('ssMap');
+    const melding = (t) => { info.style.color = ''; info.textContent = t; };
+    info.textContent = ''; vak.textContent = 'nog geen map gekozen'; vak.classList.remove('gekozen');
+    const tegels = document.getElementById('ssTegels');
+    tegels.innerHTML = '';
+    for (const [w, ws] of Object.entries(WERKSOORTEN)) {
+      const k = maakToolTegel(w, ws);
+      k.onclick = () => ssKiesTool(w);
+      tegels.appendChild(k);
+    }
+    ssKiesTool(laatsteTool());
+    const kanMap = kanMapKiezen();
+    document.getElementById('ssNieuweMap').disabled = !kanMap;
+    document.getElementById('ssKiesMap').disabled = !kanMap;
+    if (!kanMap) vak.textContent = 'deze browser kan geen mappen kiezen: begin zonder projectmap';
+    const sluit = () => { onthoudTool(werksoort); if (dlg.open) dlg.close(); };
+    dlg.oncancel = (e) => e.preventDefault();   // Esc sluit het startscherm niet: kies een tool
+    dlg.showModal();
+    naam.focus();
+    document.getElementById('ssNieuweMap').onclick = async () => {
+      const n = veiligeNaam(naam.value.trim(), '');
+      if (!n) { melding('Vul eerst een projectnaam in: de nieuwe map krijgt die naam.'); naam.focus(); return; }
+      try {
+        const ouder = await kiesMap({ id: 'pv-projectmap', titel: `Waar komt de map "${n}"?` });
+        await ssZetMap(await ouder.getDirectoryHandle(n, { create: true }));
+      } catch (err) { if (err.name !== 'AbortError') melding(`Map maken lukte niet: ${err.message}`); }
+    };
+    document.getElementById('ssKiesMap').onclick = async () => {
+      try { await ssZetMap(await kiesMap({ id: 'pv-projectmap', titel: 'Projectmap kiezen' })); }
+      catch (err) { if (err.name !== 'AbortError') melding(`Map kiezen lukte niet: ${err.message}`); }
+    };
+    document.getElementById('ssZonder').onclick = () => {
+      if (naam.value.trim()) zetProjectnaamStempel(naam.value.trim());
+      sluit();
+      statusEl.style.color = ''; statusEl.textContent = `${WERKSOORTEN[werksoort].naam}: open een puntenwolk (zonder projectmap)`;
+    };
+    document.getElementById('ssStart').onclick = async () => {
+      if (!ssMap) { melding(kanMap ? 'Kies of maak eerst een projectmap (of begin zonder projectmap).' : 'Begin zonder projectmap.'); return; }
+      const map = ssMap;
+      if (await heeftProjectbestand(map)) { sluit(); await openProjectMap(map); return; }
+      const n = naam.value.trim() || map.name;
+      zetProjectnaamStempel(n);
+      sluit();
+      try {
+        await zetProjectMap(map);
+        const r = await projectOpslaanInMap(map);
+        toonProjectBestand(`${map.name}\\${r.naam}`);
+        bewaarRecentProject(map, werksoort);
+        statusEl.style.color = ''; statusEl.textContent = `Nieuw project "${n}" in ${mapTekst(map)} (${WERKSOORTEN[werksoort].naam}): open nu de puntenwolk`;
+      } catch (err) { console.error(err); toonFout(`Project aanmaken in ${map.name} lukte niet: ${err.message || err}`); }
+    };
+    // recente projecten, met een stip in de kleur van hun tool
+    const lijstVak = document.getElementById('ssRecent');
+    lijstVak.innerHTML = '';
+    const lijst = kanMap ? await leesRecenteProjecten() : [];
+    document.getElementById('ssGeenRecent').hidden = lijst.length > 0;
+    for (const r of lijst) {
+      const k = document.createElement('button');
+      k.type = 'button';
+      k.appendChild(maakToolStip(r.soort));
+      const b = document.createElement('span'); b.textContent = r.naam; k.appendChild(b);
+      const t = document.createElement('span'); t.className = 'tijd'; t.textContent = new Date(r.tijd).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }); k.appendChild(t);
+      k.title = r.pad || r.naam;
+      k.onclick = async () => { melding(''); if (!(await openRecentProject(r, info, sluit))) k.remove(); };
+      lijstVak.appendChild(k);
+    }
+  }
+  function sluitStartscherm() { const d = document.getElementById('startDialoog'); if (d?.open) { onthoudTool(werksoort); d.close(); } }
+  /** Projectnaam in het stempel van de PDF (en DXF) zetten en bewaren. */
+  function zetProjectnaamStempel(n) {
+    const v = document.getElementById('pdfProjectnaam');
+    if (v) { v.value = n; bewaarPdfInstellingen(); }
+  }
 
   /* Fouten zichtbaar maken in de statusbalk i.p.v. alleen in de console —
      anders lijkt het alsof er "gewoon niets gebeurt". */
@@ -5424,12 +5554,7 @@
     delete snoei.gecontroleerd;
     doorrij = { ...JSON.parse(JSON.stringify(DR_STANDAARD)), ...(inst.doorrij ? JSON.parse(JSON.stringify(inst.doorrij)) : {}) };
     delete doorrij.gecontroleerd;
-    // tool van het project (2.15.0); in de stand 'alles' (tests, overgang) blijft alles zichtbaar
-    if (werksoort !== 'alles') {
-      const { w, geraden } = werksoortVanProject(project);
-      zetWerksoort(w);
-      if (geraden) setTimeout(() => { statusEl.style.color = ''; statusEl.textContent += ` · project zonder tool: geopend als ${WERKSOORTEN[w].naam} (geraden uit de inhoud; wijzigen met Andere tool…)`; }, 0);
-    }
+
     if (!Array.isArray(doorrij.boxen) || !doorrij.boxen.length) doorrij.boxen = JSON.parse(JSON.stringify(DR_STANDAARD.boxen));
     drResultaat = null;
     if (inst.toonLangsprofiel != null) {
@@ -10818,7 +10943,7 @@ ${r3d}
       const r = await projectOpslaanInMap(map, (t) => { statusEl.textContent = t; });
       projectMap = map; projectHandle = null;
       toonProjectBestand(`${map.name}\\${r.naam}`);
-      bewaarRecentProject(map);
+      bewaarRecentProject(map, werksoort);
       statusEl.textContent = `Opgeslagen: ${map.name}\\${r.naam} (${r.grootte < 1e6 ? `${Math.max(1, Math.round(r.grootte / 1e3))} kB` : `${(r.grootte / 1e6).toLocaleString('nl-NL', { maximumFractionDigits: 1 })} MB`})${r.backup ? ` · vorige versie in backup\\${r.backup}` : ''}`;
     } catch (err) {
       console.error(err);
@@ -10947,10 +11072,11 @@ ${r3d}
       r.onsuccess = () => ok(r.result); r.onerror = () => fout(r.error);
     });
   }
-  async function bewaarRecentProject(map) {
+  async function bewaarRecentProject(map, soort) {
+    if (!WERKSOORTEN[soort]) soort = undefined;   // teststand 'alles': de bekende tool blijft staan
     // eigen venster: de exe houdt de lijst bij (paden, werkt ook na een herstart)
     if (map?.pvPad) {
-      try { await natiefVraag('recent', null, { methode: 'POST', kop: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pad: map.pvPad }) }); }
+      try { await natiefVraag('recent', null, { methode: 'POST', kop: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pad: map.pvPad, soort }) }); }
       catch (err) { console.warn('recente projecten bewaren mislukt:', err); }
       return;
     }
@@ -10958,7 +11084,7 @@ ${r3d}
       const db = await recentDb();
       const lijst = await leesRecent(db);
       for (const r of lijst) if (r.naam !== map.name && await r.handle.isSameEntry(map).catch(() => false)) await new Promise(ok => { const tx = db.transaction('recent', 'readwrite'); tx.objectStore('recent').delete(r.naam); tx.oncomplete = ok; });
-      await new Promise((ok, fout) => { const tx = db.transaction('recent', 'readwrite'); tx.objectStore('recent').put({ naam: map.name, handle: map, tijd: Date.now() }); tx.oncomplete = ok; tx.onerror = () => fout(tx.error); });
+      await new Promise((ok, fout) => { const tx = db.transaction('recent', 'readwrite'); tx.objectStore('recent').put({ naam: map.name, handle: map, tijd: Date.now(), soort: soort || lijst.find(r => r.naam === map.name)?.soort }); tx.oncomplete = ok; tx.onerror = () => fout(tx.error); });
       const alle = (await leesRecent(db)).sort((a, b) => b.tijd - a.tijd);
       for (const r of alle.slice(8)) await new Promise(ok => { const tx = db.transaction('recent', 'readwrite'); tx.objectStore('recent').delete(r.naam); tx.oncomplete = ok; });
     } catch (err) { console.warn('recente projecten bewaren mislukt:', err); }
@@ -10982,6 +11108,7 @@ ${r3d}
       const k = document.createElement('button');
       k.type = 'button'; k.className = 'breed'; k.style.textAlign = 'left';
       k.innerHTML = `<b></b> <span class="zacht"></span>`;
+      k.prepend(maakToolStip(r.soort)); k.style.display = 'flex'; k.style.alignItems = 'center'; k.style.gap = '8px'; k.style.justifyContent = 'flex-start';
       k.querySelector('b').textContent = r.naam;
       k.querySelector('span').textContent = '· ' + new Date(r.tijd).toLocaleString('nl-NL', { dateStyle: 'medium', timeStyle: 'short' });
       if (r.pad) k.title = r.pad;
@@ -11015,6 +11142,7 @@ ${r3d}
   /** Een projectmap openen: het .pvproj-bestand, de ondergrond en de vakken van de puntenwolk. */
   /** voorkeur: naam van het .pvproj dat geopend moet worden (bv. gekozen of gesleept), anders <map>.pvproj of het nieuwste. */
   async function openProjectMap(map, voorkeur) {
+    sluitStartscherm();
     markeerBezig('project openen', map.name);
     try {
       let bestand = null;
@@ -11036,7 +11164,7 @@ ${r3d}
       if (project.ondergrond?.kadaster) project.percelen = await leesOg('kadaster');
       projectMap = map; projectHandle = null;
       toonProjectBestand(`${map.name}\\${bestand.name}`);
-      bewaarRecentProject(map);
+      bewaarRecentProject(map, werksoortVanProject(project).w);
       if (project.puntenwolkMap) {
         let wm = map;
         for (const deel of project.puntenwolkMap.split('/')) wm = await wm.getDirectoryHandle(deel);
@@ -11046,8 +11174,10 @@ ${r3d}
         zet('wolkAMaaiveld', !!pi.maaiveld); zet('oppervlakModus', pi.oppervlak);
         if (pi.punten && [...document.getElementById('puntDichtheid').options].some(o => o.value === String(pi.punten))) zet('puntDichtheid', pi.punten);
         detailStrook = null; volleProfielen = null; volleCache.clear();
+        const tm = pasToolVanProjectToe(project);
         wachtendProject = project;
         await laadBestand(maakTegelbron(wm, info), false);
+        meldToolNaLaden(tm);
         if (wachtendProject === project) wachtendProject = null;
         return true;
       }
@@ -11111,7 +11241,23 @@ ${r3d}
       return false;
     }
   }
+  /** Tool van het project zetten (2.15.0), meteen bij het lezen: ook als de puntenwolk nog moet komen.
+   *  In de teststand (?start=uit, 'alles') blijft alles zichtbaar. */
+  /** → melding voor achter de statusregel als de tool geraden is, anders ''. */
+  function pasToolVanProjectToe(project) {
+    if (!toolsAan && werksoort === 'alles') return '';
+    const { w, geraden } = werksoortVanProject(project);
+    zetWerksoort(w);
+    return geraden ? ` · project zonder tool: geopend als ${WERKSOORTEN[w].naam} (geraden uit de inhoud; wijzigen met Andere tool…)` : '';
+  }
+  const meldToolNaLaden = (m) => { if (m && !statusEl.textContent.includes(m)) statusEl.textContent += m; };
   async function verwerkProjectObject(project, bestandNaam) {
+    const m = pasToolVanProjectToe(project);
+    const r = await verwerkProjectObjectBinnen(project, bestandNaam);
+    meldToolNaLaden(m);
+    return r;
+  }
+  async function verwerkProjectObjectBinnen(project, bestandNaam) {
     const bestand = { name: bestandNaam };
     try {
    // puntenwolk komt nu uit het project, niet uit een los bestand
@@ -15165,6 +15311,7 @@ ${r3d}
   window.addEventListener('drop', async (e) => {
     if (isBestandsveld(e) || !e.dataTransfer?.files?.length) return;
     e.preventDefault();
+    sluitStartscherm();
     const bestand = e.dataTransfer.files[0], naam = bestand.name.toLowerCase();
     if (/\.(las|laz|pts)$/.test(naam)) { await openPuntenwolkA(bestand); return; }
     if (naam.endsWith('.pvproj') && natief) {
@@ -15191,6 +15338,9 @@ ${r3d}
     window.__pvOpenPad = (pad) => openProjectMap(natieveMap(pad));
     if (natief.openen) setTimeout(() => openProjectMap(natieveMap(natief.openen)), 0);
   }
+  // startscherm, behalve als de exe een project meegaf, of met ?start=uit / ?werksoort= (tests)
+  { const z = new URLSearchParams(location.search);
+    if (!natief?.openen && toolsAan && !z.get('werksoort')) setTimeout(() => toonStartscherm(), 0); }
   Object.assign(window.__pvTest || {}, { werksoort: () => werksoort, zetWerksoort: (w) => zetWerksoort(w), werksoortVanProject: (p) => werksoortVanProject(p),
     projectTekst: async () => await maakProjectBlob().text(), laadProjectTekst: (t) => laadProjectBestand(new File([t], 'project.json')) });
   // klaar met opstarten: opstartscherm weg

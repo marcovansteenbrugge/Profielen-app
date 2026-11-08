@@ -44,6 +44,21 @@ func TestRecent(t *testing.T) {
 	if lijst[1].Bestaat {
 		t.Fatalf("verplaatste map meldt bestaat: %+v", lijst[1])
 	}
+	// tool (2.15.0): wordt bewaard, een onbekende tool niet, en zonder tool blijft de bekende staan
+	bs, _ := json.Marshal(map[string]string{"pad": lijst[0].Pad, "soort": "doorrij"})
+	p.verwacht(p.vraag("POST", "recent", "", bs, nil), 204)
+	p.verwacht(zet(lijst[0].Pad), 204)
+	var metSoort []recentProject
+	json.Unmarshal(p.verwacht(p.vraag("GET", "recent", "", nil, nil), 200), &metSoort)
+	if metSoort[0].Soort != "doorrij" {
+		t.Fatalf("tool niet bewaard: %+v", metSoort[0])
+	}
+	bs, _ = json.Marshal(map[string]string{"pad": lijst[0].Pad, "soort": "<script>"})
+	p.verwacht(p.vraag("POST", "recent", "", bs, nil), 204)
+	json.Unmarshal(p.verwacht(p.vraag("GET", "recent", "", nil, nil), 200), &metSoort)
+	if metSoort[0].Soort != "doorrij" {
+		t.Fatalf("onbekende tool overschreef de bekende: %+v", metSoort[0])
+	}
 	b, _ := json.Marshal(map[string]string{"pad": lijst[1].Pad})
 	p.verwacht(p.vraag("POST", "recent/weg", "", b, nil), 204)
 	json.Unmarshal(p.verwacht(p.vraag("GET", "recent", "", nil, nil), 200), &lijst)

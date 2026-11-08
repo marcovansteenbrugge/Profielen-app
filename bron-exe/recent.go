@@ -29,6 +29,8 @@ type recentProject struct {
 	Pad     string `json:"pad"`
 	Tijd    int64  `json:"tijd"` // ms sinds 1970
 	Bestaat bool   `json:"bestaat"`
+	// Soort is de tool van het project (2.15.0): profielen, doorvaart, doorrij of snoei; leeg = onbekend
+	Soort string `json:"soort,omitempty"`
 }
 
 func recentBestand() string {
@@ -101,7 +103,8 @@ func (a *bestandsAPI) recent(w http.ResponseWriter, r *http.Request, route strin
 		return
 	}
 	var v struct {
-		Pad string `json:"pad"`
+		Pad   string `json:"pad"`
+		Soort string `json:"soort"`
 	}
 	if err := json.NewDecoder(io.LimitReader(r.Body, 64<<10)).Decode(&v); err != nil || v.Pad == "" {
 		http.Error(w, "ongeldige opdracht", http.StatusBadRequest)
@@ -120,7 +123,20 @@ func (a *bestandsAPI) recent(w http.ResponseWriter, r *http.Request, route strin
 			http.Error(w, "geen map", http.StatusBadRequest)
 			return
 		}
-		nieuw = append(nieuw, recentProject{Naam: filepath.Base(pad), Pad: pad, Tijd: time.Now().UnixMilli()})
+		soort := v.Soort
+		switch soort {
+		case "", "profielen", "doorvaart", "doorrij", "snoei":
+		default:
+			soort = ""
+		}
+		if soort == "" { // zonder tool (bv. in de teststand): de bekende tool blijft staan
+			for _, r := range lijst {
+				if strings.EqualFold(r.Pad, pad) {
+					soort = r.Soort
+				}
+			}
+		}
+		nieuw = append(nieuw, recentProject{Naam: filepath.Base(pad), Pad: pad, Tijd: time.Now().UnixMilli(), Soort: soort})
 		for _, r := range lijst {
 			if !strings.EqualFold(r.Pad, pad) && len(nieuw) < maxRecent {
 				nieuw = append(nieuw, r)

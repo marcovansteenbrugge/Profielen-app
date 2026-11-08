@@ -49,6 +49,27 @@
   .toolTegel[data-w="doorvaart"]{--t-kleur:#185FA5; --t-licht:#E6F1FB; --t-donker:#0C447C}
   .toolTegel[data-w="doorrij"]{--t-kleur:#A32D2D; --t-licht:#FCEBEB; --t-donker:#791F1F}
   .toolTegel[data-w="snoei"]{--t-kleur:#3B6D11; --t-licht:#EAF3DE; --t-donker:#27500A}
+  /* startscherm (2.15.0) */
+  #startDialoog{width:min(820px, calc(100vw - 32px)); padding:0; border:none; border-radius:12px; overflow:hidden}
+  #startDialoog::backdrop{background:rgba(27,42,56,.55)}
+  #startDialoog .ssBalk{height:6px; background:var(--accent)}
+  #startDialoog .ssKop{display:flex; align-items:center; gap:14px; padding:16px 22px 6px}
+  #startDialoog .ssKop img{height:34px}
+  #startDialoog .ssKop h2{margin:0; font-size:18px}
+  #startDialoog .ssLijf{display:grid; grid-template-columns:minmax(0, 1.25fr) minmax(0, 1fr); gap:18px 26px; padding:10px 22px 18px}
+  @media (max-width:760px){ #startDialoog .ssLijf{grid-template-columns:minmax(0, 1fr)} }
+  #startDialoog .ssLabel{font-size:12px; color:var(--ink-dim); margin:0 0 4px}
+  #startDialoog input[type=text]{width:100%; font:inherit; padding:6px 9px; border:1px solid var(--line); border-radius:5px}
+  #startDialoog .ssMap{font-size:12.5px; padding:6px 9px; border:1px dashed var(--line); border-radius:5px; color:var(--ink-soft); min-height:32px; word-break:break-all}
+  #startDialoog .ssMap.gekozen{border-style:solid; color:var(--ink); background:var(--accent-licht)}
+  #startDialoog .ssRecent button{display:flex; align-items:center; gap:8px; width:100%; text-align:left; background:none; border:none; border-top:1px solid var(--line); border-radius:0; padding:7px 4px}
+  #startDialoog .ssRecent button:hover{background:var(--paper)}
+  #startDialoog .ssRecent .tijd{margin-left:auto; color:var(--ink-dim); font-size:11.5px; white-space:nowrap}
+  .toolStip{width:10px; height:10px; border-radius:50%; flex:none; background:#B4BCC4}
+  #startDialoog .ssVoet{display:flex; align-items:center; gap:10px; padding:12px 22px; border-top:1px solid var(--line); background:var(--paper)}
+  #startDialoog .ssVoet .info{flex:1; font-size:12.5px; color:var(--red)}
+  #startDialoog #ssStart{padding:7px 18px; font-weight:600}
+  #startDialoog #ssZonder{background:none; border:none; color:var(--ink-dim); text-decoration:underline; padding:0}
   *{box-sizing:border-box}
   body{
     margin:0; background:var(--paper); color:var(--ink);
@@ -930,6 +951,24 @@
     <button id="poLos" title="Een los projectbestand (.json van vóór 2.9.0) openen">Los bestand (.json)…</button>
     <button id="poAnnuleer">Annuleren</button>
     <button id="poMap" class="primair" title="Een projectmap kiezen (de map met het .pvproj-bestand)">Projectmap openen…</button></div>
+</dialog>
+
+<dialog id="startDialoog" aria-label="Startscherm">
+  <div class="ssBalk"></div>
+  <div class="ssKop"><img src="merk-lutrea.png" alt="Lutrea"><div><h2>Lutrea Profielviewer</h2><span class="zacht">Wat ga je vandaag doen?</span></div></div>
+  <div style="padding:8px 22px 4px"><div class="toolTegels" id="ssTegels"></div></div>
+  <div class="ssLijf">
+    <div style="display:grid; gap:10px; align-content:start">
+      <div><p class="ssLabel">Projectnaam</p><input type="text" id="ssNaam" placeholder="bv. Loon op Zand – Bergstraat" autocomplete="off"></div>
+      <div><p class="ssLabel">Projectmap</p><div class="ssMap" id="ssMap">nog geen map gekozen</div></div>
+      <div class="rij" style="display:flex; gap:8px; flex-wrap:wrap">
+        <button type="button" id="ssNieuweMap" title="Kies waar het project komt; de viewer maakt daar een map met de projectnaam">Nieuwe map maken…</button>
+        <button type="button" id="ssKiesMap" title="Een bestaande map kiezen; staat er al een project in, dan wordt dat geopend">Map kiezen…</button>
+      </div>
+    </div>
+    <div class="ssRecent"><p class="ssLabel">Recente projecten</p><div id="ssRecent"></div><p class="hint" id="ssGeenRecent" style="margin:6px 0 0">Nog geen recente projecten.</p></div>
+  </div>
+  <div class="ssVoet"><button type="button" id="ssZonder" title="Zoals vroeger: zonder projectmap beginnen (de puntenwolk wordt dan direct ingelezen en uitgedund)">zonder projectmap</button><span class="info" id="ssInfo"></span><button type="button" id="ssStart" class="primair">Start</button></div>
 </dialog>
 
 <dialog id="toolDialoog" class="dvDialoog" style="width:min(680px, calc(100vw - 32px))">

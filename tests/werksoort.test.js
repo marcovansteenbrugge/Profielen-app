@@ -100,7 +100,7 @@ const D = H.data('snoei_test'), U = H.UIT;
   await p.click('#tdTegels .toolTegel[data-w="snoei"]'); await p.waitForTimeout(300);
   s = await stand(); console.log('na Andere tool:', s.w);
   if (s.w !== 'snoei') fout('Andere tool zette de tool niet');
-  await p.goto(H.URL + '?werksoort=doorvaart'); await p.waitForTimeout(800);
+  await p.goto(H.BASIS + '?werksoort=doorvaart'); await p.waitForTimeout(800);
   s = await stand(); console.log('adresregel:', s.w);
   if (s.w !== 'doorvaart') fout('?werksoort= werkt niet');
 
