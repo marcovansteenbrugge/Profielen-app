@@ -4,7 +4,7 @@ titel: Startscherm met vier tools, elk in een eigen kleur
 plan: startscherm-werksoort.plan.md
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
 voorgelegd: 2026-11-08 11:53          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
-status: deels-vrijgegeven        # berekend door de skill, nooit met de hand gezet
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 ---
 
 > Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
@@ -21,7 +21,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
-| F0 | Elke tool in zijn eigen kleur en met alleen zijn eigen knoppen; het project onthoudt de tool | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-08 11:54 | B1, B2, B3, B4, B7, B8 | - |
+| F0 | Elke tool in zijn eigen kleur en met alleen zijn eigen knoppen; het project onthoudt de tool | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-08 11:54 | B1, B2, B3, B4, B7, B8 | ✅ 2026-11-08 12:13 |
 | F1 | Het startscherm: tegels, projectnaam, map kiezen of maken, recente projecten met kleur | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-08 11:54 | B5 | - |
 | F2 | Uitleveren als 2.15.0, met jouw controle | ○ nog niet | - | B6, B9 | - |
 
@@ -208,5 +208,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-08 (vóór 11:51) | Antwoorden op de eerste vier vragen (B1 anders, B4 en B5 ons voorstel, kleurvoorstel gevraagd) en "Ja, maak het plan" | Marco van Steenbrugge, via chat |
 | 2026-11-08 11:53 | Plan opgesteld en voorgelegd, na de schets van het startscherm en het kleurvoorstel in de chat | Claude Opus 5.5 (agent) |
 | 2026-11-08 11:54 | B2, B3, B7 en B8 akkoord (ons voorstel) en vrijgave F0 en F1 op planversie 1: "Akkoord, bouw F0–F1"; Marco als beslisser bevestigd in eerdere plannen | Marco van Steenbrugge, via chat |
+| 2026-11-08 12:13 | F0 gebouwd: elke tool in zijn eigen kleur, alleen de eigen toets, het project onthoudt de tool, knop Andere tool… | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

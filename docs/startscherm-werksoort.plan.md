@@ -2,8 +2,8 @@
 plan: startscherm-werksoort
 titel: Startscherm met vier tools, elk in een eigen kleur
 versie: 1
-status: deels-vrijgegeven        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ▶ · F1 ▶ · F2 ⏳           # berekend door de skill
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ✅ · F1 ▶ · F2 ⏳           # berekend door de skill
 opgesteld: 2026-11-08
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -105,8 +105,8 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ▶ vrijgegeven | Werksoort en kleur in de viewer: tokens per tool, label en streep in de kopbalk, groep Toets per tool, PDF-opties per tool, werksoort in het project, raden bij oude projecten, knop "Andere tool…"; `?start=uit` en `hulp.js` voor de tests | 1. Nieuwe test `werksoort.test.js`: per tool zijn alleen de eigen toetsknop en chip zichtbaar (Profielen Tool: geen), `--accent` heeft de waarde uit de tabel. 2. Project opslaan en heropenen geeft dezelfde tool; een oud project met doorrij-uitkomst opent als Doorrijhoogte. 3. `node run_alle.js` eindigt met "Alle tests geslaagd". 4. Schermafdruk van de viewer in elk van de vier tools. | B1, B2, B3, B4, B7, B8 | M | Opus 5.5, medium | `F0:` |
-| F1 | ▶ vrijgegeven, na F0 | Startscherm: vier tegels, projectnaam (ook in de PDF-stempel), map kiezen of nieuwe map maken, recente projecten met kleurstip (exe en browser), overslaan bij dubbelklik, sleep en `?start=uit`; geen tweede mapvraag bij de puntenwolk | 1. Nieuwe test `startscherm.test.js`: tool en naam kiezen, nieuwe map maken (in een tijdelijke map), Start: map bestaat met de submappen, PDF-projectnaam is gezet, de tool staat goed; inlezen van de testwolk vraagt geen map meer. 2. Recente projecten tonen de tool (stip in de juiste kleur), ook in de exe-emulatie; `go test ./...` in `bron-exe` slaagt (recent met soort, oude regels zonder soort). 3. Met `natief.openen` komt het startscherm niet. 4. `node run_alle.js` eindigt met "Alle tests geslaagd". 5. Schermafdruk van het startscherm. | F0, B5 | M | Opus 5.5, medium | `F1:` |
+| F0 | ✅ gebouwd | Werksoort en kleur in de viewer: tokens per tool, label en streep in de kopbalk, groep Toets per tool, PDF-opties per tool, werksoort in het project, raden bij oude projecten, knop "Andere tool…"; `?start=uit` en `hulp.js` voor de tests | 1. Nieuwe test `werksoort.test.js`: per tool zijn alleen de eigen toetsknop en chip zichtbaar (Profielen Tool: geen), `--accent` heeft de waarde uit de tabel. 2. Project opslaan en heropenen geeft dezelfde tool; een oud project met doorrij-uitkomst opent als Doorrijhoogte. 3. `node run_alle.js` eindigt met "Alle tests geslaagd". 4. Schermafdruk van de viewer in elk van de vier tools. | B1, B2, B3, B4, B7, B8 | M | Opus 5.5, medium | `F0:` |
+| F1 | ▶ vrijgegeven | Startscherm: vier tegels, projectnaam (ook in de PDF-stempel), map kiezen of nieuwe map maken, recente projecten met kleurstip (exe en browser), overslaan bij dubbelklik, sleep en `?start=uit`; geen tweede mapvraag bij de puntenwolk | 1. Nieuwe test `startscherm.test.js`: tool en naam kiezen, nieuwe map maken (in een tijdelijke map), Start: map bestaat met de submappen, PDF-projectnaam is gezet, de tool staat goed; inlezen van de testwolk vraagt geen map meer. 2. Recente projecten tonen de tool (stip in de juiste kleur), ook in de exe-emulatie; `go test ./...` in `bron-exe` slaagt (recent met soort, oude regels zonder soort). 3. Met `natief.openen` komt het startscherm niet. 4. `node run_alle.js` eindigt met "Alle tests geslaagd". 5. Schermafdruk van het startscherm. | F0, B5 | M | Opus 5.5, medium | `F1:` |
 | F2 | ⏳ wacht op B6, B9 | Opleveren 2.15.0: versie, LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert | 1. `node run_alle.js` eindigt met "Alle tests geslaagd". 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat het startscherm en de vier tools goed werken. | F1, B6, B9 | S | Opus 5.5, medium | `F2:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
@@ -136,6 +136,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
+| F0 | 2026-11-08 11:55 | 2026-11-08 12:13 | Marco van Steenbrugge | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 68 / 23.868 | 7bfb75f | transcript (Claude Code 2.1.317) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -144,12 +145,17 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 
 | Fase | Tijdstip | Criterium | Controle en uitkomst | Oordeel |
 |---|---|---|---|---|
+| F0 | 2026-11-08 12:13 | 1. Nieuwe test `werksoort.test.js`: per tool alleen de eigen toetsknop en chip (Profielen Tool: geen), `--accent` uit de tabel | `node werksoort.test.js`: profielen knoppen [] accent #C2650A; doorvaart [doorvaartKnop] #185FA5; doorrij [doorrijKnop] #A32D2D; snoei [snoeiKnop] #3B6D11; PDF-opties alleen van de eigen tool; "fouten: geen" | gehaald |
+| F0 | 2026-11-08 12:13 | 2. Project opslaan en heropenen geeft dezelfde tool; oud project met doorrij-uitkomst opent als Doorrijhoogte | zelfde test: "in project: doorrij", "na openen: doorrij"; "oud project (doorrij gecontroleerd): doorrij" en "(niets): profielen", met melding "geraden uit de inhoud"; brug → doorvaart, begroeiing → snoei | gehaald |
+| F0 | 2026-11-08 12:13 | 3. `node run_alle.js` eindigt met "Alle tests geslaagd" | `tests/uit/run_alle_f0.log`: 24 tests "OK" (incl. werksoort), eindregel "Alle tests geslaagd" | gehaald |
+| F0 | 2026-11-08 12:13 | 4. Schermafdruk van de viewer in elk van de vier tools | `tests/uit/werksoort_profielen.png`, `_doorvaart.png`, `_doorrij.png`, `_snoei.png` (en `_dialoog.png`): label en streep in de toolkleur, alleen de eigen toetsknop, paneelkoppen getint; bekeken (doorrij, snoei, dialoog) | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
 
 | Fase | Wat week af van het plan | Waarom |
 |---|---|---|
+| F0 | `?start=uit` en de aanpassing van `tests/hulp.js` schuiven naar F1; in F0 is de standaard nog 'alles' en kun je een tool kiezen met `?werksoort=` of Andere tool… | Zonder startscherm is er nog niets over te slaan; de bestaande tests blijven zo ongewijzigd groen |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
