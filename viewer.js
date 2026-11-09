@@ -8333,6 +8333,9 @@
       drVenster(r, r.s0, r.s1, (p) => { if (r.cls[p] && r.boxen.some(bx => Math.abs(r.O[p] - bx.c) <= bx.B / 2)) lijst.push(p); });
       const stap = Math.max(1, Math.floor(lijst.length / 30000));
       for (let j = 0; j < lijst.length; j += stap) { const p = lijst[j]; uit.punten.push([r.S[p], r.Z[p], r.cls[p]]); }
+      // het hele kunstwerk in beeld (ook de bovenkant), niet alleen de weg en de box
+      let dakTop = -Infinity; for (const p of lijst) if ((r.cls[p] === 1 || r.cls[p] === 2) && r.Z[p] > dakTop) dakTop = r.Z[p];
+      if (Number.isFinite(dakTop)) uit.hoogtes.push(dakTop + 0.3);
       void b0;
     } else return null;
     for (const p of uit.punten) uit.hoogtes.push(p[1]);
@@ -8496,7 +8499,9 @@
     regels.push(['Niet meegeteld', `alles lager dan ${komma(r.minH, 2)} m boven de weg${r.ruis ? ` · ${r.ruis.toLocaleString('nl-NL')} losse punten` : ''}`, null]);
     if (r.dekking) dekkingRegels(regels, r.dekking, 'Weg gemeten onder het dak', 'binnen de box', () => ' · weg overbrugd');
     const gat = r.dekking?.oppGatLijst || 0;
-    regels.push(['Oordeel', `${r.ok ? (r.krap ? 'VOLDOET (krap, minder dan de marge)' : 'VOLDOET') : 'VOLDOET NIET'}${gat ? ` — ${komma(gat, gat < 10 ? 1 : 0)} m² weg niet gemeten` : ''}`, r.ok ? (gat || r.krap ? 'let' : 'ok') : 'nok']);
+    // (rws-oplevering B5) het oordeel zonder "m² weg niet gemeten": dat staat al bij "weg gemeten onder het dak"
+    void gat;
+    regels.push(['Oordeel', r.ok ? (r.krap ? 'VOLDOET (krap, minder dan de marge)' : 'VOLDOET') : 'VOLDOET NIET', r.ok ? (r.krap ? 'let' : 'ok') : 'nok']);
     return regels;
   }
   function toonDoorrijResultaat() {
@@ -8509,7 +8514,8 @@
     }
     if (!vak) return;
     if (!r) { vak.innerHTML = `<p class="hint">${drWolk ? 'Vul de maten in en klik op <b>Controleren</b>.' : 'Lees eerst de punten in.'}</p>`; return; }
-    vak.innerHTML = '<table class="dvTabel">' + drRegels(r).map(([l, w, s]) => `<tr class="${s || ''}${l === 'Oordeel' ? ' oordeel' : ''}"><th>${l}</th><td>${w}</td></tr>`).join('') + '</table>';
+    // het percentage weg gemeten onder het dak groot
+    vak.innerHTML = '<table class="dvTabel">' + drRegels(r).map(([l, w, s]) => `<tr class="${s || ''}${l === 'Oordeel' ? ' oordeel' : ''}"><th>${l}</th><td>${l === 'Weg gemeten onder het dak' ? w.replace(/^([\d,]+ %)/, '<span class="drPct">$1</span>') : w}</td></tr>`).join('') + '</table>';
   }
   function werkDoorrijPaneelBij() {
     const naam = document.getElementById('drNaam');
@@ -13233,6 +13239,7 @@ ${r3d}
       snoei: v('pdfSnoei') ? v('pdfSnoei').checked : true,
       doorrij: v('pdfDoorrij') ? v('pdfDoorrij').checked : true,
       rws: v('pdfRws') ? v('pdfRws').checked : true,
+      rwsSet: magToets('doorrij') && werksoort === 'doorrij' && !!v('pdfRwsSet')?.checked,
       opdrachtgever: v('pdfOpdrachtgever').value.trim(),
       omschrijving: v('pdfOmschrijving').value.trim(),
       getekend: v('pdfGetekend').value.trim(),
@@ -13287,6 +13294,13 @@ ${r3d}
   }
 
   try { zetPdfInstellingen(JSON.parse(localStorage.getItem(PDF_OPSLAG) || 'null')); } catch (e) { /* negeren */ }
+  // (rws-oplevering F1, B1) RWS-opleverset: bovenaanzicht, Doorrijhoogte, lengteprofiel en de doorsnedes, de rest uit
+  document.getElementById('pdfRwsSet')?.addEventListener('change', (e) => {
+    if (!e.target.checked) return;
+    const zet = (id, v) => { const el = document.getElementById(id); if (el && el.checked !== v) { el.checked = v; el.dispatchEvent(new Event('change')); } };
+    for (const id of ['pdfBovenaanzicht', 'pdfDoorrij', 'pdfLengteprofiel', 'pdfRws']) zet(id, true);
+    for (const id of ['pdfDwarsprofielen', 'pdf3D', 'pdf3DBlad', 'pdfDoorvaart', 'pdfSnoei']) zet(id, false);
+  });
 
   function geselecteerdeStations(inst) {
     if (alleenDoorsnedes() && inst.rws && drResultaat) return [];   // de doorsnedes staan op de RWS-bladen
@@ -14993,6 +15007,9 @@ ${r3d}
       if (dvK) { hMax = Math.max(hMax, dvK.P + dvK.H); hMin = Math.min(hMin, dvK.D ? dvK.PD - dvK.D : dvK.P); }
       const snK = snVoorGrafiek(reeks, reeks.station != null, reeks.station != null ? 'offset' : 'station');
       if (snK) for (const h of snK.hoogtes) { if (h < hMin) hMin = h; if (h > hMax) hMax = h; }
+      // doorrijhoogte: weg, box en het kunstwerk tot de bovenkant (anders valt het dak in de PDF buiten de grafiek)
+      const drK = drVoorGrafiek(reeks, reeks.station != null, reeks.station != null ? 'offset' : 'station');
+      if (drK) for (const h of drK.hoogtes) { if (h < hMin) hMin = h; if (h > hMax) hMax = h; }
       const wp = metPeil ? waterpeil() : null;
       if (wp != null) { hMin = Math.min(hMin, wp); hMax = Math.max(hMax, wp); }
       if (hMax - hMin < 0.2) { const m = (hMax + hMin) / 2; hMin = m - 0.1; hMax = m + 0.1; }
@@ -15148,10 +15165,116 @@ ${r3d}
     }
 
     // ── doorrijhoogte op een eigen blad ──
+    // (rws-oplevering F1, B5) blad 2 van de RWS-opleverset: wat is getest, welke profielen, het resultaat en per
+    // doorsnede de doorrijhoogtes op kant links, as en kant rechts; geen tekening (die volgen op de volgende bladen)
+    const rwsOverzichtBlad = async (r) => {
+      const nodig = volgendBladNodig();
+      const kort = r.ok ? (r.krap ? 'voldoet (krap)' : 'voldoet') : 'voldoet niet';
+      nieuwePagina(`Doorrijhoogte — ${kort}`, 'geen schaal');
+      if (!nodig) return;
+      onVoortgang?.('Doorrijhoogte: overzicht…');
+      const kleur = (st) => st === 'ok' ? [22, 128, 61] : st === 'nok' ? [198, 71, 43] : st === 'let' ? [178, 106, 0] : [27, 42, 56];
+      const rws3 = (v) => v == null ? '-' : v.toFixed(3);
+      const linksW = vak.w * 0.37, tussen = 9 * TS, rx = vak.x + linksW + tussen, rechtsW = vak.w - linksW - tussen;
+      doc.setFontSize(13 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
+      const t1 = 'Doorrijhoogte — '; doc.text(pdfTekst(t1), vak.x, vak.y + 5 * TS);
+      doc.setTextColor(...kleur(r.ok ? (r.krap ? 'let' : 'ok') : 'nok')); doc.text(kort, vak.x + doc.getTextWidth(pdfTekst(t1)), vak.y + 5 * TS);
+      doc.setFontSize(8 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
+      doc.text('wat is getest, welke profielen en het resultaat - maten in m', vak.x + vak.w, vak.y + 5 * TS, { align: 'right' });
+      // linkerkolom
+      let ty = vak.y + 15 * TS;
+      const kop = (tekst, x, w, y) => { doc.setFontSize(10 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56); doc.text(pdfTekst(tekst), x, y); doc.setDrawColor(30, 127, 166); doc.setLineWidth(0.35); doc.line(x, y + 1.8 * TS, x + w, y + 1.8 * TS); return y + 7 * TS; };
+      const rij = (label, waarde, st, groot = null) => {
+        const lw = linksW * 0.42;
+        doc.setFontSize(8 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(51, 66, 79);
+        doc.text(doc.splitTextToSize(pdfTekst(label), lw - 2 * TS), vak.x, ty);
+        let x = vak.x + lw, tekst = waarde;
+        if (groot) {   // het percentage groot vooraan
+          doc.setFontSize(13 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(...kleur(st));
+          doc.text(groot, x, ty + 0.8 * TS); x += doc.getTextWidth(groot) + 2 * TS; tekst = waarde.slice(groot.length).trim();
+          doc.setFontSize(8 * TS);
+        }
+        doc.setFont('helvetica', st ? 'bold' : 'normal'); doc.setTextColor(...kleur(st));
+        const regels = doc.splitTextToSize(pdfTekst(tekst), vak.x + linksW - x);
+        doc.text(regels, x, ty);
+        ty += Math.max(1, regels.length) * 3.6 * TS + 2.2 * TS;
+        doc.setDrawColor(227, 232, 236); doc.setLineWidth(0.15); doc.line(vak.x, ty - 3.4 * TS, vak.x + linksW, ty - 3.4 * TS);
+      };
+      const regels = drRegels(r);
+      const isGetest = ([l]) => /box$/.test(l) || l === 'Gecontroleerd' || l === 'Niet meegeteld';
+      ty = kop('1. Wat is getest', vak.x, linksW, ty);
+      rij('Toets', 'doorrijhoogte onder de kunstwerken, naar de Productspecificaties Doorrijprofielen (RWS, 1 juli 2022)', null);
+      for (const [l, w] of regels.filter(isGetest)) rij(l, w, null);
+      rij('Meetpunten per doorsnede', `kant verharding links en rechts (BGT; onder het kunstwerk doorgetrokken van ${BGT_UIT} m voor tot ${BGT_UIT} m na) en de as`, null);
+      ty += 3 * TS;
+      ty = kop('2. Welke profielen', vak.x, linksW, ty);
+      const kws = drKunstwerken(r);
+      if (!kws.length) rij('Kunstwerken', 'geen kunstwerk gevonden', null);
+      for (const kw of kws) {
+        const ds = (drRws?.profielen || []).filter(pr => pr.kw === kw.nr);
+        const hoek = ds.find(pr => pr.hoek)?.hoek;
+        rij(kwNaam(kw.nr), `st. ${komma(kw.van, 0)} - ${komma(kw.tot, 0)}${hoek ? ` - schuin ${komma(hoek, 1)} gr.` : ''}${ds.length ? ' - ' + ds.map(pr => `${pr.label} st. ${komma(pr.station, 2)}`).join(' - ') : ''}`, null);
+      }
+      rij('Bladen', drRws ? `daarna het lengteprofiel over de as en per doorsnede een blad (${drRws.profielen.map(pr => pr.label).join(', ')})` : 'de doorsnedes zijn nog niet gemeten (Profielen meten)', drRws ? null : 'let');
+      ty += 3 * TS;
+      ty = kop('3. Resultaat', vak.x, linksW, ty);
+      for (const [l, w, st] of regels.filter(x => !isGetest(x) && x[0] !== 'Oordeel')) {
+        const groot = l === 'Weg gemeten onder het dak' ? (w.match(/^[\d,]+ %/) || [null])[0] : null;
+        rij(l.trim() || ' ', w, st, groot);
+      }
+      for (const bx of r.boxen) if (bx.vrijMin != null) rij(`${bx.naam ? bx.naam + ': ' : ''}minimale doorrijhoogte`, `${rws3(bx.vrijMin)} (kleinste vrije hoogte boven de box, ook buiten de doorsnedes)`, null);
+      const alle = (drRws?.profielen || []).flatMap(pr => pr.meetpunten.filter(m => m.h != null).map(m => ({ pr, m })));
+      if (alle.length) { const lg = alle.reduce((a, b) => (b.m.h < a.m.h ? b : a)); rij('Laagste in de doorsnedes', `${rws3(lg.m.h)} - ${lg.pr.label}, ${lg.m.soort === 'as' ? 'op de as' : rwsSoortTekst(lg.m)}`, null); }
+      const oo = regels.find(x => x[0] === 'Oordeel');
+      if (oo) {
+        ty += 2 * TS;
+        doc.setFontSize(12 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(51, 66, 79); doc.text('Oordeel', vak.x, ty);
+        doc.setFont('helvetica', 'bold'); doc.setTextColor(...kleur(oo[2])); doc.text(pdfTekst(oo[1]), vak.x + linksW * 0.42, ty);
+        ty += 8 * TS;
+      }
+      // rechterkolom: per doorsnede de tabel
+      let tr = kop('4. Doorrijhoogtes per doorsnede', rx, rechtsW, vak.y + 15 * TS);
+      if (!drRws) {
+        doc.setFontSize(8.5 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(178, 106, 0);
+        doc.text('Klik in het venster Doorrijhoogte op Profielen meten: dan komen hier per doorsnede de doorrijhoogtes.', rx, tr);
+      } else {
+        const kol = [['meetpunt', 3.0], ['offset', 0.9], ['weg', 1.1], ['dak', 1.1], ['doorrijhoogte', 1.8], ['dak bepaald', 2.4], ['punten weg/dak', 1.9], ['spreiding (mm)', 1.8]];
+        const som = kol.reduce((a, k) => a + k[1], 0), kx = []; { let x = rx; for (const k of kol) { kx.push(x); x += k[1] / som * rechtsW; } }
+        const rh = 4.6 * TS;
+        for (const pr of drRws.profielen) {
+          if (tr > vak.y + vak.h - 30 * TS) { meldingen.push('Doorrijhoogte (overzicht): niet alle doorsnedes passen op het blad.'); break; }
+          doc.setFontSize(9 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
+          doc.text(pr.label, rx, tr);
+          doc.setFont('helvetica', 'normal'); doc.setTextColor(85, 99, 111);
+          doc.text(pdfTekst(` - ${kwNaam(pr.kw)}${pr.hoek ? ` - schuin ${pr.hoek.toFixed(1)} gr.` : ''} - st. ${pr.station.toFixed(2)}`), rx + doc.getTextWidth(pr.label), tr);
+          tr += 4.5 * TS;
+          doc.setFontSize(7.2 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
+          kol.forEach((k, j) => doc.text(k[0], kx[j] + 0.5, tr));
+          doc.setDrawColor(30, 127, 166); doc.setLineWidth(0.3); doc.line(rx, tr + 1.3 * TS, rx + rechtsW, tr + 1.3 * TS);
+          tr += rh;
+          doc.setFont('helvetica', 'normal');
+          for (const m of pr.meetpunten) {
+            const rood = pr.min === m;
+            doc.setTextColor(...(rood ? [198, 71, 43] : [27, 42, 56])); doc.setFont('helvetica', rood ? 'bold' : 'normal');
+            const naam = m.soort === 'kant' ? `kant ${m.offset < 0 ? 'links' : 'rechts'}${m.doorgetrokken ? ' (BGT doorgetr.)' : ''}` : rwsSoortTekst(m);
+            const w = [naam, m.offset.toFixed(2), rws3(m.weg), rws3(m.dak), m.h == null ? (m.weg == null ? 'niet gemeten' : 'geen dak') : rws3(m.h), dakBronTekst(m, true), `${m.nW} / ${m.nD}`, `${m.sW == null ? '-' : Math.round(m.sW * 1000)} / ${m.sD == null ? '-' : Math.round(m.sD * 1000)}`];
+            w.forEach((t, j) => doc.text(kortTekst(doc, pdfTekst(t), (kx[j + 1] ?? rx + rechtsW) - kx[j] - 1), kx[j] + 0.5, tr));
+            doc.setDrawColor(227, 232, 236); doc.setLineWidth(0.15); doc.line(rx, tr + 1.4 * TS, rx + rechtsW, tr + 1.4 * TS);
+            tr += rh;
+          }
+          tr += 5 * TS;
+        }
+      }
+      // voetnoot
+      doc.setFontSize(6.5 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
+      const voet = 'De laagste doorrijhoogte per doorsnede in rood. Doorrijhoogte = dak (onderkant kunstwerk) min weg, uit de ruwe meetpunten binnen 0,10 m van het meetpunt; "dak bepaald": gemeten, gemeten in een vakje van 25 cm, of ingevuld uit het dakmodel (met de afstand tot het dichtstbijzijnde dakpunt); "weg uit model": geen wegpunten binnen 0,10 m, weg uit het wegmodel (overbrugd). Onder het kunstwerk is de BGT doorgetrokken.';
+      doc.splitTextToSize(pdfTekst(voet), vak.w).slice(0, 3).forEach((regel, j) => doc.text(regel, vak.x, vak.y + vak.h - 9 * TS + j * 3.2 * TS));
+    };
     if (magToets('doorrij') && inst.doorrij && drWolk && drKader()) {
       let r = null;
       try { r = voerDoorrijUit(); } catch (err) { meldingen.push('Doorrijhoogte: ' + err.message); }
-      if (r) {
+      if (r && inst.rwsSet) await rwsOverzichtBlad(r);
+      else if (r) {
         const nodig = volgendBladNodig();
         const oordeel = r.ok ? (r.krap ? 'voldoet (krap)' : 'voldoet') : 'voldoet niet';
         const kr = r.boxen.filter(b => b.kritiek).sort((a, b) => a.speling - b.speling)[0];
@@ -15256,6 +15379,7 @@ ${r3d}
     }
 
     // ── doorrijprofielen in RWS-stijl: een blad per profiel (plan doorrijprofielen-rws, F2) ──
+    const maakRwsBladen = async () => {
     if (magToets('doorrij') && inst.rws && drRws && drResultaat) {
       const r = drResultaat, rw = rwsInst();
       const meetdatum = rw.meetdatum || document.getElementById('drRwsMeetdatum')?.placeholder || '';
@@ -15344,6 +15468,8 @@ ${r3d}
         doc.splitTextToSize(pdfTekst(voet), vak.w).slice(0, 3).forEach((regel, j) => doc.text(regel, vak.x, Math.min(vak.y + vak.h - 1, tvY + tvH + 4 * TS + j * 3.2 * TS)));
       }
     }
+    };
+    if (!inst.rwsSet) await maakRwsBladen();   // bij de RWS-opleverset ná het lengteprofiel
 
     // ── snoeilijst op eigen blad(en) ──
     if (magToets('snoei') && inst.snoei && begroeiing && snKader()) {
@@ -15526,6 +15652,7 @@ ${r3d}
         doc.rect(vak.x, vak.y + kopMm, vak.w, grafHMm);
         }
       }
+      if (inst.rwsSet && asIdx === startAs) await maakRwsBladen();   // (rws-oplevering B1) volgorde: lengteprofiel, dan de doorsnedes
 
       // ── dwarsprofielen (raster van kolommen × rijen) ──
       if (inst.dwarsprofielen && stations.length) {

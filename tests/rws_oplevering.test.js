@@ -14,7 +14,7 @@ function maakData() {
   fs.mkdirSync(UIT, { recursive: true });
   const r = [];
   const punt = (s, o, z) => r.push(`${(X0 + s).toFixed(3)} ${(Y0 - o).toFixed(3)} ${z.toFixed(4)}`);
-  for (let i = 0; i <= 1000; i++) for (let j = -80; j <= 80; j++) punt(i / 10, j / 10, weg(i / 10, j / 10));
+  for (let i = 0; i <= 1000; i++) for (let j = -80; j <= 80; j++) { const s = i / 10, o = j / 10; if (s >= 35 && s <= 37 && o >= 0.5 && o <= 2) continue; punt(s, o, weg(s, o)); }   // gat onder KW1 (F1: weg niet gemeten)
   for (const k of KW) for (let i = k.van * 10; i <= k.tot * 10; i++) for (let j = -60; j <= 60; j++) { punt(i / 10, j / 10, k.dak); punt(i / 10, j / 10, k.dak + 0.7); }
   const pts = path.join(UIT, 'twee_viaducten.pts');
   fs.writeFileSync(pts, `${r.length}\n${r.join('\n')}\n`);
@@ -96,6 +96,60 @@ function maakData() {
   if (!/hoogte 9,00 - 18,00 m NAP/.test(py.stdout || '')) fouten.push('F0-1b: PDF-lengteprofiel noemt het vaste bereik niet');
   await p.keyboard.press('Escape').catch(() => {}); await p.waitForTimeout(300);
   if (await p.isVisible('#pdfDialoog[open]')) await p.evaluate(() => document.getElementById('pdfDialoog')?.close());
+
+  // F1-3. oordeel zonder "m² weg niet gemeten" (staat al bij "weg gemeten onder het dak"), percentage groot
+  await p.click('#doorrijKnop'); await p.waitForSelector('#drDialoog[open]');
+  const res = await p.evaluate(() => ({ tekst: document.getElementById('drResultaat').textContent, pct: !!document.querySelector('#drResultaat .drPct'), oordeel: document.querySelector('#drResultaat tr.oordeel td')?.textContent }));
+  console.log('F1-3 venster: oordeel', JSON.stringify(res.oordeel), '| groot %:', res.pct, '| gat genoemd:', /niet gemeten/.test(res.tekst));
+  if (/m² weg niet gemeten/.test(res.oordeel || '')) fouten.push('F1-3: oordeel noemt nog de m² weg niet gemeten');
+  if (!res.pct) fouten.push('F1-3: percentage weg gemeten niet groot');
+  if (!/niet gemeten/.test(res.tekst)) fouten.push('F1-3: testgat in de weg niet gevonden (testopzet)');
+  await p.click('#drSluit'); await p.waitForTimeout(300);
+
+  // F1-1/2. RWS-opleverset: bovenaanzicht, Doorrijhoogte (overzicht), lengteprofiel, de doorsnedes, in die volgorde
+  await p.click('#printKnop'); await p.waitForTimeout(400);
+  await p.evaluate(() => { const z = (k, v) => { const e = document.getElementById(k); if (!e) return; if (typeof v === 'boolean') e.checked = v; else e.value = v; e.dispatchEvent(new Event('change')); }; z('pdfLuchtfoto', false); z('pdfFormaat', 'A3'); z('pdfProjectnaam', 'Test RWS-opleverset'); z('pdfRwsSet', true); });
+  const vinkjes = await p.evaluate(() => Object.fromEntries(['pdfBovenaanzicht', 'pdfDoorrij', 'pdfLengteprofiel', 'pdfRws', 'pdfDwarsprofielen', 'pdf3D'].map(k => [k, document.getElementById(k)?.checked])));
+  console.log('F1-1 vinkjes na de keuze:', JSON.stringify(vinkjes));
+  const [dl2] = await Promise.all([p.waitForEvent('download', { timeout: 300000 }), p.click('#pdfMaak')]);
+  const pdf2 = path.join(H.UIT, 'rws_opleverset.pdf'); await dl2.saveAs(pdf2);
+  const py2 = spawnSync('python', ['-I', '-c', [
+    'import sys, pymupdf',
+    'd = pymupdf.open(sys.argv[1])',
+    'for i, pg in enumerate(d):',
+    '    t = " ".join(pg.get_text().split())',
+    '    print("BLAD", i + 1, t[:2500])',
+    '    if t.startswith("Doorrijhoogte"): pg.get_pixmap(dpi=90).save(sys.argv[2])',
+  ].join(String.fromCharCode(10)), pdf2, path.join(H.UIT, 'rws_opleverset_blad2.png')], { encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
+  const bladen = (py2.stdout || '').split(/\r?\n/).filter(l => l.startsWith('BLAD'));
+  const soort = (l) => /^BLAD 1 N 0 /.test(l) || /ONDERDEEL Bovenaanzicht/.test(l) ? 'boven' : /^BLAD \d+ Doorrijhoogte/.test(l) ? 'doorrij' : /^BLAD \d+ Lengteprofiel/.test(l) ? 'lengte' : /^BLAD \d+ Doorrijprofiel (KW\d (voor|achter))/.test(l) ? l.match(/Doorrijprofiel (KW\d (voor|achter))/)[1] : 'ander';
+  const volgorde = bladen.map(soort);
+  console.log('F1-1 bladen:', volgorde.join(', '), py2.stderr ? py2.stderr.slice(0, 200) : '');
+  const verwacht = ['boven', 'doorrij', 'lengte', 'KW1 voor', 'KW1 achter', 'KW2 voor', 'KW2 achter'];
+  if (volgorde.join('|') !== verwacht.join('|')) fouten.push(`F1-1: bladen ${volgorde.join(', ')} (verwacht ${verwacht.join(', ')})`);
+  const b2 = bladen.find(l => soort(l) === 'doorrij') || '';
+  for (const t of ['1. Wat is getest', '2. Welke profielen', '3. Resultaat', '4. Doorrijhoogtes per doorsnede', 'KW1 voor', 'KW2 achter', 'kant links', 'kant rechts', 'Oordeel']) if (!b2.includes(t)) fouten.push(`F1-2: "${t}" niet op blad 2`);
+  if (/m² weg niet gemeten/.test(b2.split('Oordeel')[1] || '')) fouten.push('F1-3: oordeel op blad 2 noemt de m²');
+  await p.keyboard.press('Escape').catch(() => {}); await p.waitForTimeout(300);
+  if (await p.isVisible('#pdfDialoog[open]')) await p.evaluate(() => document.getElementById('pdfDialoog')?.close());
+  await p.evaluate(() => { const e = document.getElementById('pdfRwsSet'); if (e) { e.checked = false; e.dispatchEvent(new Event('change')); } });
+
+  // F0-5. automatisch bereik bij verh. 1: het hele kunstwerk (tot de bovenkant) staat in het PDF-lengteprofiel
+  await p.fill('#langsHoogteVan', ''); await p.dispatchEvent('#langsHoogteVan', 'change');
+  await p.fill('#langsHoogteTot', ''); await p.dispatchEvent('#langsHoogteTot', 'change');
+  await p.fill('#langsOverdrijving', '1'); await p.dispatchEvent('#langsOverdrijving', 'change'); await p.waitForTimeout(400);
+  const scherm1 = await p.evaluate(() => window.__pvTest.langsAs());
+  console.log('F0-5 scherm verh. 1:', JSON.stringify({ hMax: +scherm1.hMax.toFixed(2) }));
+  if (!(scherm1.hMax >= 15.9)) fouten.push(`F0-5: bovenkant van KW2 (15,90) valt buiten het lengteprofiel (hMax ${scherm1.hMax})`);
+  await p.click('#printKnop'); await p.waitForTimeout(400);
+  await p.evaluate(() => { const z = (k, v) => { const e = document.getElementById(k); if (!e) return; if (typeof v === 'boolean') e.checked = v; else e.value = v; e.dispatchEvent(new Event('change')); }; z('pdfRwsSet', false); z('pdfLengteprofiel', true); z('pdfDwarsprofielen', false); z('pdfRws', false); z('pdfDoorrij', false); z('pdfBovenaanzicht', false); });
+  const [dl3] = await Promise.all([p.waitForEvent('download', { timeout: 300000 }), p.click('#pdfMaak')]);
+  const pdf3 = path.join(H.UIT, 'rws_lengte_verh1.pdf'); await dl3.saveAs(pdf3);
+  spawnSync('python', ['-I', '-c', 'import sys, pymupdf; d = pymupdf.open(sys.argv[1]); d[0].get_pixmap(dpi=80).save(sys.argv[2])', pdf3, path.join(H.UIT, 'rws_lengte_verh1.png')]);
+  await p.keyboard.press('Escape').catch(() => {}); await p.waitForTimeout(300);
+  if (await p.isVisible('#pdfDialoog[open]')) await p.evaluate(() => document.getElementById('pdfDialoog')?.close());
+  await p.fill('#langsHoogteVan', '9'); await p.dispatchEvent('#langsHoogteVan', 'change');
+  await p.fill('#langsHoogteTot', '18'); await p.dispatchEvent('#langsHoogteTot', 'change');
 
   // F0-4. het bereik komt terug na opslaan en openen
   await p.evaluate(() => window.__pvTest.projectRondje()); await p.waitForTimeout(1500);

@@ -22,7 +22,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
 | F0 | Lengteprofiel: hoogte van/tot instelbaar, labels KW1/KW2 boven het kunstwerk | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B2, B3 | ✅ 2026-11-09 17:49 |
-| F1 | Eén keuze "RWS-oplevering": bovenaanzicht, blad 2 Doorrijhoogte (overzicht zoals het voorbeeld), lengteprofiel, alle doorsnedes, in die volgorde | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B1, B5 | - |
+| F1 | Eén keuze "RWS-oplevering": bovenaanzicht, blad 2 Doorrijhoogte (overzicht zoals het voorbeeld), lengteprofiel, alle doorsnedes, in die volgorde | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B1, B5 | ✅ 2026-11-09 18:09 |
 | F2 | Invulscherm: gegevens die niet uit de scan komen, op de RWS-bladen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B4 | - |
 | F3 | Verificatierapport volgens de RWS-eisen | ○ nog niet | - | eisen van RWS | - |
 
@@ -141,5 +141,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-09 17:33 | Voorbeeld van blad 2 gemaakt en twee keer aangepast; B5 besloten (zoals het voorbeeld): "Ja, opnemen" | Marco van Steenbrugge, via chat |
 | 2026-11-09 17:35 | B1, B2, B3 en B4 akkoord (ons voorstel) en vrijgave F0, F1 en F2 op planversie 1: "Akkoord, bouw F0–F2"; Marco als beslisser bevestigd in eerdere plannen | Marco van Steenbrugge, via chat |
 | 2026-11-09 17:49 | F0 gebouwd: lengteprofiel: hoogtebereik van/tot (scherm en PDF, in het project) en de labels van de doorsnedes boven het kunstwerk | Claude Opus 5.5 (agent) |
+| 2026-11-09 18:09 | F1 gebouwd: keuze RWS-opleverset (bovenaanzicht, blad 2 Doorrijhoogte als overzicht, lengteprofiel, de doorsnedes), oordeel zonder m², percentage groot | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
