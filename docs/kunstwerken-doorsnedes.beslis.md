@@ -11,10 +11,10 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Meerdere kunstwerken, met voor- en achterzijde in het lengteprofiel
 
-> **Nu van jou gevraagd:** niets; F4 wordt gebouwd.
-> **Later nodig:** B5 (versie) en de vrijgave van F5.
+> **Nu van jou gevraagd:** B11 (BGT doortrekken onder het kunstwerk) en de vrijgave van F5.
+> **Later nodig:** B5 (versie) en de vrijgave van F6.
 
-De Doorrijhoogte vindt zelf de kunstwerken langs de as en meet per kunstwerk een doorsnede aan de voorkant en aan de achterzijde, op kant asfalt links, de as en kant asfalt rechts. De doorsnedes staan als lijnen in het lengteprofiel en je kunt ze daar verschuiven. In planversie 3 komt er een dakmodel bij, omdat bij een dunne scan soms "geen dak" stond. In planversie 2 kwamen er twee wensen bij: alleen deze doorsnedes als dwarsprofielen, en doorsnedes die meedraaien als het kunstwerk schuin over de weg ligt. Het werk is nu verdeeld in zes fasen.
+De Doorrijhoogte vindt zelf de kunstwerken langs de as en meet per kunstwerk een doorsnede aan de voorkant en aan de achterzijde, op kant asfalt links, de as en kant asfalt rechts. De doorsnedes staan als lijnen in het lengteprofiel en je kunt ze daar verschuiven. In planversie 3 komt er een dakmodel bij, omdat bij een dunne scan soms "geen dak" stond. In planversie 2 kwamen er twee wensen bij: alleen deze doorsnedes als dwarsprofielen, en doorsnedes die meedraaien als het kunstwerk schuin over de weg ligt. In planversie 4 komen het doortrekken van de BGT onder het kunstwerk en drie maten in het lengteprofiel erbij. Het werk is nu verdeeld in zeven fasen.
 
 ## Vrijgave per fase
 Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fase op leunt zijn genomen. Een vrijgave blijft geldig zolang het plan voor die fase en die besluiten niet is gewijzigd; het plan houdt dat bij in het wijzigingslog.
@@ -26,7 +26,8 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F2 | Alleen de doorsnedes als dwarsprofielen (niet meer om de zoveel meter) | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B6 | ✅ 2026-11-09 10:20 |
 | F3 | Doorsnedes evenwijdig aan de rand van een schuin kunstwerk | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B7 | ✅ 2026-11-09 10:33 |
 | F4 | Een dakmodel: één vlak van de onderkant uit alle dakpunten, zodat er ook bij een dunne scan overal een dak is, met gemeten of ingevuld per meetpunt | ✅ ja, op planversie 3 | Marco van Steenbrugge · 2026-11-09 15:20 | B8, B9, B10 | ✅ 2026-11-09 15:38 |
-| F5 | Uitleveren als nieuwe versie, met jouw controle op een echte scan | ○ nog niet | - | B5 | - |
+| F5 | De BGT-randen onder het kunstwerk doortrekken, zodat kant asfalt links en rechts daar altijd een doorrijhoogte hebben; drie maten per doorsnede in het lengteprofiel | ○ nog niet | - | B11, B12 | - |
+| F6 | Uitleveren als nieuwe versie, met jouw controle op een echte scan | ○ nog niet | - | B5 | - |
 
 Letterlijk akkoord (F0 tot en met F1, via chat): "Akkoord, bouw F0–F1", als antwoord op de vraag "Akkoord met B1–B4 zoals voorgesteld en bouwen op planversie 1, fase F0 en F1?" (F1 vervallen op versie 2)
 
@@ -41,7 +42,9 @@ Letterlijk akkoord (F4, via chat): "kan je die inbouwen" en daarna "akkoord met 
 | ✅ | B2 | Meetpunten per doorsnede | Ons voorstel | F0 |
 | ✅ | B3 | Wat er gebeurt na het verschuiven | Ons voorstel | F1 |
 | ✅ | B4 | Naam per kunstwerk op het RWS-blad | Ons voorstel | F0 |
-| ⏳ | B5 | Versie | **Nog niet beoordeeld** | F5 |
+| ⏳ | B5 | Versie | **Nog niet beoordeeld** | F6 |
+| ⏳ | B11 | BGT doortrekken onder het kunstwerk | **Nog niet beoordeeld** | F5 |
+| ✅ | B12 | Maten in het lengteprofiel | Alle drie | F5 |
 | ✅ | B8 | Dakmodel | Ons voorstel | F4 |
 | ✅ | B9 | Hoe ver invullen | Ons voorstel | F4 |
 | ✅ | B10 | Waar het dakmodel geldt | Ons voorstel | F4 |
@@ -136,7 +139,7 @@ Meer uitleg: plan, punt 6, B4
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 08:53 · **nodig vóór** F5
+**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 08:53 · **nodig vóór** F6
 
 Meer uitleg: plan, punt 6, B5
 
@@ -230,6 +233,42 @@ Meer uitleg: plan, punt 6, B9
 
 Meer uitleg: plan, punt 6, B10
 
+### ⏳ B11 · BGT doortrekken onder het kunstwerk
+**Je beslist:** waar de kant asfalt onder het kunstwerk vandaan komt.
+
+| | Ons voorstel | Alternatief |
+|---|---|---|
+| **Wat** | Onder elk kunstwerk altijd de BGT-randen rechtdoor trekken van 2 m vóór tot 2 m ná het kunstwerk, ook als er BGT ligt | Alleen doortrekken waar onder het kunstwerk geen weg-vlak in de BGT gevonden wordt |
+| **Voordeel** | Eén doorlopende kant; geen last van de BGT van het kunstwerk erboven | De BGT blijft waar die er is |
+| **Nadeel** | Een echte versmalling onder het kunstwerk, die alleen in de BGT staat, valt weg | Kan het verkeerde vlak pakken (het kunstwerk erboven) |
+
+**Jouw keuze**
+- [ ] Akkoord met ons voorstel
+- [ ] Anders:
+- [ ] Vervalt
+
+**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 15:42 · **nodig vóór** F5
+
+Meer uitleg: plan, punt 6, B11
+
+### ✅ B12 · Maten in het lengteprofiel
+**Je beslist:** welke maten per doorsnede in het lengteprofiel staan.
+
+| | Alle drie | Alleen de as |
+|---|---|---|
+| **Wat** | Kant links, as en kant rechts | Alleen de maat op de as (zoals nu) |
+| **Voordeel** | Alle doorrijhoogtes in één beeld | Rustiger lengteprofiel |
+| **Nadeel** | Drie maten dicht bij elkaar | Kanten alleen in de doorsnede |
+
+**Jouw keuze**
+- [x] Akkoord met: alle drie
+- [ ] Anders:
+- [ ] Vervalt
+
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-09 15:42 (vóór het voorleggen) · **via** chat · **over** de vraag "Wil je in het lengteprofiel alle drie de maten, of alleen de as?": "Alle drie"
+
+Meer uitleg: plan, punt 6, B12
+
 ## Historie
 Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in het plan, punt 11.
 
@@ -248,5 +287,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-09 11:28 | Planversie 3: dakmodel (F4, B8, B9, B10), oplevering wordt F5; voorgelegd | Claude Opus 5.5 (agent) |
 | 2026-11-09 15:20 | B8, B9 en B10 akkoord (ons voorstel) en vrijgave F4 op planversie 3: "kan je die inbouwen", "akkoord met B8 - 9 en 10" | Marco van Steenbrugge, via chat |
 | 2026-11-09 15:38 | F4 gebouwd: dakmodel: raster van de onderkant (25 cm), gaten ingevuld tot 2 m van een gemeten vakje, meetpunten en kleinste vrije hoogte op het model, gemeten/ingevuld in tabel, RWS-blad, dwarsprofiel en bovenaanzicht; dunne onderkant blijft bewaard in de ruisfilter | Claude Opus 5.5 (agent) |
+| 2026-11-09 (vóór 15:42) | Wens: BGT-lijnen ook onder het kunstwerk, doorgetrokken van vóór en ná, voor een doorrijhoogte op de BGT-lijn; drie meetlijnen; B12 "Alle drie" | Marco van Steenbrugge, via chat |
+| 2026-11-09 15:42 | Planversie 4: BGT doortrekken en drie maten in het lengteprofiel (F5, B11, B12), oplevering wordt F6; voorgelegd | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
