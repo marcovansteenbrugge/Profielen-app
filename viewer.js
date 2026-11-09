@@ -2343,7 +2343,7 @@
   function profielKader(breedte, tol) {
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     const neem = (p) => { if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x; if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y; };
-    for (const st of dwarsStations) { neem(puntOpStationOffset(st, -profielL())); neem(puntOpStationOffset(st, profielR())); }
+    for (const st of dwarsStations) { const h = dwarsHoek(st); neem(puntOpDwarslijn(st, -profielL(), h)); neem(puntOpDwarslijn(st, profielR(), h)); }
     for (const p of asPunten) neem(p);
     const m = tol + 0.5;
     return { minX: minX - m, maxX: maxX + m, minY: minY - m, maxY: maxY + m };
@@ -2832,7 +2832,7 @@
     const breedte = pL + pR;
     const asSt = asStukken();
     const dwarsSt = stations.map((st, i) => {
-      const l = puntOpStationOffset(st, -pL), r = puntOpStationOffset(st, pR);
+      const hk = dwarsHoek(st), l = puntOpDwarslijn(st, -pL, hk), r = puntOpDwarslijn(st, pR, hk);   // schuin bij een kunstwerk
       return { ax: l.x, ay: l.y, bx: r.x, by: r.y, i };
     });
     const alle = dwarsSt.map(d => ({ ...d, soort: 'dwars' })).concat(asSt.map(a => ({ ...a, soort: 'as' })));
@@ -4201,7 +4201,7 @@
     let beste = -1, besteD = 7;
     dwarsStations.forEach((st, i) => {
       if (!lijnenZichtbaar && i !== huidigeStationIndex) return;
-      const l = puntOpStationOffset(st, -pL), r = puntOpStationOffset(st, pR);
+      const hk = dwarsHoek(st), l = puntOpDwarslijn(st, -pL, hk), r = puntOpDwarslijn(st, pR, hk);   // schuin bij een kunstwerk
       const [x0, y0] = wereldNaarScherm(l.x, l.y), [x1, y1] = wereldNaarScherm(r.x, r.y);
       const dx = x1 - x0, dy = y1 - y0, l2 = dx * dx + dy * dy || 1;
       const t = Math.max(0, Math.min(1, ((sx - x0) * dx + (sy - y0) * dy) / l2));
@@ -9251,7 +9251,7 @@ ${r3d}
     // dwarsprofiellijnen (2D) + de profielen zelf (3D) + profielpunten + BGT-grenzen
     const lijnen = [], profielen3D = [], punten = [], bgtPunten = [];
     for (const st of dwarsStations) {
-      const L = puntOpStationOffset(st, -pL), R = puntOpStationOffset(st, pR);
+      const hk = dwarsHoek(st), L = puntOpDwarslijn(st, -pL, hk), R = puntOpDwarslijn(st, pR, hk);   // schuin bij een kunstwerk
       lijnen.push({ geom: [[L.x, L.y], [R.x, R.y]], waarden: [asNaam, r3(st), breedte, `${st.toFixed(st % 1 ? 1 : 0)}`, ...(stationeringAan() ? [paalTekst(st)] : [])] });
       const reeks = berekenDwarsprofiel(st);
       let stuk = [], deel = 1;
@@ -11125,7 +11125,7 @@ ${r3d}
     d.polylijn('PV_AS', asLijn, true);
     if (!zonderKaartLijnen) d.tekst('PV_AS', asPunten[0].x, asPunten[0].y, TH * 2, asNaam, { h: 0, v: 0 });
     for (const st of dwarsStations) {
-      const L = puntOpStationOffset(st, -pL), R = puntOpStationOffset(st, pR);
+      const hk = dwarsHoek(st), L = puntOpDwarslijn(st, -pL, hk), R = puntOpDwarslijn(st, pR, hk);   // schuin bij een kunstwerk
       if (!zonderKaartLijnen) {
         d.lijn('PV_DWARSLIJN', L.x, L.y, R.x, R.y);
         const hoek = Math.atan2(R.y - L.y, R.x - L.x) * 180 / Math.PI;
@@ -13748,7 +13748,7 @@ ${r3d}
         let laatste = null;
         const labels = [];
         for (const st of stations) {
-          const l = puntOpStationOffset(st, -pL), r = puntOpStationOffset(st, pR);
+          const hk = dwarsHoek(st), l = puntOpDwarslijn(st, -pL, hk), r = puntOpDwarslijn(st, pR, hk);   // schuin bij een kunstwerk, zoals op het scherm
           const [lx, ly] = naarPx(l.x, l.y), [rx, ry] = naarPx(r.x, r.y);
           ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(rx, ry);
           ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 3.4 * pt; ctx.stroke();

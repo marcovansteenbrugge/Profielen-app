@@ -105,7 +105,7 @@ function maakData() {
   // 5. RWS-blad noemt de hoek
   await p.click('#drSluit');
   await p.click('#printKnop'); await p.waitForTimeout(400);
-  await p.evaluate(() => { const z = (k, v) => { const e = document.getElementById(k); if (!e) return; if (typeof v === 'boolean') e.checked = v; else e.value = v; e.dispatchEvent(new Event('change')); }; z('pdfLuchtfoto', false); z('pdfFormaat', 'A3'); z('pdfProjectnaam', 'Test schuin'); z('pdf3D', false); z('pdfRws', true); });
+  await p.evaluate(() => { const z = (k, v) => { const e = document.getElementById(k); if (!e) return; if (typeof v === 'boolean') e.checked = v; else e.value = v; e.dispatchEvent(new Event('change')); }; z('pdfLuchtfoto', false); z('pdfFormaat', 'A3'); z('pdfProjectnaam', 'Test schuin'); z('pdf3D', false); z('pdfRws', true); z('pdfBovenaanzicht', true); z('pdfDwarsprofielen', false); });
   const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 300000 }), p.click('#pdfMaak')]);
   const pdfPad = path.join(H.UIT, 'kunstwerk_schuin.pdf'); await dl.saveAs(pdfPad);
   const { spawnSync } = require('child_process');
@@ -117,6 +117,7 @@ function maakData() {
     '    t = " ".join(pg.get_text().split())',
     '    if t.startswith("Doorrijprofiel "):',
     '        n += 1; print("RWSBLAD", t[:140]); pg.get_pixmap(dpi=70).save(sys.argv[2].replace("N", str(n)))',
+    '    elif "ONDERDEEL Bovenaanzicht" in t: pg.get_pixmap(dpi=110).save(sys.argv[2].replace("N", "boven"))',
   ].join(String.fromCharCode(10)), pdfPad, path.join(H.UIT, 'kunstwerk_schuin_blad_N.png')], { encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
   const bladen = (py.stdout || '').split(/\r?\n/).filter(l => l.startsWith('RWSBLAD'));
   console.log('5 PDF:', bladen.join(' / '), py.stderr ? py.stderr.slice(0, 200) : '');
