@@ -56,13 +56,17 @@ function maakData() {
   await p.click('#drControleer'); await p.waitForTimeout(800);
 
   // 1. profiel 1 en 2 op de dakranden; hoogtes op de kant verharding < 1 cm
-  await p.click('#drRwsMeten'); await wacht(/Doorrijprofiel: profiel 1/);
+  await p.click('#drRwsMeten'); await wacht(/Doorrijprofiel: \d+ doorsnedes/);
   let rws = await p.evaluate(() => window.__pvTest.rws());
   console.log('1 profielen:', JSON.stringify(rws));
   const [p1, p2] = rws;
+  if (rws.length !== 2) fouten.push(`1: ${rws.length} doorsnedes (verwacht 2: één kunstwerk)`);
   if (!(Math.abs(p1.station - 40.2) <= 0.25 && Math.abs(p2.station - 59.8) <= 0.25)) fouten.push(`1: profielen niet op de dakranden (${p1.station}, ${p2.station})`);
+  if (p1.label !== 'KW1 voor' || p2.label !== 'KW1 achter') fouten.push(`1: labels ${p1.label}, ${p2.label} (verwacht KW1 voor, KW1 achter)`);
   for (const pr of rws) {
     const kant = pr.meetpunten.filter(m => m.soort === 'kant');
+    const as = pr.meetpunten.find(m => m.soort === 'as');
+    if (!as || as.offset !== 0 || as.h == null || Math.abs(as.h - (DAK - weg(pr.station, 0))) >= 0.01) fouten.push(`1: profiel ${pr.nr}: meetpunt op de as ontbreekt of klopt niet (${JSON.stringify(as)})`);
     if (kant.length !== 2) fouten.push(`1: profiel ${pr.nr}: ${kant.length} meetpunten kant verharding (verwacht 2)`);
     for (const m of kant) {
       const verwacht = DAK - weg(pr.station, m.offset);
@@ -108,7 +112,7 @@ function maakData() {
   await p.screenshot({ path: path.join(H.UIT, 'doorrijprofiel_rws_venster.png') });
 
   // 5. (F2) PDF: per profiel een blad, drie decimalen met punt, minimale doorrijhoogte in het tekstvak
-  await p.fill('#drRwsWeg', 'Teststraat'); await p.fill('#drRwsObject', 'Testviaduct'); await p.fill('#drRwsMeetdatum', '06-11-2026');
+  await p.fill('#drRwsWeg', 'Teststraat'); await p.fill('#drKwLijst [data-kwnaam="1"]', 'Testviaduct'); await p.dispatchEvent('#drKwLijst [data-kwnaam="1"]', 'change'); await p.fill('#drRwsMeetdatum', '06-11-2026');
   await p.click('#drSluit');
   await p.click('#printKnop'); await p.waitForTimeout(400);
   await p.evaluate(() => { const z = (k, v) => { const e = document.getElementById(k); if (!e) return; if (typeof v === 'boolean') e.checked = v; else e.value = v; e.dispatchEvent(new Event('change')); }; z('pdfLuchtfoto', false); z('pdfFormaat', 'A3'); z('pdfProjectnaam', 'Test doorrijprofiel'); z('pdf3D', false); z('pdfRws', true); z('pdfDwarsprofielen', false); });
@@ -119,16 +123,17 @@ function maakData() {
   const py = spawnSync('python', ['-I', '-c', [
     'import sys, pymupdf',
     'd = pymupdf.open(sys.argv[1])',
+    'n = 0',
     'for i, pg in enumerate(d):',
     '    t = " ".join(pg.get_text().split())',
     '    if t.startswith("Doorrijprofiel "):',
-    '        print("RWSBLAD", i + 1, t[:900]); pg.get_pixmap(dpi=70).save(sys.argv[2].replace("N", t[15]))',
+    '        n += 1; print("RWSBLAD", i + 1, t[:900]); pg.get_pixmap(dpi=70).save(sys.argv[2].replace("N", str(n)))',
   ].join(String.fromCharCode(10)), pdfPad, path.join(H.UIT, 'doorrijprofiel_rws_blad_N.png')], { encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
   const pdfTekst = py.stdout || '';
   console.log('5 PDF:', pdfTekst.replace(/\s+/g, ' ').slice(0, 900), py.stderr ? py.stderr.slice(0, 300) : '');
   const bladen = (pdfTekst.match(/RWSBLAD/g) || []).length;
   if (bladen !== 2) fouten.push(`5: ${bladen} RWS-bladen in de PDF (verwacht 2)`);
-  for (const t of ['3.696', '3.353', 'Teststraat', 'Testviaduct', '06-11-2026', 'Minimale doorrijhoogte:', '9.000']) if (!pdfTekst.includes(t)) fouten.push(`5: "${t}" niet op het RWS-blad`);
+  for (const t of ['3.696', '3.353', 'Teststraat', 'Testviaduct', 'Doorrijprofiel KW1 voor - Testviaduct', 'voorkant kunstwerk 1', 'kant verharding links', '06-11-2026', 'Minimale doorrijhoogte:', '9.000']) if (!pdfTekst.includes(t)) fouten.push(`5: "${t}" niet op het RWS-blad`);
   console.log('fouten:', fouten.join(' | ') || 'geen');
   await b.close();
 })();

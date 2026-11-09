@@ -3221,10 +3221,12 @@
       boxen: r.boxen.map(b => ({ B: b.B, H: b.H, c: b.c, vrijMin: b.vrijMin, speling: b.speling, ok: b.ok, krap: b.krap, nConflict: b.nConflict, kritiek: b.kritiek })) } : null; },
     doorrijWeg: (s, o) => drResultaat ? drResultaat.wegOp(s, o) : null,
     doorrijInst: () => JSON.parse(JSON.stringify(doorrij)),
-    rwsMeten: async () => { const d = await rwsMeten(); toonRwsResultaat(); return d.profielen.map(p => ({ nr: p.nr, station: p.station, n: p.punten.o.length, min: p.min ? { offset: p.min.offset, h: p.min.h } : null, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, weg: m.weg, dak: m.dak, h: m.h, nW: m.nW, nD: m.nD, sW: m.sW, sD: m.sD })) })); },
-    rws: () => drRws ? drRws.profielen.map(p => ({ nr: p.nr, station: p.station, breedte: p.breedte, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, h: m.h })) })) : null,
+    rwsMeten: async () => { const d = await rwsMeten(); toonRwsResultaat(); return d.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, n: p.punten.o.length, min: p.min ? { offset: p.min.offset, h: p.min.h } : null, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, weg: m.weg, dak: m.dak, h: m.h, nW: m.nW, nD: m.nD, sW: m.sW, sD: m.sD })) })); },
+    rws: () => drRws ? drRws.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, breedte: p.breedte, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, h: m.h })) })) : null,
+    kunstwerken: () => drResultaat ? drKunstwerken(drResultaat) : null,
     rwsBreedteMin: () => drRws?.breedteMin || null,
     rwsToon: (nr) => rwsToon(nr),
+    rwsOudeStations: (p1, p2) => { const rw = rwsInst(); rw.doorsnedes = {}; rw.p1 = p1; rw.p2 = p2; drRws = null; },   // project van vóór 2.16.0 nabootsen
     dwarsKlikX: (o) => { const a = svgDwars.__pvX, rect = svgDwars.getBoundingClientRect(); return rect.left + (a.zX + a.zS * (a.margeL + (o - a.xMin) * a.xSchaal)) * rect.width / a.breed; },
     projectRondje: async () => { const blob = maakProjectBlob(); doorrij = JSON.parse(JSON.stringify(DR_STANDAARD)); await laadProjectBestand(new File([blob], 'rondje.json')); return JSON.parse(JSON.stringify(doorrij)); },
     profielPunten: () => { const st = dwarsStations[huidigeStationIndex]; const q = volleProfielenGeldig() && volleProfielen.punten?.get(st); return q ? { station: st, strook: volleProfielen.strook, o: Array.from(q.o), z: Array.from(q.z), k: Array.from(q.k) } : null; } };
@@ -8010,7 +8012,7 @@
       }
     }
     let ruis = 0, metDak = 0;
-    const dakS = [], dakO = [];
+    const dakS = [], dakO = [], dakBoven = [];   // dakBoven: stations van dakpunten boven een box (kunstwerken vinden)
     for (let p = 0; p < PS.length; p++) {
       if (PC[p] !== 1) continue;
       const cs = Math.floor(PS[p] / CEL), co = Math.floor(PO[p] / CEL), cz = Math.floor(PZ[p] / CEL);
@@ -8020,12 +8022,14 @@
       if (PS[p] < k.s0 || PS[p] > k.s1) continue;
       dakS.push(PS[p]); dakO.push(PO[p]);
       const i = Math.min(ns - 1, Math.max(0, Math.floor(PS[p] / BS)));
+      let boven = false;
       for (const bx of boxen) {
         if (Math.abs(PO[p] - bx.c) > bx.B / 2) continue;
         const z0 = bx.bodem[i]; if (Number.isNaN(z0)) continue;
         const vrij = PZ[p] - z0;
         if (vrij <= 0) continue;   // onder de box-onderkant (bv. een putdeksel naast de hoogste rand)
         metDak++;
+        if (!boven) { boven = true; dakBoven.push(PS[p]); }
         if (PS[p] < bx.dakVan) bx.dakVan = PS[p]; if (PS[p] > bx.dakTot) bx.dakTot = PS[p];
         if (Number.isNaN(bx.vrijLangs[i]) || vrij < bx.vrijLangs[i]) bx.vrijLangs[i] = vrij;
         if (bx.vrijMin == null || vrij < bx.vrijMin) { bx.vrijMin = vrij; bx.kritiek = { station: PS[p], offset: PO[p], z: PZ[p], bodem: z0, x: PX[p], y: PY[p] }; }
@@ -8055,6 +8059,7 @@
       ...k, boxen, half, BS, BO, ns, no, wegOp, ruis, metDak, dekking,
       S: Float32Array.from(PS), O: Float32Array.from(PO), Z: Float32Array.from(PZ), X: Float64Array.from(PX), Y: Float64Array.from(PY), cls: Uint8Array.from(PC),
       nb, start, volgorde, asSl: asSleutelNu(), tijd: new Date(),
+      dakStations: Float32Array.from(dakBoven).sort(),
       bodemOp: (bi, s) => { const v = boxen[bi].bodem[Math.max(0, Math.min(ns - 1, Math.floor(s / BS)))]; return Number.isNaN(v) ? null : v; },
       vrijOp: (bi, s) => { const v = boxen[bi].vrijLangs[Math.max(0, Math.min(ns - 1, Math.floor(s / BS)))]; return Number.isNaN(v) ? null : v; },
     };
@@ -8358,10 +8363,15 @@
      - minimale doorrijhoogte per rijbaan = de kleinste vrije hoogte van de
        box van die rijbaan (ook buiten de profielen, bijlage J).
      ──────────────────────────────────────────────────────────────── */
-  const RWS_STANDAARD = { p1: '', p2: '', meetpunten: [], weg: '', object: '', rijbaan: '', meetdatum: '', bijzonderheden: '' };
-  const RWS_SOORTEN = { kant: 'kant verharding', markering: 'wegmarkering', kantstreep: 'kantstreep + 1 m', ophang: 'ophangconstructie', overig: 'overig' };
+  // p1/p2 en object: van vóór 2.16.0 (één kunstwerk); nu doorsnedes { '1-voor': station } en objecten per kunstwerk
+  const RWS_STANDAARD = { p1: '', p2: '', meetpunten: [], weg: '', object: '', rijbaan: '', meetdatum: '', bijzonderheden: '', kwGat: '', doorsnedes: {}, objecten: [] };
+  const RWS_SOORTEN = { kant: 'kant verharding', as: 'as', markering: 'wegmarkering', kantstreep: 'kantstreep + 1 m', ophang: 'ophangconstructie', overig: 'overig' };
+  /** Naam van een meetpunt: bij de kant verharding ook links of rechts. */
+  const rwsSoortTekst = (m) => m.soort === 'kant' ? `kant verharding ${m.offset < 0 ? 'links' : 'rechts'}` : (RWS_SOORTEN[m.soort] || m.soort);
+  const KW_GAT = 5;           // m: stukken dak met een kleiner gat ertussen horen bij één kunstwerk
+  const KW_MIN = { lengte: 1, punten: 20 };   // kortere stukken (bord, tak) tellen niet als kunstwerk
   const RWS_VENSTER = 0.10;   // m rond het meetpunt (langs en dwars)
-  const RWS_VELDEN = [['drP1', 'p1'], ['drP2', 'p2'], ['drRwsWeg', 'weg'], ['drRwsObject', 'object'], ['drRwsMeetdatum', 'meetdatum'], ['drRwsBijz', 'bijzonderheden']];
+  const RWS_VELDEN = [['drKwGat', 'kwGat'], ['drRwsWeg', 'weg'], ['drRwsMeetdatum', 'meetdatum'], ['drRwsBijz', 'bijzonderheden']];
   /** Meetdatum als voorstel: de datum in de LAS-header (dag van het jaar + jaar), anders de datum van het bestand. */
   async function rwsMeetdatumVoorstel() {
     const veld = document.getElementById('drRwsMeetdatum');
@@ -8381,16 +8391,47 @@
   let drRws = null;          // { profielen: [{ nr, station, punten: {o, z}, meetpunten: [...] }], bron, tijd }
   let drToon = null;         // { station, index, nr }: tijdelijk dit station in het dwarsprofiel
   let drKlikModus = false;
-  function rwsInst() { if (!doorrij.rws) doorrij.rws = JSON.parse(JSON.stringify(RWS_STANDAARD)); return doorrij.rws; }
+  function rwsInst() {
+    if (!doorrij.rws) doorrij.rws = JSON.parse(JSON.stringify(RWS_STANDAARD));
+    const rw = doorrij.rws;
+    if (!rw.doorsnedes || typeof rw.doorsnedes !== 'object') rw.doorsnedes = {};
+    if (!Array.isArray(rw.objecten)) rw.objecten = [];
+    return rw;
+  }
 
-  /** Stations van profiel 1 en 2: zelf ingevuld, anders net binnen de rand van het dak boven de eerste box. */
+  /** De kunstwerken langs de as: aaneengesloten stukken met dak boven een box. Stukken met een gat kleiner dan
+   *  kwGat (standaard 5 m) ertussen horen bij elkaar; heel korte stukken (bord, tak) tellen niet. */
+  function drKunstwerken(r) {
+    const st = r?.dakStations; if (!st?.length) return [];
+    const gat = Math.max(0, dvGetal(rwsInst().kwGat) ?? KW_GAT);
+    const uit = []; let van = st[0], tot = st[0], n = 1;
+    const sluit = () => { if (tot - van >= KW_MIN.lengte && n >= KW_MIN.punten) uit.push({ nr: uit.length + 1, van, tot }); };
+    for (let i = 1; i < st.length; i++) {
+      if (st[i] - tot > gat) { sluit(); van = st[i]; n = 0; }
+      tot = st[i]; n++;
+    }
+    sluit();
+    return uit;
+  }
+  /** Naam van een kunstwerk (B4): zelf ingevuld, anders het oude veld Object (bij KW1), anders "Kunstwerk n". */
+  function kwNaam(kw) { const rw = rwsInst(); return (rw.objecten[kw - 1] || '').trim() || (kw === 1 && rw.object ? rw.object : '') || `Kunstwerk ${kw}`; }
+  const kwLabel = (kw, kant) => `KW${kw} ${kant === 'voor' ? 'voor' : 'achter'}`;
+  const kwLabelLang = (kw, kant) => `${kant === 'voor' ? 'voorkant' : 'achterzijde'} kunstwerk ${kw}`;
+  /** Per kunstwerk een doorsnede aan de voorkant (laagste station) en de achterzijde, 0,2 m binnen de rand van het
+   *  dak; een zelf ingevuld of verschoven station gaat voor. Oude projecten: p1 = KW1 voor, p2 = achterzijde van het laatste. */
   function rwsStations(r) {
-    const inst = rwsInst();
-    const bx = r.boxen[0];
-    // eerste en laatste station met dak boven de box, 0,2 m naar binnen
-    const auto1 = Number.isFinite(bx.dakVan) ? Math.max(0, bx.dakVan + 0.2) : null, auto2 = Number.isFinite(bx.dakTot) ? Math.min(r.L, bx.dakTot - 0.2) : null;
-    const p1 = dvGetal(inst.p1) ?? auto1, p2 = dvGetal(inst.p2) ?? auto2;
-    return { p1, p2, auto1, auto2 };
+    const inst = rwsInst(), kws = drKunstwerken(r), uit = [];
+    for (const kw of kws) {
+      for (const kant of ['voor', 'achter']) {
+        const auto = kant === 'voor' ? Math.max(0, kw.van + 0.2) : Math.min(r.L, kw.tot - 0.2);
+        const sleutel = `${kw.nr}-${kant}`;
+        let eigen = dvGetal(inst.doorsnedes[sleutel]);
+        if (eigen == null && kant === 'voor' && kw.nr === 1) eigen = dvGetal(inst.p1);
+        if (eigen == null && kant === 'achter' && kw.nr === kws.length) eigen = dvGetal(inst.p2);
+        uit.push({ kw: kw.nr, kant, sleutel, auto, station: eigen ?? auto, eigen: eigen != null, label: kwLabel(kw.nr, kant) });
+      }
+    }
+    return uit;
   }
   /** Kant verharding links en rechts uit de BGT: de randen van het weg-vak waar de eerste box in ligt. */
   function rwsKantVerharding(station, r) {
@@ -8404,6 +8445,8 @@
     if (strook.tot < profielR() - 0.05) uit.push({ offset: strook.tot - 0.05, soort: 'kant', auto: true });
     return uit;
   }
+  /** De vaste meetpunten (B2): kant verharding links en rechts uit de BGT en de as. */
+  function rwsVasteMeetpunten(station, r) { return [...rwsKantVerharding(station, r), { offset: 0, soort: 'as', auto: true }]; }
   const mediaan = (a) => { const m = a.length; return m % 2 ? a[(m - 1) / 2] : (a[m / 2 - 1] + a[m / 2]) / 2; };
   const spreiding = (a) => { if (a.length < 2) return null; const g = a.reduce((s, v) => s + v, 0) / a.length; return Math.sqrt(a.reduce((s, v) => s + (v - g) * (v - g), 0) / (a.length - 1)); };
   /** Hoogte op één meetpunt uit de punten van een profiel. */
@@ -8452,11 +8495,11 @@
     const s = d?.stroken?.find(v => v.van <= c && v.tot >= c && /weg/i.test(v.label));
     return s ? { van: s.van, tot: s.tot } : null;
   }
-  /** Kleinste doorrijbreedte van 30 m vóór tot 30 m ná het dak (uit de punten van de strook), per halve meter. */
-  function rwsBreedteLangs(r) {
+  /** Kleinste doorrijbreedte van 30 m vóór tot 30 m ná een kunstwerk (uit de punten van de strook), per halve meter. */
+  function rwsBreedteLangs(r, kw) {
     const bx = r.boxen[0];
-    if (!Number.isFinite(bx.dakVan)) return null;
-    const s0 = Math.max(0, bx.dakVan - 30), s1 = Math.min(r.L, bx.dakTot + 30);
+    if (!kw) return null;
+    const s0 = Math.max(0, kw.van - 30), s1 = Math.min(r.L, kw.tot + 30);
     let min = null;
     for (let s = s0; s <= s1 + 1e-9; s += 0.5) {
       const o = [], z = [];
@@ -8465,11 +8508,11 @@
       const b = rwsBreedte(o, z, (oo) => r.wegOp(s, oo), bx.c, rwsKantVak(s, r));
       if (!min || b.breedte < min.breedte) min = { ...b, station: s };
     }
-    return min ? { ...min, s0, s1 } : null;
+    return min ? { ...min, s0, s1, kw: kw.nr } : null;
   }
   /** Alle meetpunten van een profiel (opnieuw) berekenen uit de bewaarde punten. */
   function rwsBerekenProfiel(pr, r) {
-    const lijst = [...rwsKantVerharding(pr.station, r), ...rwsInst().meetpunten.map(m => ({ ...m, auto: false }))].sort((a, b) => a.offset - b.offset);
+    const lijst = [...rwsVasteMeetpunten(pr.station, r), ...rwsInst().meetpunten.map(m => ({ ...m, auto: false }))].sort((a, b) => a.offset - b.offset);
     pr.meetpunten = lijst.map(m => ({ ...m, ...rwsMeet(pr.punten, pr.station, m.offset, r) }));
     const geldig = pr.meetpunten.filter(m => m.h != null);
     pr.min = geldig.length ? geldig.reduce((a, b) => (b.h < a.h ? b : a)) : null;
@@ -8479,16 +8522,24 @@
     const r = drResultaat;
     if (!drRws || !r) return;
     for (const pr of drRws.profielen) rwsBerekenProfiel(pr, r);
-    drRws.breedteMin = rwsBreedteLangs(r);
+    drRws.breedtePerKw = drKunstwerken(r).map(kw => rwsBreedteLangs(r, kw)).filter(Boolean);
+    drRws.breedteMin = drRws.breedtePerKw.reduce((a, b) => (!a || b.breedte < a.breedte ? b : a), null);
   }
-  /** De punten onder de twee profiellijnen ruw inlezen (alleen de vakken eronder) en de meetpunten berekenen. */
+  /** De punten onder alle doorsnedes ruw inlezen (alleen de vakken eronder) en de meetpunten berekenen. */
   async function rwsMeten() {
     const r = drGeldig();
     if (!r) throw new Error('klik eerst op Controleren');
-    const { p1, p2 } = rwsStations(r);
-    if (p1 == null || p2 == null) throw new Error('geen dak boven de rijbaan gevonden: vul de stations van profiel 1 en 2 zelf in');
+    const ds = rwsStations(r);
+    if (!ds.length) throw new Error('geen dak boven de rijbaan gevonden: er is geen kunstwerk om te meten');
+    const gelezen = await rwsLeesLijnen(ds.map(d => d.station));
+    drRws = { bron: gelezen.soort, tijd: new Date(), profielen: ds.map((d, i) => ({ nr: i + 1, kw: d.kw, kant: d.kant, sleutel: d.sleutel, label: d.label, station: d.station, punten: gelezen.punten[i] })) };
+    rwsHerbereken();
+    return drRws;
+  }
+  /** De ruwe punten onder dwarslijnen op de gegeven stations: { soort: 'ruw' | 'strook', punten: [{ o, z }] }. */
+  async function rwsLeesLijnen(stations) {
     const pL = profielL(), pR = profielR();
-    const lijnen = [p1, p2].map((st) => { const a = puntOpStationOffset(st, -pL), b = puntOpStationOffset(st, pR); const len = Math.hypot(b.x - a.x, b.y - a.y) || 1e-9; return { a, ux: (b.x - a.x) / len, uy: (b.y - a.y) / len, len, o: [], z: [] }; });
+    const lijnen = stations.map((st) => { const a = puntOpStationOffset(st, -pL), b = puntOpStationOffset(st, pR); const len = Math.hypot(b.x - a.x, b.y - a.y) || 1e-9; return { a, ux: (b.x - a.x) / len, uy: (b.y - a.y) / len, len, o: [], z: [] }; });
     let gezien = 0;
     const sink = {
       voegToe(x, y, z) {
@@ -8505,7 +8556,7 @@
     };
     const bron = laatsteBestand;
     let soort = 'ruw';
-    const voortgang = (n, t) => { statusEl.textContent = `Doorrijprofiel: ruwe punten onder profiel 1 en 2 lezen… ${Math.round(100 * n / Math.max(1, t))}%`; };
+    const voortgang = (n, t) => { statusEl.textContent = `Doorrijprofiel: ruwe punten onder ${stations.length === 1 ? 'de doorsnede' : `${stations.length} doorsnedes`} lezen… ${Math.round(100 * n / Math.max(1, t))}%`; };
     if (bron?.tegelbron) {
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
       for (const l of lijnen) for (const q of [l.a, { x: l.a.x + l.ux * l.len, y: l.a.y + l.uy * l.len }]) { minX = Math.min(minX, q.x); maxX = Math.max(maxX, q.x); minY = Math.min(minY, q.y); maxY = Math.max(maxY, q.y); }
@@ -8521,9 +8572,7 @@
       soort = 'strook';
       for (let i = 0; i < drWolk.xs.length; i++) sink.voegToe(drWolk.xs[i], drWolk.ys[i], drWolk.zs[i]);
     }
-    drRws = { bron: soort, tijd: new Date(), profielen: [p1, p2].map((st, i) => ({ nr: i + 1, station: st, punten: { o: Float32Array.from(lijnen[i].o), z: Float32Array.from(lijnen[i].z) } })) };
-    rwsHerbereken();
-    return drRws;
+    return { soort, punten: lijnen.map(l => ({ o: Float32Array.from(l.o), z: Float32Array.from(l.z) })) };
   }
   /** Profiel nr (1 of 2) in het dwarsprofiel tonen (tijdelijk station; ◀ ▶ gaat terug naar de gewone profielen). */
   function rwsToon(nr) {
@@ -8546,21 +8595,29 @@
     if (!vak) return;
     const r = drResultaat;
     const inst = rwsInst();
-    const st = r ? rwsStations(r) : null;
-    for (const [id, auto] of [['drP1', st?.auto1], ['drP2', st?.auto2]]) { const e = document.getElementById(id); if (e) e.placeholder = auto == null ? 'station' : `auto ${komma(auto, 2)}`; }
+    const st = r ? rwsStations(r) : [];
+    const kwVak = document.getElementById('drKwLijst');
+    if (kwVak && !kwVak.contains(document.activeElement)) {   // niet vervangen terwijl je erin typt
+      const kws = r ? drKunstwerken(r) : [];
+      const veld = (d) => d ? `<input type="number" step="0.1" data-doorsnede="${d.sleutel}" value="${d.eigen ? d.station : ''}" placeholder="auto ${komma(d.auto, 2)}" style="width:100px">` : '';
+      kwVak.innerHTML = !r ? '<p class="hint" style="margin:0">Klik eerst op <b>Controleren</b>: dan worden de kunstwerken gezocht.</p>'
+        : !kws.length ? '<p class="hint waarschuw" style="margin:0">Geen dak boven de rijbaan gevonden: er is geen kunstwerk.</p>'
+          : kws.map(kw => `<div class="rij drKw" title="Kunstwerk ${kw.nr}: dak van st. ${komma(kw.van, 1)} tot ${komma(kw.tot, 1)}. Leeg = automatisch 0,2 m binnen de rand van het dak; je kunt de doorsnede ook in het lengteprofiel verschuiven."><span>KW${kw.nr} <span class="zacht">st. ${komma(kw.van, 0)}–${komma(kw.tot, 0)}</span></span>`
+            + `<input type="text" data-kwnaam="${kw.nr}" value="${(inst.objecten[kw.nr - 1] || '').replace(/"/g, '&quot;')}" placeholder="${kwNaam(kw.nr).replace(/"/g, '&quot;')}" style="width:150px" title="Naam van het kunstwerk (Object op het RWS-blad)">`
+            + ` voor ${veld(st.find(d => d.kw === kw.nr && d.kant === 'voor'))} achter ${veld(st.find(d => d.kw === kw.nr && d.kant === 'achter'))}</div>`).join('');
+    }
     const lijst = document.getElementById('drMeetLijst');
-    if (lijst) lijst.innerHTML = inst.meetpunten.length ? inst.meetpunten.map((m, i) => `<div class="rij"><span>${komma(m.offset, 2)} m</span><select data-mp="${i}">${Object.entries(RWS_SOORTEN).filter(([k]) => k !== 'kant').map(([k, v]) => `<option value="${k}"${k === m.soort ? ' selected' : ''}>${v}</option>`).join('')}</select> <button type="button" class="drMpWeg" data-mp="${i}" title="Meetpunt weghalen">✕</button></div>`).join('') : '<p class="hint" style="margin:0">Nog geen eigen meetpunten. Klik op <b>Meetpunten aanklikken</b> en klik in het dwarsprofiel op de strepen, 1 m uit de kantstreep en ophangconstructies.</p>';
-    if (!drRws) { vak.innerHTML = '<p class="hint">Klik op <b>Profielen meten</b>: de ruwe punten onder profiel 1 en 2 worden gelezen.</p>'; return; }
+    if (lijst) lijst.innerHTML = inst.meetpunten.length ? inst.meetpunten.map((m, i) => `<div class="rij"><span>${komma(m.offset, 2)} m</span><select data-mp="${i}">${Object.entries(RWS_SOORTEN).filter(([k]) => k !== 'kant' && k !== 'as').map(([k, v]) => `<option value="${k}"${k === m.soort ? ' selected' : ''}>${v}</option>`).join('')}</select> <button type="button" class="drMpWeg" data-mp="${i}" title="Meetpunt weghalen">✕</button></div>`).join('') : '<p class="hint" style="margin:0">Nog geen eigen meetpunten. Klik op <b>Meetpunten aanklikken</b> en klik in het dwarsprofiel op de strepen, 1 m uit de kantstreep en ophangconstructies.</p>';
+    if (!drRws) { vak.innerHTML = '<p class="hint">Klik op <b>Profielen meten</b>: de ruwe punten onder de doorsnedes van elk kunstwerk worden gelezen.</p>'; return; }
     const kop = '<tr><th>meetpunt</th><th>offset</th><th>weg</th><th>dak</th><th>doorrij&shy;hoogte</th><th>punten weg/dak</th><th>spreiding weg/dak</th></tr>';
     vak.innerHTML = (drRws.bron === 'strook' ? '<p class="hint waarschuw">Geen bestand bij de hand: de hoogtes komen uit de uitgedunde strook, niet uit de ruwe punten.</p>' : '') +
-      drRws.profielen.map(pr => `<p style="margin:6px 0 2px"><b>Profiel ${pr.nr}</b> · st. ${komma(pr.station, 2)}${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''} <button type="button" class="drToon" data-nr="${pr.nr}">Toon</button></p>` +
-        '<table class="snTabel">' + kop + pr.meetpunten.map(m => `<tr class="${pr.min === m ? 'rood' : ''}"><td>${RWS_SOORTEN[m.soort] || m.soort}</td><td>${komma(m.offset, 2)}</td><td>${rwsM(m.weg)}</td><td>${rwsM(m.dak)}</td><td><b>${m.h == null ? (m.weg == null ? 'weg niet gemeten' : 'geen dak') : komma(m.h, 3)}</b></td><td>${m.nW} / ${m.nD}</td><td>${m.sW == null ? '—' : Math.round(m.sW * 1000)} / ${m.sD == null ? '—' : Math.round(m.sD * 1000)} mm</td></tr>`).join('') + '</table>').join('') +
+      drRws.profielen.map(pr => `<p style="margin:6px 0 2px"><b>${pr.label}</b> · ${kwNaam(pr.kw)} · st. ${komma(pr.station, 2)}${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''} <button type="button" class="drToon" data-nr="${pr.nr}">Toon</button></p>` +
+        '<table class="snTabel">' + kop + pr.meetpunten.map(m => `<tr class="${pr.min === m ? 'rood' : ''}"><td>${rwsSoortTekst(m)}</td><td>${komma(m.offset, 2)}</td><td>${rwsM(m.weg)}</td><td>${rwsM(m.dak)}</td><td><b>${m.h == null ? (m.weg == null ? 'weg niet gemeten' : 'geen dak') : komma(m.h, 3)}</b></td><td>${m.nW} / ${m.nD}</td><td>${m.sW == null ? '—' : Math.round(m.sW * 1000)} / ${m.sD == null ? '—' : Math.round(m.sD * 1000)} mm</td></tr>`).join('') + '</table>').join('') +
       (() => {
         const b = (x) => `${komma(x.breedte, 3)} m <span class="zacht">(L: ${x.links.soort} op ${komma(x.links.offset, 2)}, R: ${x.rechts.soort} op ${komma(x.rechts.offset, 2)})</span>`;
-        const bm = drRws.breedteMin;
         return `<p style="margin:6px 0 2px"><b>Doorrijbreedte</b> op ${komma(RWS_BAND[0], 1)}–${komma(RWS_BAND[1], 1)} m boven de weg</p><table class="snTabel">` +
-          drRws.profielen.map(pr => `<tr><td>profiel ${pr.nr}</td><td>${pr.breedte ? b(pr.breedte) : '—'}</td></tr>`).join('') +
-          (bm ? `<tr class="${drRws.profielen.every(pr => !pr.breedte || bm.breedte < pr.breedte.breedte - 0.005) ? 'rood' : ''}"><td>kleinste, st. ${komma(bm.s0, 0)}–${komma(bm.s1, 0)}</td><td>${b(bm)} bij st. ${komma(bm.station, 1)}</td></tr>` : '') + '</table>';
+          drRws.profielen.map(pr => `<tr><td>${pr.label}</td><td>${pr.breedte ? b(pr.breedte) : '—'}</td></tr>`).join('') +
+          (drRws.breedtePerKw || []).map(bm => `<tr class="${drRws.profielen.filter(pr => pr.kw === bm.kw).every(pr => !pr.breedte || bm.breedte < pr.breedte.breedte - 0.005) ? 'rood' : ''}"><td>kleinste KW${bm.kw}, st. ${komma(bm.s0, 0)}–${komma(bm.s1, 0)}</td><td>${b(bm)} bij st. ${komma(bm.station, 1)}</td></tr>`).join('') + '</table>';
       })() +
       `<p style="margin:6px 0 2px"><b>Minimale doorrijhoogte per rijbaan</b> (ook buiten de profielen)</p><table class="snTabel"><tr><th>rijbaan</th><th>minimale doorrijhoogte</th><th>waar</th></tr>${r ? r.boxen.map(b => `<tr><td>${b.naam || 'box'}</td><td><b>${b.vrijMin == null ? '—' : komma(b.vrijMin, 3)}</b></td><td>${b.kritiek ? `st. ${komma(b.kritiek.station, 1)}, ${komma(Math.abs(b.kritiek.offset), 2)} m ${b.kritiek.offset < 0 ? 'L' : 'R'}` : '—'}</td></tr>`).join('') : ''}</table>`;
   }
@@ -8594,7 +8651,7 @@
         const d = await rwsMeten();
         const min = d.profielen.map(p => p.min).filter(Boolean).sort((a, b) => a.h - b.h)[0];
         statusEl.style.color = '';
-        statusEl.textContent = `Doorrijprofiel: profiel 1 op st. ${komma(d.profielen[0].station, 2)}, profiel 2 op st. ${komma(d.profielen[1].station, 2)}${min ? ` · laagste doorrijhoogte in de profielen ${komma(min.h, 3)} m` : ''}`;
+        statusEl.textContent = `Doorrijprofiel: ${d.profielen.length} doorsnedes (${d.profielen.map(pr => `${pr.label} st. ${komma(pr.station, 1)}`).join(', ')})${min ? ` · laagste doorrijhoogte in de doorsnedes ${komma(min.h, 3)} m` : ''}`;
       } catch (err) { console.error(err); toonFout('Doorrijprofiel: ' + (err.message || err)); }
       finally { if (knop) knop.disabled = false; }
       toonRwsResultaat(); tekenDwarsVoorHuidigeStation();
@@ -8622,8 +8679,18 @@
       const m = rwsInst().meetpunten[Number(s.dataset.mp)]; if (m) m.soort = s.value;
       rwsHerbereken(); toonRwsResultaat(); tekenDwarsVoorHuidigeStation();
     });
-    for (const id of ['drP1', 'drP2']) document.getElementById(id)?.addEventListener('change', () => { leesDoorrijVelden(); drRws = null; toonRwsResultaat(); });
-    for (const id of ['drRwsWeg', 'drRwsObject', 'drRwsMeetdatum', 'drRwsBijz']) document.getElementById(id)?.addEventListener('input', () => leesDoorrijVelden());
+    for (const id of ['drRwsWeg', 'drRwsMeetdatum', 'drRwsBijz']) document.getElementById(id)?.addEventListener('input', () => leesDoorrijVelden());
+    document.getElementById('drKwGat')?.addEventListener('change', () => { leesDoorrijVelden(); drRws = null; toonRwsResultaat(); });
+    // kunstwerken: naam (Object op het RWS-blad) en eigen stations van de doorsnedes
+    document.getElementById('drKwLijst')?.addEventListener('input', (e) => {
+      const n = e.target.closest('[data-kwnaam]'); if (!n) return;
+      rwsInst().objecten[Number(n.dataset.kwnaam) - 1] = n.value;   // de tabel volgt bij 'change'
+    });
+    document.getElementById('drKwLijst')?.addEventListener('change', (e) => {
+      const d = e.target.closest('[data-doorsnede]');
+      if (d) { const v = dvGetal(d.value); if (v == null) delete rwsInst().doorsnedes[d.dataset.doorsnede]; else rwsInst().doorsnedes[d.dataset.doorsnede] = v; drRws = null; }
+      setTimeout(toonRwsResultaat, 0);   // niet tijdens de blur: dan wordt de lijst vervangen terwijl de focus nog verhuist
+    });
   }
 
   /* ────────────────────────────────────────────────────────────────
@@ -14794,15 +14861,15 @@ ${r3d}
         const N = [...STANDAARD_SCHALEN, 175, 225, 350, 450, 600].sort((a, b) => a - b).find(n => 1000 / n <= mmPerMMax) || 50000;
         const mmPerM = 1000 / N;
         const grafW = breedteM * mmPerM + plotMarges, grafH = Math.min(grafMaxH, bereik * mmPerM + (MARGE_T + 34) / VIRT_PER_MM);
-        const titel = `Doorrijprofiel ${pr.nr}${rw.object ? ` - ${rw.object}` : ''}`;
+        const titel = `Doorrijprofiel ${pr.label} - ${kwNaam(pr.kw)}`;
         nieuwePagina(titel, `${schaalTekst(N)} (hoogte niet overdreven)`);
         const pg = paginas[paginas.length - 1];
         if (!nodig) continue;
-        onVoortgang?.(`Doorrijprofiel ${pr.nr} tekenen…`);
+        onVoortgang?.(`Doorrijprofiel ${pr.label} tekenen…`);
         doc.setFontSize(12 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
         doc.text(pdfTekst(titel), vak.x, vak.y + 5 * TS);
         doc.setFontSize(8 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
-        doc.text(pdfTekst(`profiel ${pr.nr} · station ${pr.station.toFixed(2)} m${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''} · ${schaalTekst(N)} · maten in m`), vak.x + vak.w, vak.y + 5 * TS, { align: 'right' });
+        doc.text(pdfTekst(`${kwLabelLang(pr.kw, pr.kant)} · station ${pr.station.toFixed(2)} m${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''} · ${schaalTekst(N)} · maten in m`), vak.x + vak.w, vak.y + 5 * TS, { align: 'right' });
         zetHost(grafW, grafH);
         svgEl.removeAttribute('width'); svgEl.removeAttribute('height');
         tekenGrafiek(svgEl, reeks, 'offset', 'offset (m)', 0, matenWaarde(maatDwarsVeld, 5), 1, null, null, null, { legenda: !kolomModus, legendaUit: pg.legenda, rwsNotatie: true });
@@ -14825,22 +14892,23 @@ ${r3d}
           if (ty > vak.y + vak.h - 40 * TS) break;
           const rood = pr.min === m;
           doc.setTextColor(...(rood ? [198, 71, 43] : [27, 42, 56]));
-          const w = [RWS_SOORTEN[m.soort] || m.soort, m.offset.toFixed(2), rws3(m.weg), rws3(m.dak), m.h == null ? (m.weg == null ? 'niet gemeten' : 'geen object') : rws3(m.h), `${m.nW} / ${m.nD}`, `${m.sW == null ? '-' : Math.round(m.sW * 1000)} / ${m.sD == null ? '-' : Math.round(m.sD * 1000)}`];
+          const w = [rwsSoortTekst(m), m.offset.toFixed(2), rws3(m.weg), rws3(m.dak), m.h == null ? (m.weg == null ? 'niet gemeten' : 'geen object') : rws3(m.h), `${m.nW} / ${m.nD}`, `${m.sW == null ? '-' : Math.round(m.sW * 1000)} / ${m.sD == null ? '-' : Math.round(m.sD * 1000)}`];
           doc.setFont('helvetica', rood ? 'bold' : 'normal');
           w.forEach((t, j) => doc.text(pdfTekst(t), kx[j] + 1, ty));
           ty += rh;
         }
         doc.setFont('helvetica', 'normal'); doc.setTextColor(27, 42, 56);
         if (pr.breedte) { doc.text(pdfTekst(`Doorrijbreedte op 0.5 - 1.0 m boven de weg: ${rws3(pr.breedte.breedte)} m (links ${pr.breedte.links.soort}, rechts ${pr.breedte.rechts.soort})`), vak.x + 1, ty); ty += rh; }
-        if (drRws.breedteMin) { doc.text(pdfTekst(`Kleinste doorrijbreedte st. ${drRws.breedteMin.s0.toFixed(0)} - ${drRws.breedteMin.s1.toFixed(0)}: ${rws3(drRws.breedteMin.breedte)} m bij st. ${drRws.breedteMin.station.toFixed(1)}`), vak.x + 1, ty); ty += rh; }
+        const bmKw = (drRws.breedtePerKw || []).find(b => b.kw === pr.kw);
+        if (bmKw) { doc.text(pdfTekst(`Kleinste doorrijbreedte st. ${bmKw.s0.toFixed(0)} - ${bmKw.s1.toFixed(0)}: ${rws3(bmKw.breedte)} m bij st. ${bmKw.station.toFixed(1)}`), vak.x + 1, ty); ty += rh; }
         // wit tekstvak (B6), zoals de voorbeelden in de RWS-specificatie
         const tvH = 26 * TS, tvW = Math.min(vak.w, 250 * TS), tvY = Math.min(vak.y + vak.h - tvH - 1, ty + 4 * TS);
         doc.setFillColor(255, 255, 255); doc.setDrawColor(27, 42, 56); doc.setLineWidth(0.35); doc.rect(vak.x, tvY, tvW, tvH, 'FD');
         const minTekst = r.boxen.map(b => `${b.naam || 'rijbaan'} ${rws3(b.vrijMin)}`).join(' / ');
         const velden = [
           ['Weg / straat:', rw.weg || '-', 'Meetdatum:', meetdatum || '-'],
-          ['Rijbaan:', r.boxen.map(b => b.naam || 'rijbaan').join(', '), 'Profiel:', String(pr.nr)],
-          ['Station:', `${pr.station.toFixed(2)} m${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''}`, 'Object:', rw.object || '-'],
+          ['Rijbaan:', r.boxen.map(b => b.naam || 'rijbaan').join(', '), 'Profiel:', kwLabelLang(pr.kw, pr.kant)],
+          ['Station:', `${pr.station.toFixed(2)} m${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''}`, 'Object:', kwNaam(pr.kw)],
           ['Bijzonderheden:', rw.bijzonderheden || '-', 'Minimale doorrijhoogte:', minTekst],
         ];
         const c1 = vak.x + 3 * TS, c2 = c1 + 30 * TS, c3 = vak.x + tvW / 2 + 2 * TS, c4 = c3 + 42 * TS;

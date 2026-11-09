@@ -3,16 +3,16 @@ beslis: kunstwerken-doorsnedes
 titel: Meerdere kunstwerken, met voor- en achterzijde in het lengteprofiel
 plan: kunstwerken-doorsnedes.plan.md
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
-voorgelegd: 2026-11-09 08:58          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
-status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
+voorgelegd: 2026-11-09 08:53          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 ---
 
 > Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
 
 # Beslisdocument: Meerdere kunstwerken, met voor- en achterzijde in het lengteprofiel
 
-> **Nu van jou gevraagd:** B1, B2, B3 en B4, en de vrijgave van F0 en F1.
-> **Later nodig:** B5 (versie) vóór F2.
+> **Nu van jou gevraagd:** niets; F0 en F1 worden gebouwd.
+> **Later nodig:** B5 (versie) en de vrijgave van F2.
 
 De Doorrijhoogte vindt zelf de kunstwerken langs de as en meet per kunstwerk een doorsnede aan de voorkant en aan de achterzijde, op kant asfalt links, de as en kant asfalt rechts. De doorsnedes staan als lijnen in het lengteprofiel en je kunt ze daar verschuiven. Het werk is verdeeld in drie fasen.
 
@@ -21,22 +21,24 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
-| F0 | Kunstwerken vinden, per kunstwerk een doorsnede voor en achter, meetpunt op de as, een RWS-blad per doorsnede | ○ nog niet | - | B1, B2, B4 | - |
-| F1 | De doorsnedes als lijnen in het lengteprofiel, verschuiven door te slepen | ○ nog niet | - | B3 | - |
+| F0 | Kunstwerken vinden, per kunstwerk een doorsnede voor en achter, meetpunt op de as, een RWS-blad per doorsnede | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 08:54 | B1, B2, B4 | ✅ 2026-11-09 09:30 |
+| F1 | De doorsnedes als lijnen in het lengteprofiel, verschuiven door te slepen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 08:54 | B3 | - |
 | F2 | Uitleveren als nieuwe versie, met jouw controle op een echte scan | ○ nog niet | - | B5 | - |
+
+Letterlijk akkoord (F0 tot en met F1, via chat): "Akkoord, bouw F0–F1", als antwoord op de vraag "Akkoord met B1–B4 zoals voorgesteld en bouwen op planversie 1, fase F0 en F1?"
 
 ## Overzicht besluiten
 | | # | Onderwerp | Besluit | Nodig vóór |
 |---|---|---|---|---|
-| ⏳ | B1 | Kunstwerken vinden | **Nog niet beoordeeld** | F0 |
-| ⏳ | B2 | Meetpunten per doorsnede | **Nog niet beoordeeld** | F0 |
-| ⏳ | B3 | Wat er gebeurt na het verschuiven | **Nog niet beoordeeld** | F1 |
-| ⏳ | B4 | Naam per kunstwerk op het RWS-blad | **Nog niet beoordeeld** | F0 |
+| ✅ | B1 | Kunstwerken vinden | Ons voorstel | F0 |
+| ✅ | B2 | Meetpunten per doorsnede | Ons voorstel | F0 |
+| ✅ | B3 | Wat er gebeurt na het verschuiven | Ons voorstel | F1 |
+| ✅ | B4 | Naam per kunstwerk op het RWS-blad | Ons voorstel | F0 |
 | ⏳ | B5 | Versie | **Nog niet beoordeeld** | F2 |
 
 ## Besluiten
 
-### ⏳ B1 · Kunstwerken vinden
+### ✅ B1 · Kunstwerken vinden
 **Je beslist:** hoe de viewer weet waar kunstwerk 1 en kunstwerk 2 liggen.
 
 | | Ons voorstel | Alternatief |
@@ -46,15 +48,15 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | **Nadeel** | Een kunstwerk met een grote open tussenruimte wordt als twee gezien (dan het getal ophogen) | Werk bij elk project |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 08:58 · **nodig vóór** F0
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-09 08:54 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B1
 
-### ⏳ B2 · Meetpunten per doorsnede
+### ✅ B2 · Meetpunten per doorsnede
 **Je beslist:** op welke plekken in elke doorsnede de doorrijhoogte wordt gemeten.
 
 | | Ons voorstel | Alternatief |
@@ -64,15 +66,15 @@ Meer uitleg: plan, punt 6, B1
 | **Nadeel** | - | Strepen kun je dan niet meer meten |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 08:58 · **nodig vóór** F0
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-09 08:54 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B2
 
-### ⏳ B3 · Wat er gebeurt na het verschuiven
+### ✅ B3 · Wat er gebeurt na het verschuiven
 **Je beslist:** of een doorsnede die je in het lengteprofiel verschuift meteen opnieuw wordt gemeten.
 
 | | Ons voorstel | Alternatief |
@@ -82,15 +84,15 @@ Meer uitleg: plan, punt 6, B2
 | **Nadeel** | Bij een grote scan een paar seconden wachten na het loslaten | Kans op getallen die nog bij de oude plek horen |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 08:58 · **nodig vóór** F1
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-09 08:54 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B3
 
-### ⏳ B4 · Naam per kunstwerk op het RWS-blad
+### ✅ B4 · Naam per kunstwerk op het RWS-blad
 **Je beslist:** wat er bij "Object" op het RWS-blad staat als er twee kunstwerken zijn.
 
 | | Ons voorstel | Alternatief |
@@ -100,11 +102,11 @@ Meer uitleg: plan, punt 6, B3
 | **Nadeel** | Een veld per kunstwerk in het venster | Minder duidelijk voor de opdrachtgever |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 08:58 · **nodig vóór** F0
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-09 08:54 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B4
 
@@ -131,7 +133,9 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 
 | Datum en tijd | Wat | Door |
 |---|---|---|
-| 2026-11-09 08:50 | Vraag en antwoorden: vier doorsnedes (voor en achter van twee kunstwerken), meetpunten kant asfalt links, as en kant asfalt rechts, zelf zoeken, verschuiven in het lengteprofiel; Bijlage C van RWS meegestuurd | Marco van Steenbrugge, via chat |
-| 2026-11-09 08:58 | Plan opgesteld en voorgelegd | Claude Opus 5.5 (agent) |
+| 2026-11-09 (vóór 08:52) | Vraag en antwoorden: vier doorsnedes (voor en achter van twee kunstwerken), meetpunten kant asfalt links, as en kant asfalt rechts, zelf zoeken, verschuiven in het lengteprofiel; Bijlage C van RWS meegestuurd | Marco van Steenbrugge, via chat |
+| 2026-11-09 08:53 | Plan opgesteld en voorgelegd | Claude Opus 5.5 (agent) |
+| 2026-11-09 08:54 | B1, B2, B3 en B4 akkoord (ons voorstel) en vrijgave F0 en F1 op planversie 1: "Akkoord, bouw F0–F1"; Marco als beslisser bevestigd in eerdere plannen | Marco van Steenbrugge, via chat |
+| 2026-11-09 09:30 | F0 gebouwd: kunstwerken vinden, per kunstwerk een doorsnede voor en achter, meetpunt op de as, een RWS-blad per doorsnede | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

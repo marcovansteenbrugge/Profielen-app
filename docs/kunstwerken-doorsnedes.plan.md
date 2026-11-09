@@ -2,8 +2,8 @@
 plan: kunstwerken-doorsnedes
 titel: Meerdere kunstwerken, met voor- en achterzijde in het lengteprofiel
 versie: 1
-status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ⏳ · F1 ⏳ · F2 ⏳           # berekend door de skill
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ✅ · F1 ▶ · F2 ⏳           # berekend door de skill
 opgesteld: 2026-11-09
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -82,8 +82,8 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ⏳ wacht op B1, B2, B4 | Kunstwerken vinden, twee doorsnedes per kunstwerk, meetpunt as, tabel in het venster, een RWS-blad per doorsnede, oude projecten omzetten; testwolk met twee kunstwerken | 1. Test met twee daken: `__pvTest.rws()` geeft vier doorsnedes (KW1 voor/achter, KW2 voor/achter) op de verwachte stations (± 0,3 m). 2. Elke doorsnede heeft meetpunten kant links, as (offset 0) en kant rechts met een doorrijhoogte. 3. De PDF heeft vier RWS-bladen. 4. Een project met `p1`/`p2` opent zonder fout met die stations. 5. `node run_alle.js` geheel groen. | B1, B2, B4 | M | Opus 5.5, medium | `F0:` |
-| F1 | ⏳ wacht op B3 | Lijnen en labels in het lengteprofiel, slepen aan het label, opnieuw meten, dubbelklik = automatisch | 1. Het lengteprofiel toont per doorsnede een lijn met label (zichtbaar op een screenshot). 2. In de test: slepen van het label van KW1 achter verschuift het station en geeft nieuwe hoogtes. 3. Pannen naast een label werkt nog. 4. Het verschoven station staat na opslaan en openen nog op dezelfde plek. 5. `node run_alle.js` geheel groen. | F0, B3 | M | Opus 5.5, medium | `F1:` |
+| F0 | ✅ gebouwd | Kunstwerken vinden, twee doorsnedes per kunstwerk, meetpunt as, tabel in het venster, een RWS-blad per doorsnede, oude projecten omzetten; testwolk met twee kunstwerken | 1. Test met twee daken: `__pvTest.rws()` geeft vier doorsnedes (KW1 voor/achter, KW2 voor/achter) op de verwachte stations (± 0,3 m). 2. Elke doorsnede heeft meetpunten kant links, as (offset 0) en kant rechts met een doorrijhoogte. 3. De PDF heeft vier RWS-bladen. 4. Een project met `p1`/`p2` opent zonder fout met die stations. 5. `node run_alle.js` geheel groen. | B1, B2, B4 | M | Opus 5.5, medium | `F0:` |
+| F1 | ▶ vrijgegeven | Lijnen en labels in het lengteprofiel, slepen aan het label, opnieuw meten, dubbelklik = automatisch | 1. Het lengteprofiel toont per doorsnede een lijn met label (zichtbaar op een screenshot). 2. In de test: slepen van het label van KW1 achter verschuift het station en geeft nieuwe hoogtes. 3. Pannen naast een label werkt nog. 4. Het verschoven station staat na opslaan en openen nog op dezelfde plek. 5. `node run_alle.js` geheel groen. | F0, B3 | M | Opus 5.5, medium | `F1:` |
 | F2 | ⏳ wacht op B5 | Opleveren: versie, LEESMIJ, handleiding, tests, bouwen, installatietoets, commit; Marco controleert | 1. `node run_alle.js` geheel groen. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat het op een echte scan met twee kunstwerken klopt. | F1, B5 | S | Opus 5.5, medium | `F2:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
@@ -113,6 +113,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
+| F0 | 2026-11-09 08:54 | 2026-11-09 09:30 | Marco van Steenbrugge ("Akkoord, bouw F0–F1") | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 120 / 60.297 | onbekend (commit volgt na deze toetsing) | transcript (Claude Code 2.1.317) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -121,6 +122,11 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 
 | Fase | Tijdstip | Criterium | Controle en uitkomst | Oordeel |
 |---|---|---|---|---|
+| F0 | 2026-11-09 09:30 | 1. Test met twee daken: vier doorsnedes (KW1 voor/achter, KW2 voor/achter) op de verwachte stations (± 0,3 m) | `node kunstwerken.test.js` (`tests/uit/kunstwerken_f0.log`): "1 doorsnedes: KW1 voor st. 30.2, KW1 achter st. 44.8, KW2 voor st. 60.2, KW2 achter st. 74.8" (daken st. 30–45 en 60–75), "fouten: geen" | gehaald |
+| F0 | 2026-11-09 09:30 | 2. Elke doorsnede heeft meetpunten kant links, as (offset 0) en kant rechts met een doorrijhoogte | zelfde log: de test eist per doorsnede de soorten "kant,as,kant" en een hoogte binnen 1 cm van dak − weg; "2 hoogtes KW2 achter: kant -3.95: 3.804 \| as 0: 3.705 \| kant 3.95: 3.606", "fouten: geen" | gehaald |
+| F0 | 2026-11-09 09:30 | 3. De PDF heeft vier RWS-bladen | zelfde log: vier regels RWSBLAD "Doorrijprofiel KW1 voor - Viaduct Noord", "KW1 achter - Viaduct Noord", "KW2 voor - Viaduct Zuid", "KW2 achter - Viaduct Zuid"; de test eist precies 4 | gehaald |
+| F0 | 2026-11-09 09:30 | 4. Een project met `p1`/`p2` opent zonder fout met die stations | zelfde log: "6 doorsnedes met oude p1/p2: KW1 voor st. 31, …, KW2 achter st. 73" en na opslaan en openen p1 "31", p2 "73"; geen paginafout | gehaald |
+| F0 | 2026-11-09 09:30 | 5. `node run_alle.js` geheel groen | `tests/uit/run_alle_kw_f0.log`: 26 tests "OK" (incl. kunstwerken.test.js), "Alle tests geslaagd"; na een laatste kleine wijziging (breder stationveld) doorrijhoogte, doorrijprofiel_rws en kunstwerken opnieuw: alle drie "fouten: geen" | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
@@ -131,7 +137,7 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
 |---|---|---|---|---|
-| 1 | 2026-11-09 08:55 | Eerste versie | - | Nog geen vrijgave |
+| 1 | 2026-11-09 08:52 | Eerste versie | - | Nog geen vrijgave |
 
 ## 14. Bronnen
 - viewer.js op 0945306: `voerDoorrijUit`, `rwsStations`, `rwsMeten`, `rwsBerekenProfiel`, `rwsBreedteLangs`, `tekenLangs`, de pointer-afhandeling van `svgLangs`.
