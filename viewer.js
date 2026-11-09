@@ -7248,20 +7248,31 @@
     let bx0 = Infinity, by0 = Infinity;
     for (const st of stukken) { bx0 = Math.min(bx0, st.ax, st.bx); by0 = Math.min(by0, st.ay, st.by); }
     bx0 -= half + 2; by0 -= half + 2;
-    let X = [], Y = [], Z = [], K = [], gezien = 0, metKlasse = false, cel = 0;
+    // Vaste, compacte reeksen (typed arrays) in plaats van gewone lijsten: bij miljoenen punten scheelt dat ruim een
+    // GB piekgeheugen (gemeten: 1,45 GB bij 16 mln punten). Uitdunnen gebeurt ter plekke, met een hashtabel van vaste grootte.
+    const cap = limiet + 1;
+    const X = new Float64Array(cap), Y = new Float64Array(cap), Z = new Float32Array(cap), K = new Uint8Array(cap);
+    let n = 0, gezien = 0, metKlasse = false, cel = 0;
+    let slots = 1; while (slots < cap * 2) slots *= 2;
+    const mask = slots - 1, sleutels = new Float64Array(slots), bezet = new Uint8Array(slots);
     const dun = (groei = true) => {
       if (groei || !cel) cel = cel ? cel * 1.4 : 0.03;
-      let z0 = Infinity; for (let i = 0; i < Z.length; i += 97) if (Z[i] < z0) z0 = Z[i];
+      let z0 = Infinity; for (let i = 0; i < n; i += 97) if (Z[i] < z0) z0 = Z[i];
       z0 -= 200;
-      const ruim = 131072, set = new Set(), nx = [], ny = [], nz = [], nk = [];
-      for (let i = 0; i < X.length; i++) {
+      const ruim = 131072;
+      bezet.fill(0);
+      let m = 0;
+      for (let i = 0; i < n; i++) {
         const a = Math.floor((X[i] - bx0) / cel), b = Math.floor((Y[i] - by0) / cel), c = Math.floor((Z[i] - z0) / cel);
         if (a < 0 || b < 0 || c < 0 || a >= ruim || b >= ruim || c >= ruim) continue;
-        const k = (a * ruim + b) * ruim + c;
-        if (set.has(k)) continue;
-        set.add(k); nx.push(X[i]); ny.push(Y[i]); nz.push(Z[i]); nk.push(K[i]);
+        const k = (a * ruim + b) * ruim + c;   // exact (< 2^53)
+        let h = (Math.imul(a, 73856093) ^ Math.imul(b, 19349663) ^ Math.imul(c, 83492791)) & mask, dubbel = false;
+        while (bezet[h]) { if (sleutels[h] === k) { dubbel = true; break; } h = (h + 1) & mask; }
+        if (dubbel) continue;
+        bezet[h] = 1; sleutels[h] = k;
+        X[m] = X[i]; Y[m] = Y[i]; Z[m] = Z[i]; K[m] = K[i]; m++;
       }
-      X = nx; Y = ny; Z = nz; K = nk;
+      n = m;
     };
     return {
       voegToe(x, y, z, r, g, b, klasse) {
@@ -7271,14 +7282,14 @@
         let binnen = false;
         for (let i = 0; i < lijst.length; i++) if (projecteer(stukken[lijst[i]], x, y).d <= half) { binnen = true; break; }
         if (!binnen) return;
-        X.push(x); Y.push(y); Z.push(z); K.push(klasse ?? 0);
+        X[n] = x; Y[n] = y; Z[n] = z; K[n] = klasse ?? 0; n++;
         if (klasse != null) metKlasse = true;
         // eerst met het huidige vakje uitdunnen; pas groter maken als dat niet genoeg is (anders groeit het bij elke portie)
-        if (X.length > limiet) { if (cel) dun(false); while (X.length > limiet * 0.7) dun(); }
+        if (n >= cap) { if (cel) dun(false); while (n > limiet * 0.7) dun(); }
       },
       get aantalGezien() { return gezien; },
-      get binnen() { return X.length; },
-      resultaat() { return { xs: X, ys: Y, zs: Z, ks: metKlasse ? Uint8Array.from(K) : null, uitgedund: cel > 0, cel }; },
+      get binnen() { return n; },
+      resultaat() { return { xs: X.slice(0, n), ys: Y.slice(0, n), zs: Z.slice(0, n), ks: metKlasse ? K.slice(0, n) : null, uitgedund: cel > 0, cel }; },
     };
   }
 
@@ -8031,27 +8042,39 @@
       return { ...bx, bodem, vrijLangs: new Float32Array(ns).fill(NaN), vrijMin: null, kritiek: null, nConflict: 0, dakVan: Infinity, dakTot: -Infinity };
     });
     // 6. dak: alles boven de weg (meer dan minH), met ruisfilter in 3D; de wegpunten zelf (voor het tekenen)
-    const PS = [], PO = [], PZ = [], PC = [], PX = [], PY = [];
-    const CEL = 0.5, telR = new Map();
+    // compacte reeksen van vaste grootte (typed arrays): bij miljoenen punten honderden MB minder dan gewone lijsten
+    let cap = 0; for (const { b } of bronnen) cap += b.xs.length;
+    const PS = new Float32Array(cap), PO = new Float32Array(cap), PZ = new Float32Array(cap), PC = new Uint8Array(cap), PX = new Float64Array(cap), PY = new Float64Array(cap);
+    let nP = 0;
+    const CEL = 0.5;
     const sleutel = (s, o, z) => (Math.floor(s / CEL) * 1024 + (Math.floor(o / CEL) + 512)) * 16384 + (Math.floor(z / CEL) + 8192);
+    // telling per vakje van 0,5 m voor de ruisfilter: hashtabel van vaste grootte in plaats van een Map
+    let tSlots = 1; while (tSlots < Math.max(16, cap * 2)) tSlots *= 2;
+    const tMask = tSlots - 1;
+    let tSleutel = new Float64Array(tSlots), tBezet = new Uint8Array(tSlots), tTel = new Uint32Array(tSlots);   // na de ruisfilter vrijgegeven
+    const tHash = (key) => { const lo = key % 4294967296, hi = Math.floor(key / 4294967296); return (Math.imul(lo | 0, 2654435761) ^ Math.imul(hi | 0, 40503)) & tMask; };
+    const telR = {
+      plus(key) { let h = tHash(key); while (tBezet[h] && tSleutel[h] !== key) h = (h + 1) & tMask; tBezet[h] = 1; tSleutel[h] = key; tTel[h]++; },
+      get(key) { let h = tHash(key); while (tBezet[h]) { if (tSleutel[h] === key) return tTel[h]; h = (h + 1) & tMask; } return 0; },
+    };
     for (const { b, S, O } of bronnen) {
       for (let i = 0; i < b.xs.length; i++) {
         const s = S[i]; if (Number.isNaN(s) || s < k.s0 - 1 || s > k.s1 + 1) continue;
         const wz = wegOp(s, O[i]); if (wz == null) continue;
         const h = b.zs[i] - wz;
-        PS.push(s); PO.push(O[i]); PZ.push(b.zs[i]); PX.push(b.xs[i]); PY.push(b.ys[i]);
-        if (h < k.minH) { PC.push(0); continue; }
-        PC.push(1);
-        const key = sleutel(s, O[i], b.zs[i]); telR.set(key, (telR.get(key) || 0) + 1);
+        PS[nP] = s; PO[nP] = O[i]; PZ[nP] = b.zs[i]; PX[nP] = b.xs[i]; PY[nP] = b.ys[i];
+        if (h < k.minH) { PC[nP++] = 0; continue; }
+        PC[nP++] = 1;
+        telR.plus(sleutel(s, O[i], b.zs[i]));
       }
     }
     let ruis = 0, metDak = 0;
     const dakS = [], dakO = [], dakBoven = [];   // dakBoven: stations van dakpunten boven een box (kunstwerken vinden)
-    for (let p = 0; p < PS.length; p++) {
+    for (let p = 0; p < nP; p++) {
       if (PC[p] !== 1) continue;
       const cs = Math.floor(PS[p] / CEL), co = Math.floor(PO[p] / CEL), cz = Math.floor(PZ[p] / CEL);
       let m = -1;
-      for (let a = -1; a <= 1; a++) for (let b2 = -1; b2 <= 1; b2++) for (let c2 = -1; c2 <= 1; c2++) m += telR.get(((cs + a) * 1024 + (co + b2 + 512)) * 16384 + (cz + c2 + 8192)) || 0;
+      for (let a = -1; a <= 1; a++) for (let b2 = -1; b2 <= 1; b2++) for (let c2 = -1; c2 <= 1; c2++) m += telR.get(((cs + a) * 1024 + (co + b2 + 512)) * 16384 + (cz + c2 + 8192));
       if (m < k.minP) { PC[p] = 3; ruis++; continue; }
       if (PS[p] < k.s0 || PS[p] > k.s1) continue;
       dakS.push(PS[p]); dakO.push(PO[p]);
@@ -8070,6 +8093,7 @@
         if (vrij < bx.H) { bx.nConflict++; PC[p] = 2; }
       }
     }
+    tSleutel = tBezet = tTel = null;   // anders houden de functies in het resultaat (gedeelde context) ze vast
     for (const bx of boxen) {
       bx.speling = bx.vrijMin == null ? null : bx.vrijMin - bx.H;
       bx.ok = bx.speling == null || bx.speling >= -1e-9;
@@ -8084,14 +8108,14 @@
       binnen, minOpp: 1, maxGat: 20, z: 'min',
     }) : null;
     // index op station (vakken van 1 m) voor het tekenen
-    const nb = Math.ceil(L + 2) + 1, start = new Int32Array(nb + 1), bin = new Int32Array(PS.length);
-    for (let p = 0; p < PS.length; p++) { const b = Math.max(0, Math.min(nb - 1, Math.floor(PS[p]))); bin[p] = b; start[b + 1]++; }
+    const nb = Math.ceil(L + 2) + 1, start = new Int32Array(nb + 1), bin = new Int32Array(nP);
+    for (let p = 0; p < nP; p++) { const b = Math.max(0, Math.min(nb - 1, Math.floor(PS[p]))); bin[p] = b; start[b + 1]++; }
     for (let b = 0; b < nb; b++) start[b + 1] += start[b];
-    const vul = start.slice(0, nb), volgorde = new Int32Array(PS.length);
-    for (let p = 0; p < PS.length; p++) volgorde[vul[bin[p]]++] = p;
+    const vul = start.slice(0, nb), volgorde = new Int32Array(nP);
+    for (let p = 0; p < nP; p++) volgorde[vul[bin[p]]++] = p;
     const res = {
       ...k, boxen, half, BS, BO, ns, no, wegOp, ruis, metDak, dekking,
-      S: Float32Array.from(PS), O: Float32Array.from(PO), Z: Float32Array.from(PZ), X: Float64Array.from(PX), Y: Float64Array.from(PY), cls: Uint8Array.from(PC),
+      S: PS.slice(0, nP), O: PO.slice(0, nP), Z: PZ.slice(0, nP), X: PX.slice(0, nP), Y: PY.slice(0, nP), cls: PC.slice(0, nP),
       nb, start, volgorde, asSl: asSleutelNu(), tijd: new Date(),
       dakStations: Float32Array.from(dakBoven).sort(),
       bodemOp: (bi, s) => { const v = boxen[bi].bodem[Math.max(0, Math.min(ns - 1, Math.floor(s / BS)))]; return Number.isNaN(v) ? null : v; },
