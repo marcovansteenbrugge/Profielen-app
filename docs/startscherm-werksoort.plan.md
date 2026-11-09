@@ -3,7 +3,7 @@ plan: startscherm-werksoort
 titel: Startscherm met vier tools, elk in een eigen kleur
 versie: 1
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ✅ · F2 ⏳           # berekend door de skill
+voortgang: F0 ✅ · F1 ✅ · F2 ▶           # berekend door de skill
 opgesteld: 2026-11-08
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -107,7 +107,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 |---|---|---|---|---|---|---|---|
 | F0 | ✅ gebouwd | Werksoort en kleur in de viewer: tokens per tool, label en streep in de kopbalk, groep Toets per tool, PDF-opties per tool, werksoort in het project, raden bij oude projecten, knop "Andere tool…"; `?start=uit` en `hulp.js` voor de tests | 1. Nieuwe test `werksoort.test.js`: per tool zijn alleen de eigen toetsknop en chip zichtbaar (Profielen Tool: geen), `--accent` heeft de waarde uit de tabel. 2. Project opslaan en heropenen geeft dezelfde tool; een oud project met doorrij-uitkomst opent als Doorrijhoogte. 3. `node run_alle.js` eindigt met "Alle tests geslaagd". 4. Schermafdruk van de viewer in elk van de vier tools. | B1, B2, B3, B4, B7, B8 | M | Opus 5.5, medium | `F0:` |
 | F1 | ✅ gebouwd | Startscherm: vier tegels, projectnaam (ook in de PDF-stempel), map kiezen of nieuwe map maken, recente projecten met kleurstip (exe en browser), overslaan bij dubbelklik, sleep en `?start=uit`; geen tweede mapvraag bij de puntenwolk | 1. Nieuwe test `startscherm.test.js`: tool en naam kiezen, nieuwe map maken (in een tijdelijke map), Start: map bestaat met de submappen, PDF-projectnaam is gezet, de tool staat goed; inlezen van de testwolk vraagt geen map meer. 2. Recente projecten tonen de tool (stip in de juiste kleur), ook in de exe-emulatie; `go test ./...` in `bron-exe` slaagt (recent met soort, oude regels zonder soort). 3. Met `natief.openen` komt het startscherm niet. 4. `node run_alle.js` eindigt met "Alle tests geslaagd". 5. Schermafdruk van het startscherm. | F0, B5 | M | Opus 5.5, medium | `F1:` |
-| F2 | ⏳ wacht op B6, B9 | Opleveren 2.15.0: versie, LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert | 1. `node run_alle.js` eindigt met "Alle tests geslaagd". 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat het startscherm en de vier tools goed werken. | F1, B6, B9 | S | Opus 5.5, medium | `F2:` |
+| F2 | ▶ vrijgegeven | Opleveren 2.15.0: versie, LEESMIJ, handleiding, alle tests, bouwen, installatietoets, commit en tag; Marco controleert | 1. `node run_alle.js` eindigt met "Alle tests geslaagd". 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat het startscherm en de vier tools goed werken. | F1, B6, B9 | S | Opus 5.5, medium | `F2:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
 
@@ -155,6 +155,10 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F1 | 2026-11-08 12:40 | 3. Met `natief.openen` komt het startscherm niet | B1: startscherm dicht, tool doorvaart uit het projectbestand, "Project geladen (Brug Zuid.pvproj)" | gehaald |
 | F1 | 2026-11-08 12:40 | 4. `node run_alle.js` eindigt met "Alle tests geslaagd" | `tests/uit/run_alle_f1.log`: 25 tests "OK" (incl. werksoort en startscherm), "Alle tests geslaagd" | gehaald |
 | F1 | 2026-11-08 12:40 | 5. Schermafdruk van het startscherm | `tests/uit/startscherm_recent.png` (bekeken): vier tegels, Snoeien gekozen (groene rand, knop "Start Snoeien"), projectnaam, projectmap, recent "Bergstraat test" met rode stip; ook `_leeg.png`, `_gekozen.png`, `_na_start.png` | gehaald |
+| F2 | 2026-11-09 08:56 | 1. `node run_alle.js` eindigt met "Alle tests geslaagd" | `tests/uit/run_alle_f2.log`: alle tests "OK" (o.a. doorrijhoogte, doorrijprofiel_rws, werksoort, startscherm), laatste regel "Alle tests geslaagd" | gehaald |
+| F2 | 2026-11-09 08:56 | 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen` | `tests/uit/bouw_f2.log`: installeren, bijwerken en verwijderen OK, versie in Windows-instellingen 2.15.0, laatste regel "fouten: geen" | gehaald |
+| F2 | 2026-11-09 08:56 | 3. Exe, zip en setup in `dist` | `dist\Lutrea-Profielviewer-2.15.0.exe` (13,6 MB), `dist\Lutrea-Profielviewer_compleet_2.15.0.zip` (6,6 MB), `dist\Lutrea-Profielviewer-2.15.0-setup.exe` (6,1 MB), alle drie 2026-11-09 08:53 | gehaald |
+| F2 | 2026-11-09 08:56 | 4. Marco bevestigt dat het startscherm en de vier tools goed werken | nog niet gevraagd: wacht op de controle van Marco met de gebouwde 2.15.0 | niet toetsbaar |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".

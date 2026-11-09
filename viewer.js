@@ -8169,10 +8169,14 @@
     if (!xs) { toonFout('Open eerst de puntenwolk (A).'); return; }
     if (asPunten.length < 2) { toonFout('Teken of lees eerst de as van de weg in: de punten worden in een strook langs de as gelezen.'); return; }
     const half = drStrookHalf(), wat = rol === 'dak' ? 'Dak' : 'Doorrijhoogte';
-    statusEl.style.color = ''; statusEl.textContent = `${wat}: ${bestand.name} inlezen (strook ± ${komma(half, 1)} m langs de as)…`;
+    // de voortgang ook in het venster zelf: de statusbalk ligt dan achter het grijze vlak
+    const naamEl = document.getElementById(rol === 'dak' ? 'drDakNaam' : 'drNaam');
+    const meld = (t, kort) => { statusEl.textContent = `${wat}: ${t}`; if (naamEl) { naamEl.textContent = kort ?? t; naamEl.title = t; } };
+    statusEl.style.color = ''; meld(`${bestand.name} inlezen (strook ± ${komma(half, 1)} m langs de as)…`, `inlezen… 0%`);
     await new Promise(r => setTimeout(r, 10));
     const sink = maakBegroeiingSink(half);
-    const voortgang = (n, t) => { statusEl.textContent = `${wat}: ${bestand.name}… ${Math.round(100 * n / Math.max(1, t))}% · ${sink.binnen.toLocaleString('nl-NL')} punten in de strook`; };
+    const pct = (f) => { const p = Math.round(f * 100), n = sink.binnen.toLocaleString('nl-NL'); meld(`${bestand.name}… ${p}% · ${n} punten in de strook`, `inlezen… ${p}% · ${n} p. in de strook`); };
+    const voortgang = (n, t) => pct(n / Math.max(1, t));
     try {
       if (bestand.tegelbron) await leesTegels(bestand, voortgang, sink, strookKader(half), tegelsLangsAs(half));
       else if (/\.la[sz]$/i.test(bestand.name)) {
@@ -8181,10 +8185,10 @@
         const s2 = maakKlassenFilter(sink, bestand.pvKlassen ?? null);
         if (header.isCompressed) await leesLazPunten(bestand, header, voortgang, true, s2);
         else await leesLasPunten(bestand, header, voortgang, true, s2);
-      } else await leesPts(bestand, (n, t, f) => { statusEl.textContent = `${wat}: ${bestand.name}… ${Math.round((f ?? (n / Math.max(1, t))) * 100)}% · ${sink.binnen.toLocaleString('nl-NL')} punten in de strook`; }, sink);
-    } catch (err) { toonFout(`kon ${bestand.name} niet lezen: ${err.message}`); return; }
+      } else await leesPts(bestand, (n, t, f) => pct(f ?? (n / Math.max(1, t))), sink);
+    } catch (err) { werkDoorrijPaneelBij(); toonFout(`kon ${bestand.name} niet lezen: ${err.message}`); return; }
     const r = sink.resultaat();
-    if (r.xs.length < 50) { toonFout(`${bestand.name}: (bijna) geen punten langs de as gevonden — ligt de as op de weg en is alles in RD (EPSG:28992)?`); return; }
+    if (r.xs.length < 50) { werkDoorrijPaneelBij(); toonFout(`${bestand.name}: (bijna) geen punten langs de as gevonden — ligt de as op de weg en is alles in RD (EPSG:28992)?`); return; }
     const wolk = maakBrugWolk(bestand.name, r.xs, r.ys, r.zs);
     wolk.half = half; wolk.asSleutel = asSleutelNu();
     if (rol === 'dak') drDak = wolk; else drWolk = wolk;

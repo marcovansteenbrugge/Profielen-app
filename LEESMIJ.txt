@@ -1,9 +1,9 @@
-Lutrea Profielviewer 2.14.0 (voorheen PTS-viewer)
+Lutrea Profielviewer 2.15.0 (voorheen PTS-viewer)
 ================================================
 Nieuwe naam, zelfde programma. Je projectbestanden en instellingen blijven werken.
 De oude PTS-viewer.exe en snelkoppeling mag je weggooien.
 
-Installeren (gewone manier): Lutrea-Profielviewer-2.12.0-setup.exe
+Installeren (gewone manier): Lutrea-Profielviewer-2.15.0-setup.exe
 ------------------------------------------------------------------
 Dubbelklik de setup en volg de stappen. Je hebt geen beheerdersrechten nodig: de viewer
 komt in je eigen programmamap (%LOCALAPPDATA%\Programs\Lutrea Profielviewer).
@@ -48,6 +48,24 @@ Mapversie (alternatief)
 
 Alternatief: open http://127.0.0.1:8017/index.html in Chrome/Edge (na het starten via de snelkoppeling) en kies in de
 adresbalk "App installeren" - dan staat hij ook in het startmenu.
+
+Nieuw in 2.15.0 — Startscherm met vier tools
+---------------------------------------------
+- Bij het starten kies je wat je vandaag doet: Profielen Tool (oranje),
+  Doorvaarthoogte (blauw), Doorrijhoogte (rood) of Snoeien (groen). Op hetzelfde scherm
+  vul je de projectnaam in en kies je de projectmap, of maak je een nieuwe map met de
+  projectnaam. Recente projecten staan ernaast, met de kleur van hun tool.
+- Daarna zie je alleen die tool, in zijn eigen kleur: in Doorrijhoogte geen knoppen van
+  Snoeien of Doorvaart. Puntenwolk, project, as en uitvoer zijn er in elke tool. Tekening,
+  PDF en DXF blijven zoals ze waren.
+- Het project onthoudt zijn tool en opent de volgende keer meteen daarin. Projecten van
+  vóór 2.15.0 openen in de tool die bij de inhoud past (de viewer meldt welke).
+- Verkeerde tool gekozen? PROJECT -> "Andere tool…" zet het project om; er gaat niets
+  verloren.
+- Het programma heet nog steeds Lutrea Profielviewer: installatie, startmenu en
+  snelkoppelingen blijven werken.
+- Doorrijhoogte: de voortgang van het inlezen staat nu ook in het venster zelf (onder
+  "Puntenwolk"), niet alleen in de statusbalk achter het venster.
 
 Nieuw in 2.14.0 — Doorrijprofiel volgens RWS
 --------------------------------------------

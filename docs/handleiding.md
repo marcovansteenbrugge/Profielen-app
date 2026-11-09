@@ -1,6 +1,6 @@
 # Lutrea Profielviewer — handleiding
 
-Nov 6, 2026 · @Marco van Steenbrugge · versie 2.14.0
+Nov 9, 2026 · @Marco van Steenbrugge · versie 2.15.0
 
 ## Wat is de Profielviewer
 
@@ -10,14 +10,29 @@ Daarnaast zitten er twee toetsen in. De **doorvaartcontrole** kijkt of een schip
 
 **Starten**
 
-1. Dubbelklik `Lutrea-Profielviewer-2.12.0-setup.exe` en volg de stappen. Er zijn geen beheerdersrechten nodig: de viewer komt in `%LOCALAPPDATA%\Programs\Lutrea Profielviewer`. Start hem daarna via het **startmenu → Lutrea Profielviewer** (een bureaublad-snelkoppeling kun je in de setup aanvinken).
+1. Dubbelklik `Lutrea-Profielviewer-2.15.0-setup.exe` en volg de stappen. Er zijn geen beheerdersrechten nodig: de viewer komt in `%LOCALAPPDATA%\Programs\Lutrea Profielviewer`. Start hem daarna via het **startmenu → Lutrea Profielviewer** (een bureaublad-snelkoppeling kun je in de setup aanvinken).
 2. De eerste keer kan Windows "Windows heeft uw pc beschermd" tonen: kies **Meer informatie → Toch uitvoeren**. Het programma is (nog) niet digitaal ondertekend.
 3. De viewer opent in een eigen programmavenster (WebView2, zit in Windows 10 en 11; Chrome of Edge is niet nodig). Venster dicht = programma stopt. Het venster onthoudt plek en grootte.
-4. Controleer het versienummer naast de titel linksboven (nu **2.12.0**).
+4. Controleer het versienummer naast de titel linksboven (nu **2.15.0**).
+
+**Een tool kiezen (vanaf 2.15.0)**
+
+Bij het starten verschijnt het startscherm met de vraag wat je vandaag doet. Er zijn vier tools, elk met een eigen kleur:
+
+- **Profielen Tool** (oranje): as, lengte- en dwarsprofielen en uitvoer, zonder toets.
+- **Doorvaarthoogte** (blauw): de doorvaartcontrole onder een brug.
+- **Doorrijhoogte** (rood): de vrije hoogte boven een weg, ook als doorrijprofiel volgens RWS.
+- **Snoeien** (groen): takken in de vrije ruimte boven een pad, met snoeikaart en snoeilijst.
+
+Vul op hetzelfde scherm de projectnaam in en kies de projectmap, of maak een nieuwe map met de projectnaam. Rechts staan je recente projecten, met een stip in de kleur van hun tool; klik er een aan om hem te openen.
+
+Daarna zie je alleen de gekozen tool, in zijn eigen kleur: kopbalk, knoppen, paneelkoppen en de kop van het toetsvenster. Puntenwolk, project, as en uitvoer zijn er in elke tool. Tekening, PDF en DXF zien er in elke tool hetzelfde uit.
+
+Het project onthoudt zijn tool: de volgende keer opent het meteen daarin. Een project van vóór 2.15.0 opent in de tool die bij de inhoud past, en de viewer meldt welke. Verkeerde tool? Kies **PROJECT → Andere tool…**; het project wordt omgezet en er gaat niets verloren. Open je een project met een dubbelklik op een .pvproj, dan wordt het startscherm overgeslagen.
 
 **Bijwerken en verwijderen.** Een nieuwe versie installeer je door de nieuwe setup te draaien; sluit eerst de viewer (staat hij nog open, dan vraagt de setup je dat). Verwijderen gaat via **Windows-instellingen → Apps → Lutrea Profielviewer**. Je instellingen, stempel, logo's en recente projecten blijven bewaard, en je projectmappen worden nooit aangeraakt.
 
-**Zonder installeren.** Mag of kun je niet installeren, dubbelklik dan de losse `Lutrea-Profielviewer-2.12.0.exe`. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling. Instellingen zijn dezelfde als bij de geïnstalleerde viewer.
+**Zonder installeren.** Mag of kun je niet installeren, dubbelklik dan de losse `Lutrea-Profielviewer-2.15.0.exe`. Zet het bestand waar je wilt (bureaublad, C:\\Tools) en maak eventueel een snelkoppeling. Instellingen zijn dezelfde als bij de geïnstalleerde viewer.
 
 **Al open?** Start je de viewer nog een keer, dan komt het venster dat al open is naar voren; er komt geen tweede venster.
 
