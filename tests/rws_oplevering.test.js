@@ -104,6 +104,9 @@ function maakData() {
   if (/m² weg niet gemeten/.test(res.oordeel || '')) fouten.push('F1-3: oordeel noemt nog de m² weg niet gemeten');
   if (!res.pct) fouten.push('F1-3: percentage weg gemeten niet groot');
   if (!/niet gemeten/.test(res.tekst)) fouten.push('F1-3: testgat in de weg niet gevonden (testopzet)');
+  // F2. invulvelden
+  const invul = { drRwsWeg: 'Bergseweg', drRwsOpdrachtgever: 'Rijkswaterstaat', drRwsMeetbedrijf: 'Lutrea', drRwsMeetmethode: 'mobiele laserscan, type X', drRwsUitgevoerd: 'M. van Steenbrugge', drRwsGecontroleerd: 'J. Jansen' };
+  for (const [id, w] of Object.entries(invul)) { await p.fill('#' + id, w); await p.dispatchEvent('#' + id, 'input'); }
   await p.click('#drSluit'); await p.waitForTimeout(300);
 
   // F1-1/2. RWS-opleverset: bovenaanzicht, Doorrijhoogte (overzicht), lengteprofiel, de doorsnedes, in die volgorde
@@ -118,7 +121,7 @@ function maakData() {
     'd = pymupdf.open(sys.argv[1])',
     'for i, pg in enumerate(d):',
     '    t = " ".join(pg.get_text().split())',
-    '    print("BLAD", i + 1, t[:2500])',
+    '    print("BLAD", i + 1, t[:8000])',
     '    if t.startswith("Doorrijhoogte"): pg.get_pixmap(dpi=90).save(sys.argv[2])',
   ].join(String.fromCharCode(10)), pdf2, path.join(H.UIT, 'rws_opleverset_blad2.png')], { encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
   const bladen = (py2.stdout || '').split(/\r?\n/).filter(l => l.startsWith('BLAD'));
@@ -130,6 +133,15 @@ function maakData() {
   const b2 = bladen.find(l => soort(l) === 'doorrij') || '';
   for (const t of ['1. Wat is getest', '2. Welke profielen', '3. Resultaat', '4. Doorrijhoogtes per doorsnede', 'KW1 voor', 'KW2 achter', 'kant links', 'kant rechts', 'Oordeel']) if (!b2.includes(t)) fouten.push(`F1-2: "${t}" niet op blad 2`);
   if (/m² weg niet gemeten/.test(b2.split('Oordeel')[1] || '')) fouten.push('F1-3: oordeel op blad 2 noemt de m²');
+  // F2-1. de invulvelden op blad 2 en op elk RWS-blad, de opdrachtgever in het titelblok
+  for (const w of ['Lutrea', 'mobiele laserscan, type X', 'M. van Steenbrugge', 'J. Jansen', 'Bergseweg']) if (!b2.includes(w)) fouten.push(`F2-1: "${w}" niet op blad 2`);
+  const rwsBladen = bladen.filter(l => /^BLAD \d+ Doorrijprofiel KW/.test(l));
+  for (const l of rwsBladen) for (const w of ['Meetbedrijf: Lutrea', 'Uitgevoerd door: M. van Steenbrugge', 'Gecontroleerd door: J. Jansen']) {
+    const [k, v] = w.split(': ');
+    if (!l.includes(k) || !l.includes(v)) { fouten.push(`F2-1: "${w}" niet op ${l.slice(0, 40)}`); break; }
+  }
+  if (!b2.includes('Rijkswaterstaat')) fouten.push('F2-1: opdrachtgever niet in het titelblok van blad 2');
+  console.log('F2-1 invulvelden: blad 2', ['Lutrea', 'J. Jansen', 'Rijkswaterstaat'].map(w => b2.includes(w)).join('/'), '| RWS-bladen', rwsBladen.length);
   await p.keyboard.press('Escape').catch(() => {}); await p.waitForTimeout(300);
   if (await p.isVisible('#pdfDialoog[open]')) await p.evaluate(() => document.getElementById('pdfDialoog')?.close());
   await p.evaluate(() => { const e = document.getElementById('pdfRwsSet'); if (e) { e.checked = false; e.dispatchEvent(new Event('change')); } });
@@ -156,6 +168,12 @@ function maakData() {
   const velden = await p.evaluate(() => [document.getElementById('langsHoogteVan').value, document.getElementById('langsHoogteTot').value]);
   console.log('F0-4 na opslaan en openen:', JSON.stringify(velden));
   if (velden[0] !== '9' || velden[1] !== '18') fouten.push('F0-4: hoogtebereik komt niet terug na opslaan en openen');
+  // F2-2. de invulvelden komen terug na opslaan en openen
+  const inst = await p.evaluate(() => window.__pvTest.doorrijInst().rws);
+  const opdr = await p.evaluate(() => document.getElementById('pdfOpdrachtgever')?.value);
+  console.log('F2-2 na opslaan en openen:', JSON.stringify({ meetbedrijf: inst?.meetbedrijf, uitgevoerd: inst?.uitgevoerd, gecontroleerd: inst?.gecontroleerd, opdr }));
+  if (inst?.meetbedrijf !== 'Lutrea' || inst?.meetmethode !== 'mobiele laserscan, type X' || inst?.uitgevoerd !== 'M. van Steenbrugge' || inst?.gecontroleerd !== 'J. Jansen') fouten.push('F2-2: invulvelden komen niet terug na opslaan en openen');
+  if (opdr !== 'Rijkswaterstaat') fouten.push('F2-2: opdrachtgever komt niet terug');
 
   console.log('fouten:', fouten.join(' | ') || 'geen');
   await b.close();

@@ -3,7 +3,7 @@ plan: rws-oplevering
 titel: RWS-opleverset voor de doorrijhoogte, met invulscherm en verificatierapport
 versie: 1
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ✅ · F2 ▶ · F3 ○           # berekend door de skill
+voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ○           # berekend door de skill
 opgesteld: 2026-11-09
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -79,7 +79,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 |---|---|---|---|---|---|---|---|
 | F0 | ✅ gebouwd | Lengteprofiel: hoogtebereik van/tot (scherm en PDF, in het project) en labels boven het kunstwerk | 1. Met "van 9 tot 18" toont het lengteprofiel precies 9–18 m NAP, op het scherm en in de PDF (screenshot). 2. Leeg = automatisch zoals nu. 3. De labels KW1 voor/achter staan boven het dak van het kunstwerk, niet bovenin de grafiek (screenshot), en slepen werkt nog. 4. Het bereik komt terug na opslaan en openen. 5. `node run_alle.js` geheel groen. | B2, B3 | S | Opus 5.5, medium | `F0:` |
 | F1 | ✅ gebouwd | Keuze RWS-oplevering: vier onderdelen in de volgorde bovenaanzicht, blad 2 Doorrijhoogte (overzicht volgens B5), lengteprofiel, doorsnedes; oordeel zonder m² (ook in het venster); titel `pdfRws` bijgewerkt | 1. Met de keuze heeft de PDF precies: Bovenaanzicht, Doorrijhoogte, Lengteprofiel, en per doorsnede een RWS-blad, in die volgorde (test op de paginatitels). 2. Blad 2 heeft de kopjes "Wat is getest", "Welke profielen", "Resultaat" en per doorsnede een tabel met kant links, as en kant rechts, en lijkt op het voorbeeld (screenshot). 3. Het oordeel staat zonder "m² weg niet gemeten", op blad 2 en in het venster. 4. Zonder de keuze blijft de PDF zoals nu. 5. `node run_alle.js` geheel groen. | F0, B1, B5 | S | Opus 5.5, medium | `F1:` |
-| F2 | ▶ vrijgegeven | Invulscherm: extra velden, op de RWS-bladen en in het titelblok, bewaard in het project | 1. De ingevulde velden staan op elk RWS-blad (test op de PDF-tekst). 2. Ze komen terug na opslaan en openen. 3. `node run_alle.js` geheel groen. | F1, B4 | S | Opus 5.5, medium | `F2:` |
+| F2 | ✅ gebouwd | Invulscherm: extra velden, op de RWS-bladen en in het titelblok, bewaard in het project | 1. De ingevulde velden staan op elk RWS-blad (test op de PDF-tekst). 2. Ze komen terug na opslaan en openen. 3. `node run_alle.js` geheel groen. | F1, B4 | S | Opus 5.5, medium | `F2:` |
 | F3 | ○ niet vrijgegeven | Verificatierapport volgens de RWS-eisen (inhoud en vorm volgen in een nieuwe planversie) | Wordt vastgesteld in de planversie na aanlevering van de eisen. | F2, voorwaarde: RWS-eisen voor het verificatierapport en bij voorkeur een voorbeeld aangeleverd door Marco | M | Opus 5.5, medium | `F3:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
@@ -110,6 +110,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 |---|---|---|---|---|---|---|---|---|
 | F0 | 2026-11-09 17:35 | 2026-11-09 17:49 | Marco van Steenbrugge ("Akkoord, bouw F0–F2") | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 54 / 32.444 | onbekend (commit volgt na deze toetsing) | transcript (Claude Code 2.1.317) |
 | F1 | 2026-11-09 17:49 | 2026-11-09 18:09 | Marco van Steenbrugge ("Akkoord, bouw F0–F2") | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 72 / 28.925 | onbekend (commit volgt na deze toetsing) | transcript (Claude Code 2.1.317) |
+| F2 | 2026-11-09 18:09 | 2026-11-09 18:22 | Marco van Steenbrugge ("Akkoord, bouw F0–F2") | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 30 / 13.762 | onbekend (commit volgt na deze toetsing) | transcript (Claude Code 2.1.317) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -128,6 +129,9 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F1 | 2026-11-09 18:09 | 3. Het oordeel staat zonder "m² weg niet gemeten", op blad 2 en in het venster | zelfde log: "F1-3 venster: oordeel \"VOLDOET NIET\" \| groot %: true \| gat genoemd: true" (testgat onder KW1); blad 2: na "Oordeel" geen "m² weg niet gemeten" | gehaald |
 | F1 | 2026-11-09 18:09 | 4. Zonder de keuze blijft de PDF zoals nu | `doorrijprofiel_rws.test.js`, `kunstwerken.test.js`, `dakmodel.test.js`, `bgt_onder_kunstwerk.test.js` (vaste paginavolgorde en RWS-bladen zonder de keuze) in de volledige run "OK"; in `rws_oplevering.test.js` F0-5 een PDF zonder de keuze met alleen het lengteprofiel | gehaald |
 | F1 | 2026-11-09 18:09 | 5. `node run_alle.js` geheel groen | `tests/uit/run_alle_r1.log`: 30 tests "OK", "Alle tests geslaagd" | gehaald |
+| F2 | 2026-11-09 18:22 | 1. De ingevulde velden staan op elk RWS-blad (test op de PDF-tekst) | `node rws_oplevering.test.js` (`tests/uit/rws_oplevering_log.txt`): "F2-1 invulvelden: blad 2 true/true/true \| RWS-bladen 4"; de test eist Meetbedrijf, Uitgevoerd door en Gecontroleerd door met hun waarde op alle 4 RWS-bladen, de waarden op blad 2 en de opdrachtgever in het titelblok; uitsnede `tests/uit/rws_tekstvak.png` bekeken | gehaald |
+| F2 | 2026-11-09 18:22 | 2. Ze komen terug na opslaan en openen | zelfde log: "F2-2 na opslaan en openen: {meetbedrijf Lutrea, uitgevoerd M. van Steenbrugge, gecontroleerd J. Jansen, opdr Rijkswaterstaat}" | gehaald |
+| F2 | 2026-11-09 18:22 | 3. `node run_alle.js` geheel groen | `tests/uit/run_alle_r2.log`: 30 tests "OK", "Alle tests geslaagd" | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".

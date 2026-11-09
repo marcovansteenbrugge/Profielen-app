@@ -23,7 +23,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 |---|---|---|---|---|---|
 | F0 | Lengteprofiel: hoogte van/tot instelbaar, labels KW1/KW2 boven het kunstwerk | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B2, B3 | ✅ 2026-11-09 17:49 |
 | F1 | Eén keuze "RWS-oplevering": bovenaanzicht, blad 2 Doorrijhoogte (overzicht zoals het voorbeeld), lengteprofiel, alle doorsnedes, in die volgorde | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B1, B5 | ✅ 2026-11-09 18:09 |
-| F2 | Invulscherm: gegevens die niet uit de scan komen, op de RWS-bladen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B4 | - |
+| F2 | Invulscherm: gegevens die niet uit de scan komen, op de RWS-bladen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B4 | ✅ 2026-11-09 18:22 |
 | F3 | Verificatierapport volgens de RWS-eisen | ○ nog niet | - | eisen van RWS | - |
 
 Letterlijk akkoord (F0 tot en met F2, via chat): "Akkoord, bouw F0–F2", als antwoord op de vraag "Akkoord met B1–B4 zoals voorgesteld en bouwen op planversie 1, fase F0, F1 en F2?"
@@ -142,5 +142,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-09 17:35 | B1, B2, B3 en B4 akkoord (ons voorstel) en vrijgave F0, F1 en F2 op planversie 1: "Akkoord, bouw F0–F2"; Marco als beslisser bevestigd in eerdere plannen | Marco van Steenbrugge, via chat |
 | 2026-11-09 17:49 | F0 gebouwd: lengteprofiel: hoogtebereik van/tot (scherm en PDF, in het project) en de labels van de doorsnedes boven het kunstwerk | Claude Opus 5.5 (agent) |
 | 2026-11-09 18:09 | F1 gebouwd: keuze RWS-opleverset (bovenaanzicht, blad 2 Doorrijhoogte als overzicht, lengteprofiel, de doorsnedes), oordeel zonder m², percentage groot | Claude Opus 5.5 (agent) |
+| 2026-11-09 18:22 | F2 gebouwd: invulvelden (opdrachtgever, meetbedrijf, meetmethode en instrument, uitgevoerd door, gecontroleerd door) op blad 2, in het tekstvak van de RWS-bladen en in het titelblok, bewaard in het project | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

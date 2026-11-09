@@ -8469,6 +8469,7 @@
     const tb = document.getElementById('drBoxTonen'); if (tb) tb.checked = doorrij.boxTonen !== false;
     toonDrBoxen();
     const rw = rwsInst(); for (const [id, sl] of RWS_VELDEN) { const e = document.getElementById(id); if (e) e.value = rw[sl] ?? ''; }
+    { const o = document.getElementById('pdfOpdrachtgever'), e = document.getElementById('drRwsOpdrachtgever'); if (o && e) e.value = o.value; }
     rwsMeetdatumVoorstel();
   }
   function leesDoorrijVelden() {
@@ -8626,7 +8627,10 @@
   let kwVorigeKlik = null;      // { sleutel, t }: voor de dubbelklik op een label           // m: stukken dak met een kleiner gat ertussen horen bij één kunstwerk
   const KW_MIN = { lengte: 1, punten: 5 };   // kortere stukken (bord, tak) tellen niet als kunstwerk; 5 punten: ook een dunne onderkant (F4)
   const RWS_VENSTER = 0.10;   // m rond het meetpunt (langs en dwars)
-  const RWS_VELDEN = [['drKwGat', 'kwGat'], ['drRwsWeg', 'weg'], ['drRwsMeetdatum', 'meetdatum'], ['drRwsBijz', 'bijzonderheden']];
+  // (rws-oplevering F2, B4) ook meetbedrijf, meetmethode en instrument, uitgevoerd en gecontroleerd door; de opdrachtgever
+  // is hetzelfde veld als in het PDF-venster (titelblok)
+  const RWS_VELDEN = [['drKwGat', 'kwGat'], ['drRwsWeg', 'weg'], ['drRwsMeetdatum', 'meetdatum'], ['drRwsBijz', 'bijzonderheden'],
+    ['drRwsMeetbedrijf', 'meetbedrijf'], ['drRwsMeetmethode', 'meetmethode'], ['drRwsUitgevoerd', 'uitgevoerd'], ['drRwsGecontroleerd', 'gecontroleerd']];
   /** Meetdatum als voorstel: de datum in de LAS-header (dag van het jaar + jaar), anders de datum van het bestand. */
   async function rwsMeetdatumVoorstel() {
     const veld = document.getElementById('drRwsMeetdatum');
@@ -9039,7 +9043,9 @@
       const m = rwsInst().meetpunten[Number(s.dataset.mp)]; if (m) m.soort = s.value;
       rwsHerbereken(); toonRwsResultaat(); tekenDwarsVoorHuidigeStation();
     });
-    for (const id of ['drRwsWeg', 'drRwsMeetdatum', 'drRwsBijz']) document.getElementById(id)?.addEventListener('input', () => leesDoorrijVelden());
+    for (const id of ['drRwsWeg', 'drRwsMeetdatum', 'drRwsBijz', 'drRwsMeetbedrijf', 'drRwsMeetmethode', 'drRwsUitgevoerd', 'drRwsGecontroleerd']) document.getElementById(id)?.addEventListener('input', () => leesDoorrijVelden());
+    // opdrachtgever: hetzelfde als in het PDF-venster
+    document.getElementById('drRwsOpdrachtgever')?.addEventListener('input', (e) => { const o = document.getElementById('pdfOpdrachtgever'); if (o) { o.value = e.target.value; o.dispatchEvent(new Event('input')); o.dispatchEvent(new Event('change')); } });
     document.getElementById('drKwGat')?.addEventListener('change', () => { leesDoorrijVelden(); drRws = null; toonRwsResultaat(); });
     // kunstwerken: naam (Object op het RWS-blad) en eigen stations van de doorsnedes
     document.getElementById('drKwLijst')?.addEventListener('input', (e) => {
@@ -15206,6 +15212,8 @@ ${r3d}
       rij('Toets', 'doorrijhoogte onder de kunstwerken, naar de Productspecificaties Doorrijprofielen (RWS, 1 juli 2022)', null);
       for (const [l, w] of regels.filter(isGetest)) rij(l, w, null);
       rij('Meetpunten per doorsnede', `kant verharding links en rechts (BGT; onder het kunstwerk doorgetrokken van ${BGT_UIT} m voor tot ${BGT_UIT} m na) en de as`, null);
+      { const rw = rwsInst(), md = rw.meetdatum || document.getElementById('drRwsMeetdatum')?.placeholder || '';
+        for (const [l, w] of [['Weg / straat', rw.weg], ['Meetdatum', md], ['Meetbedrijf', rw.meetbedrijf], ['Meetmethode en instrument', rw.meetmethode], ['Uitgevoerd door', rw.uitgevoerd], ['Gecontroleerd door', rw.gecontroleerd], ['Bijzonderheden', rw.bijzonderheden]]) if (w) rij(l, w, null); }
       ty += 3 * TS;
       ty = kop('2. Welke profielen', vak.x, linksW, ty);
       const kws = drKunstwerken(r);
@@ -15442,7 +15450,7 @@ ${r3d}
         const bmKw = (drRws.breedtePerKw || []).find(b => b.kw === pr.kw);
         if (bmKw) { doc.text(pdfTekst(`Kleinste doorrijbreedte st. ${bmKw.s0.toFixed(0)} - ${bmKw.s1.toFixed(0)}: ${rws3(bmKw.breedte)} m bij st. ${bmKw.station.toFixed(1)}`), vak.x + 1, ty); ty += rh; }
         // wit tekstvak (B6), zoals de voorbeelden in de RWS-specificatie
-        const tvH = 26 * TS, tvW = Math.min(vak.w, 250 * TS), tvY = Math.min(vak.y + vak.h - tvH - 1, ty + 4 * TS);
+        const tvH = 37 * TS, tvW = Math.min(vak.w, 250 * TS), tvY = Math.min(vak.y + vak.h - tvH - 1, ty + 4 * TS);
         doc.setFillColor(255, 255, 255); doc.setDrawColor(27, 42, 56); doc.setLineWidth(0.35); doc.rect(vak.x, tvY, tvW, tvH, 'FD');
         const minTekst = r.boxen.map(b => `${b.naam || 'rijbaan'} ${rws3(b.vrijMin)}`).join(' / ');
         const velden = [
@@ -15450,6 +15458,8 @@ ${r3d}
           ['Rijbaan:', r.boxen.map(b => b.naam || 'rijbaan').join(', '), 'Profiel:', kwLabelLang(pr.kw, pr.kant)],
           ['Station:', `${pr.station.toFixed(2)} m${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''}`, 'Object:', kwNaam(pr.kw)],
           ['Bijzonderheden:', rw.bijzonderheden || '-', 'Minimale doorrijhoogte:', minTekst],
+          ['Meetbedrijf:', rw.meetbedrijf || '-', 'Meetmethode:', rw.meetmethode || '-'],
+          ['Uitgevoerd door:', rw.uitgevoerd || '-', 'Gecontroleerd door:', rw.gecontroleerd || '-'],
         ];
         const c1 = vak.x + 3 * TS, c2 = c1 + 30 * TS, c3 = vak.x + tvW / 2 + 2 * TS, c4 = c3 + 42 * TS;
         velden.forEach((v, i) => {
@@ -15460,6 +15470,7 @@ ${r3d}
           doc.text(kortTekst(doc, pdfTekst(v[1]), c3 - c2 - 3 * TS), c2, y);
           if (i === 3) { doc.setFont('helvetica', 'bold'); doc.setTextColor(198, 71, 43); }
           doc.text(kortTekst(doc, pdfTekst(v[3]), vak.x + tvW - c4 - 2 * TS), c4, y);
+          doc.setTextColor(27, 42, 56);
         });
         doc.setFontSize(6.5 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
         const voet = `Opgezet naar de Productspecificaties Doorrijprofielen (RWS, 1 juli 2022). Doorrijhoogte = object min weg, uit de ${drRws.bron === 'ruw' ? 'ruwe meetpunten' : 'uitgedunde punten'} binnen 0,10 m van het meetpunt; aantal punten en spreiding per meetpunt in de tabel. ` +
