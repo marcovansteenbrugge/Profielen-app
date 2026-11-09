@@ -11,10 +11,10 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Meerdere kunstwerken, met voor- en achterzijde in het lengteprofiel
 
-> **Nu van jou gevraagd:** niets; F1, F2 en F3 worden gebouwd.
-> **Later nodig:** B5 (versie) en de vrijgave van F4.
+> **Nu van jou gevraagd:** B8, B9 en B10 (het dakmodel) en de vrijgave van F4.
+> **Later nodig:** B5 (versie) en de vrijgave van F5.
 
-De Doorrijhoogte vindt zelf de kunstwerken langs de as en meet per kunstwerk een doorsnede aan de voorkant en aan de achterzijde, op kant asfalt links, de as en kant asfalt rechts. De doorsnedes staan als lijnen in het lengteprofiel en je kunt ze daar verschuiven. In planversie 2 zijn er twee wensen bij gekomen: alleen deze doorsnedes als dwarsprofielen, en doorsnedes die meedraaien als het kunstwerk schuin over de weg ligt. Het werk is nu verdeeld in vijf fasen.
+De Doorrijhoogte vindt zelf de kunstwerken langs de as en meet per kunstwerk een doorsnede aan de voorkant en aan de achterzijde, op kant asfalt links, de as en kant asfalt rechts. De doorsnedes staan als lijnen in het lengteprofiel en je kunt ze daar verschuiven. In planversie 3 komt er een dakmodel bij, omdat bij een dunne scan soms "geen dak" stond. In planversie 2 kwamen er twee wensen bij: alleen deze doorsnedes als dwarsprofielen, en doorsnedes die meedraaien als het kunstwerk schuin over de weg ligt. Het werk is nu verdeeld in zes fasen.
 
 ## Vrijgave per fase
 Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fase op leunt zijn genomen. Een vrijgave blijft geldig zolang het plan voor die fase en die besluiten niet is gewijzigd; het plan houdt dat bij in het wijzigingslog.
@@ -25,7 +25,8 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F1 | De doorsnedes als lijnen in het lengteprofiel, met maatvoering, verschuiven door te slepen | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B3 | ✅ 2026-11-09 10:06 |
 | F2 | Alleen de doorsnedes als dwarsprofielen (niet meer om de zoveel meter) | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B6 | ✅ 2026-11-09 10:20 |
 | F3 | Doorsnedes evenwijdig aan de rand van een schuin kunstwerk | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B7 | ✅ 2026-11-09 10:33 |
-| F4 | Uitleveren als nieuwe versie, met jouw controle op een echte scan | ○ nog niet | - | B5 | - |
+| F4 | Een dakmodel: één vlak van de onderkant uit alle dakpunten, zodat er ook bij een dunne scan overal een dak is, met gemeten of ingevuld per meetpunt | ○ nog niet | - | B8, B9, B10 | - |
+| F5 | Uitleveren als nieuwe versie, met jouw controle op een echte scan | ○ nog niet | - | B5 | - |
 
 Letterlijk akkoord (F0 tot en met F1, via chat): "Akkoord, bouw F0–F1", als antwoord op de vraag "Akkoord met B1–B4 zoals voorgesteld en bouwen op planversie 1, fase F0 en F1?" (F1 vervallen op versie 2)
 
@@ -38,7 +39,10 @@ Letterlijk akkoord (F1 tot en met F3, via chat): "Akkoord, bouw F1–F3", als an
 | ✅ | B2 | Meetpunten per doorsnede | Ons voorstel | F0 |
 | ✅ | B3 | Wat er gebeurt na het verschuiven | Ons voorstel | F1 |
 | ✅ | B4 | Naam per kunstwerk op het RWS-blad | Ons voorstel | F0 |
-| ⏳ | B5 | Versie | **Nog niet beoordeeld** | F4 |
+| ⏳ | B5 | Versie | **Nog niet beoordeeld** | F5 |
+| ⏳ | B8 | Dakmodel | **Nog niet beoordeeld** | F4 |
+| ⏳ | B9 | Hoe ver invullen | **Nog niet beoordeeld** | F4 |
+| ⏳ | B10 | Waar het dakmodel geldt | **Nog niet beoordeeld** | F4 |
 | ✅ | B6 | Alleen de doorsnedes als dwarsprofielen | Ons voorstel | F2 |
 | ✅ | B7 | Doorsnedes bij een schuin kunstwerk | Ons voorstel | F3 |
 
@@ -130,7 +134,7 @@ Meer uitleg: plan, punt 6, B4
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 08:53 · **nodig vóór** F4
+**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 08:53 · **nodig vóór** F5
 
 Meer uitleg: plan, punt 6, B5
 
@@ -170,6 +174,60 @@ Meer uitleg: plan, punt 6, B6
 
 Meer uitleg: plan, punt 6, B7
 
+### ⏳ B8 · Dakmodel
+**Je beslist:** hoe de viewer het dak bepaalt waar de scan dun is.
+
+| | Ons voorstel | Alternatief |
+|---|---|---|
+| **Wat** | Van alle dakpunten één vlak van de onderkant (raster van 25 cm, het laagste punt per vakje), gaten ingevuld tussen de gemeten vakjes, binnen de omtrek van het kunstwerk | Geen vlak, maar per meetpunt ruimer zoeken (tot 50 cm) en daar een vlak door leggen |
+| **Voordeel** | Overal een dak, en overal hetzelfde vlak | Eenvoudiger |
+| **Nadeel** | Ingevulde plekken zijn afgeleid (daarom staat het erbij) | Bij een heel dunne scan nog steeds "geen dak" |
+
+**Jouw keuze**
+- [ ] Akkoord met ons voorstel
+- [ ] Anders:
+- [ ] Vervalt
+
+**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 11:30 · **nodig vóór** F4
+
+Meer uitleg: plan, punt 6, B8
+
+### ⏳ B9 · Hoe ver invullen
+**Je beslist:** hoe groot een gat in het dak mag zijn om nog in te vullen.
+
+| | Ons voorstel | Alternatief |
+|---|---|---|
+| **Wat** | Tot 2 m van het dichtstbijzijnde echte dakpunt; verder weg blijft "geen dak (niet gemeten)" | Overal binnen de omtrek van het kunstwerk, hoe groot het gat ook is |
+| **Voordeel** | Geen verzonnen dak boven een groot gat (bijvoorbeeld een vrachtwagen tijdens de scan) | Nooit "geen dak" onder het kunstwerk |
+| **Nadeel** | Bij een heel grote opening blijft een plek leeg | Kans op een dak dat er niet is |
+
+**Jouw keuze**
+- [ ] Akkoord met ons voorstel
+- [ ] Anders:
+- [ ] Vervalt
+
+**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 11:30 · **nodig vóór** F4
+
+Meer uitleg: plan, punt 6, B9
+
+### ⏳ B10 · Waar het dakmodel geldt
+**Je beslist:** of het dakmodel alleen voor de RWS-meetpunten geldt of overal.
+
+| | Ons voorstel | Alternatief |
+|---|---|---|
+| **Wat** | Overal: RWS-meetpunten, kleinste vrije hoogte, lengte- en dwarsprofiel; overal hetzelfde getal | Alleen de RWS-meetpunten; de kleinste vrije hoogte blijft uit de echte punten |
+| **Voordeel** | Eén waarheid in tabel, profielen en PDF | De kleinste vrije hoogte is altijd gemeten |
+| **Nadeel** | De kleinste vrije hoogte kan op een ingevulde plek vallen (dat staat er dan bij) | Twee getallen die kunnen verschillen |
+
+**Jouw keuze**
+- [ ] Akkoord met ons voorstel
+- [ ] Anders:
+- [ ] Vervalt
+
+**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 11:30 · **nodig vóór** F4
+
+Meer uitleg: plan, punt 6, B10
+
 ## Historie
 Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in het plan, punt 11.
 
@@ -184,5 +242,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-09 10:06 | F1 gebouwd: doorsnedes als lijnen met label en maatlijn (doorrijhoogte op de as) in het lengteprofiel, verschuiven door te slepen, dubbelklik = automatisch | Claude Opus 5.5 (agent) |
 | 2026-11-09 10:20 | F2 gebouwd: in de tool Doorrijhoogte zijn de dwarsprofielen alleen de doorsnedes van de kunstwerken (scherm en PDF), vinkje "alleen doorsnedes" | Claude Opus 5.5 (agent) |
 | 2026-11-09 10:33 | F3 gebouwd: schuine doorsnedes evenwijdig aan de rand van het kunstwerk: hoek uit de dakpunten, veld hoek per kunstwerk, meten, dwarsprofiel, bovenaanzicht en RWS-blad langs de schuine lijn | Claude Opus 5.5 (agent) |
+| 2026-11-09 (vóór 11:27) | Na testen op een echte scan: "hij geeft soms aan dat hij geen dak zit.. dat komt denk ik door de puntdichtheid", "hij zou een soort fictief dak moeten maken van alle punten", op het voorstel "ja.. graag" | Marco van Steenbrugge, via chat |
+| 2026-11-09 11:30 | Planversie 3: dakmodel (F4, B8, B9, B10), oplevering wordt F5; voorgelegd | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
