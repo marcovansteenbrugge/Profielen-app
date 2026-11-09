@@ -93,9 +93,17 @@ function maakData() {
   console.log('4 maten in het lengteprofiel:', maten.join(', '));
   for (const d of rws) {
     const kL = d.meetpunten.find(m => m.soort === 'kant' && m.offset < 0), kR = d.meetpunten.find(m => m.soort === 'kant' && m.offset > 0), a = d.meetpunten.find(m => m.soort === 'as');
-    for (const [tag, m] of [['L', kL], ['as', a], ['R', kR]]) if (!m || !maten.includes(`${tag} ${m.h.toFixed(3)}`)) fouten.push(`4: ${d.label}: maat ${tag} niet in het lengteprofiel`);
+    // (F6) alleen de maat op de as in het lengteprofiel; de kanten niet (die staan in het dwarsprofiel)
+    if (!a || !maten.includes(`as ${a.h.toFixed(3)}`)) fouten.push(`4: ${d.label}: maat op de as niet in het lengteprofiel`);
+    for (const [tag, m] of [['L', kL], ['R', kR]]) if (m && maten.includes(`${tag} ${m.h.toFixed(3)}`)) fouten.push(`4: ${d.label}: maat ${tag} staat toch in het lengteprofiel`);
   }
   await p.screenshot({ path: path.join(H.UIT, 'bgt_onder_kunstwerk.png') });
+
+  // (F6) het dwarsprofiel van een doorsnede toont nog alle drie de maten
+  const dwarsMaten = await p.evaluate(() => [...document.querySelectorAll('#svgDwars .dv-maatlijn-tekst, #svgDwars .dv-maatlijn-tekst.rood')].map(t => t.textContent.trim()));
+  const pr1 = rws[0], drie = pr1.meetpunten.filter(m => ['kant', 'as'].includes(m.soort)).map(m => m.h.toFixed(2).replace('.', ','));
+  console.log('5 maten in het dwarsprofiel:', dwarsMaten.join(', '), '| verwacht:', drie.join(', '));
+  for (const v of drie) if (!dwarsMaten.includes(v)) fouten.push(`5: maat ${v} niet in het dwarsprofiel`);
 
   // 3. RWS-blad noemt "BGT doorgetrokken"
   await p.click('#printKnop'); await p.waitForTimeout(400);

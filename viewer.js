@@ -12306,15 +12306,10 @@ ${r3d}
             t.setAttribute('style', `font:700 ${(11 * tegen).toFixed(2)}px "Segoe UI",system-ui,sans-serif; pointer-events:none`);
             t.setAttribute('fill', sleep ? '#fff' : KW_KLEUR); t.textContent = label; greep.append(t);
             if (sleep) continue;   // de maat hoort bij de oude plek: pas na het loslaten opnieuw gemeten
-            // (F5, B12) drie maten: kant links, as, kant rechts, elk met hun eigen weg en dak, iets naast elkaar
-            const kantL = pr.meetpunten?.filter(m => m.soort === 'kant' && m.offset < 0).sort((a, b) => b.offset - a.offset)[0];
-            const kantR = pr.meetpunten?.filter(m => m.soort === 'kant' && m.offset > 0).sort((a, b) => a.offset - b.offset)[0];
+            // (F6, B12 gewijzigd) in het lengteprofiel alleen de maat op de as; de kanten staan in het dwarsprofiel en op het RWS-blad
             const asm = pr.meetpunten?.find(m => m.soort === 'as');
             const H0 = r.boxen[0]?.H;
-            for (const [m, dx, tag] of [[kantL, -14, 'L'], [asm, 0, 'as'], [kantR, 14, 'R']]) {
-              if (!m || m.h == null || m.weg == null || m.dak == null) continue;
-              maatV(x + dx * tegen, py(m.weg), py(m.dak), `${tag} ${m.h.toFixed(3)}`, H0 != null && m.h < H0 ? 'dv-maatlijn rood' : 'dv-maatlijn', dx <= 0);
-            }
+            if (asm && asm.h != null && asm.weg != null && asm.dak != null) maatV(x, py(asm.weg), py(asm.dak), `as ${asm.h.toFixed(3)}`, H0 != null && asm.h < H0 ? 'dv-maatlijn rood' : 'dv-maatlijn', true);
           }
         }
       }
