@@ -3,7 +3,7 @@ plan: kunstwerken-doorsnedes
 titel: Meerdere kunstwerken, met voor- en achterzijde in het lengteprofiel
 versie: 2
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ▶ · F4 ⏳           # berekend door de skill
+voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ✅ · F4 ⏳           # berekend door de skill
 opgesteld: 2026-11-09
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -93,7 +93,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | F0 | ✅ gebouwd | Kunstwerken vinden, twee doorsnedes per kunstwerk, meetpunt as, tabel in het venster, een RWS-blad per doorsnede, oude projecten omzetten; testwolk met twee kunstwerken | 1. Test met twee daken: `__pvTest.rws()` geeft vier doorsnedes (KW1 voor/achter, KW2 voor/achter) op de verwachte stations (± 0,3 m). 2. Elke doorsnede heeft meetpunten kant links, as (offset 0) en kant rechts met een doorrijhoogte. 3. De PDF heeft vier RWS-bladen. 4. Een project met `p1`/`p2` opent zonder fout met die stations. 5. `node run_alle.js` geheel groen. | B1, B2, B4 | M | Opus 5.5, medium | `F0:` |
 | F1 | ✅ gebouwd | Lijnen en labels in het lengteprofiel, met maatvoering (maatlijn van de weg tot de onderkant van het kunstwerk op de as, met de doorrijhoogte), slepen aan het label, opnieuw meten, dubbelklik = automatisch | 1. Het lengteprofiel toont per doorsnede een lijn met label en een maatlijn met de doorrijhoogte op de as in drie decimalen (zichtbaar op een screenshot; de waarde gelijk aan die van het meetpunt as). 2. In de test: slepen van het label van KW1 achter verschuift het station en geeft nieuwe hoogtes. 3. Pannen naast een label werkt nog. 4. Het verschoven station staat na opslaan en openen nog op dezelfde plek. 5. `node run_alle.js` geheel groen. | F0, B3 | M | Opus 5.5, medium | `F1:` |
 | F2 | ✅ gebouwd | Alleen de doorsnedes als dwarsprofielen in de tool Doorrijhoogte (scherm en PDF), vinkje in het paneel Dwarsprofiel | 1. Na "Profielen meten" gaat ◀ ▶ in de test alleen langs de vier doorsnedes. 2. De PDF heeft geen dwarsprofielbladen om de 5 m meer, wel de vier RWS-bladen. 3. Vinkje uit: de gewone dwarsprofielen komen terug. 4. `node run_alle.js` geheel groen. | F0, B6 | S | Opus 5.5, medium | `F2:` |
-| F3 | ▶ vrijgegeven | Schuine doorsnedes: richting van de rand per kunstwerk uit de dakpunten, veld hoek, meten langs de schuine lijn, dwarsprofiel en RWS-blad langs die lijn, lijn in het bovenaanzicht | 1. Testwolk met een kunstwerk onder 20° schuin: de gevonden hoek is 20° ± 1°. 2. De doorsnede ligt in het bovenaanzicht evenwijdig aan de rand (screenshot). 3. De doorrijhoogte op kant asfalt links, as en kant asfalt rechts klopt op < 1 cm. 4. Een ingevulde hoek gaat voor. 5. `node run_alle.js` geheel groen. | F0, B7 | M | Opus 5.5, medium | `F3:` |
+| F3 | ✅ gebouwd | Schuine doorsnedes: richting van de rand per kunstwerk uit de dakpunten, veld hoek, meten langs de schuine lijn, dwarsprofiel en RWS-blad langs die lijn, lijn in het bovenaanzicht | 1. Testwolk met een kunstwerk onder 20° schuin: de gevonden hoek is 20° ± 1°. 2. De doorsnede ligt in het bovenaanzicht evenwijdig aan de rand (screenshot). 3. De doorrijhoogte op kant asfalt links, as en kant asfalt rechts klopt op < 1 cm. 4. Een ingevulde hoek gaat voor. 5. `node run_alle.js` geheel groen. | F0, B7 | M | Opus 5.5, medium | `F3:` |
 | F4 | ⏳ wacht op B5 | Opleveren: versie, LEESMIJ, handleiding, tests, bouwen, installatietoets, commit; Marco controleert | 1. `node run_alle.js` geheel groen. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat het op een echte scan met twee kunstwerken klopt. | F1, F2, F3, B5 | S | Opus 5.5, medium | `F4:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
@@ -126,6 +126,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 | F0 | 2026-11-09 08:54 | 2026-11-09 09:30 | Marco van Steenbrugge ("Akkoord, bouw F0–F1") | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 120 / 60.297 | onbekend (commit volgt na deze toetsing) | transcript (Claude Code 2.1.317) |
 | F1 | 2026-11-09 09:42 | 2026-11-09 10:06 | Marco van Steenbrugge ("Akkoord, bouw F1–F3") | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 50 / 24.948 | onbekend (commit volgt na deze toetsing) | transcript (Claude Code 2.1.317) |
 | F2 | 2026-11-09 10:06 | 2026-11-09 10:20 | Marco van Steenbrugge ("Akkoord, bouw F1–F3") | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 72 / 36.759 | onbekend (commit volgt na deze toetsing) | transcript (Claude Code 2.1.317) |
+| F3 | 2026-11-09 10:20 | 2026-11-09 10:33 | Marco van Steenbrugge ("Akkoord, bouw F1–F3") | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 34 / 5.978 | onbekend (commit volgt na deze toetsing) | transcript (Claude Code 2.1.317) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -148,12 +149,18 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F2 | 2026-11-09 10:20 | 2. De PDF heeft geen dwarsprofielbladen om de 5 m meer, wel de vier RWS-bladen | zelfde log: "F2 PDF-bladen: ANDER ANDER ANDER ANDER RWS RWS RWS RWS ANDER" met Dwarsprofielen aangevinkt: geen blad "Dwarsprofielen station", vier RWS-bladen | gehaald |
 | F2 | 2026-11-09 10:20 | 3. Vinkje uit: de gewone dwarsprofielen komen terug | zelfde log: "F2 vinkje uit: 21 dwarsprofielen" (elke 5 m over 100 m) | gehaald |
 | F2 | 2026-11-09 10:20 | 4. `node run_alle.js` geheel groen | `tests/uit/run_alle_kw_f2.log`: 26 tests "OK", "Alle tests geslaagd" | gehaald |
+| F3 | 2026-11-09 10:33 | 1. Testwolk met een kunstwerk onder 20° schuin: de gevonden hoek is 20° ± 1° | `node kunstwerk_schuin.test.js` (`tests/uit/kunstwerk_schuin_log.txt`): "rand":{"aVoor":39.98…,"aAchter":55.01…,"hoek":20}, "fouten: geen" | gehaald |
+| F3 | 2026-11-09 10:33 | 2. De doorsnede ligt in het bovenaanzicht evenwijdig aan de rand (screenshot) | zelfde log: "2 lijn in RD: {dS 6.840, dO 18.794, tan 0.3640}" (tan 20° = 0,3640); `tests/uit/kunstwerk_schuin.png` bekeken: lijnen 40.2 en 54.8 lopen langs de schuine randen van het dak | gehaald |
+| F3 | 2026-11-09 10:33 | 3. De doorrijhoogte op kant asfalt links, as en kant asfalt rechts klopt op < 1 cm | zelfde log: "3 KW1 voor: kant -4.20: 3.924 \| as 0.00: 3.797 \| kant 4.20: 3.668"; de test rekent per meetpunt dak − weg op het punt van de schuine lijn na (< 1 cm) en eist de kant op 3,95 m haaks op de as | gehaald |
+| F3 | 2026-11-09 10:33 | 4. Een ingevulde hoek gaat voor | zelfde log: "4 met hoek 15: KW1 voor hoek 15, KW1 achter hoek 15"; na leegmaken weer 20 | gehaald |
+| F3 | 2026-11-09 10:33 | 5. `node run_alle.js` geheel groen | `tests/uit/run_alle_kw_f3.log`: 27 tests "OK" (incl. kunstwerk_schuin.test.js), "Alle tests geslaagd" | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
 
 | Fase | Wat week af van het plan | Waarom |
 |---|---|---|
+| F3 | De code en de test van F3 zijn deels geschreven tijdens het tijdvak van F2 (wachten op de testrun van F2); de tokens van F3 in punt 11 zijn daardoor te laag en die van F2 te hoog. Ook de tekst "elke 5 m" in het bovenaanzicht bij alleen doorsnedes (F2) is in de commit van F3 meegegaan. | Werk tijdens een lopende testrun |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
