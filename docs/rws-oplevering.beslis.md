@@ -11,7 +11,7 @@ status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: RWS-opleverset voor de doorrijhoogte, met invulscherm en verificatierapport
 
-> **Nu van jou gevraagd:** B1 tot en met B4 en de vrijgave van F0, F1 en F2.
+> **Nu van jou gevraagd:** B1 tot en met B4 en de vrijgave van F0, F1 en F2 (B5, de inhoud van blad 2, is besloten).
 > **Later nodig:** de RWS-eisen voor het verificatierapport (en een voorbeeld); daarna een nieuwe planversie en de vrijgave van F3.
 
 Met één keuze maakt de viewer de RWS-opleverset: bovenaanzicht, het blad Doorrijhoogte met het oordeel, het lengteprofiel en de bladen van alle doorsnedes. Wat niet uit de scan komt, vul je in één keer in; het lengteprofiel krijgt een instelbaar hoogtebereik met de labels boven het kunstwerk. Het verificatierapport volgt zodra de eisen van RWS er zijn. Het werk is verdeeld in vier fasen.
@@ -22,7 +22,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
 | F0 | Lengteprofiel: hoogte van/tot instelbaar, labels KW1/KW2 boven het kunstwerk | ○ nog niet | - | B2, B3 | - |
-| F1 | Eén keuze "RWS-oplevering": bovenaanzicht, Doorrijhoogte, lengteprofiel, alle doorsnedes, in die volgorde | ○ nog niet | - | B1 | - |
+| F1 | Eén keuze "RWS-oplevering": bovenaanzicht, blad 2 Doorrijhoogte (overzicht zoals het voorbeeld), lengteprofiel, alle doorsnedes, in die volgorde | ○ nog niet | - | B1, B5 | - |
 | F2 | Invulscherm: gegevens die niet uit de scan komen, op de RWS-bladen | ○ nog niet | - | B4 | - |
 | F3 | Verificatierapport volgens de RWS-eisen | ○ nog niet | - | eisen van RWS | - |
 
@@ -33,6 +33,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | ⏳ | B2 | Hoogtebereik lengteprofiel | **Nog niet beoordeeld** | F0 |
 | ⏳ | B3 | Labels boven het kunstwerk | **Nog niet beoordeeld** | F0 |
 | ⏳ | B4 | Invulscherm | **Nog niet beoordeeld** | F2 |
+| ✅ | B5 | Inhoud van blad 2 | Zoals het voorbeeld | F1 |
 
 ## Besluiten
 
@@ -108,6 +109,26 @@ Meer uitleg: plan, punt 6, B3
 
 Meer uitleg: plan, punt 6, B4
 
+### ✅ B5 · Inhoud van blad 2
+**Je beslist:** wat er op blad 2 (Doorrijhoogte) van de opleverset staat.
+
+| | Zoals het voorbeeld | Het huidige blad |
+|---|---|---|
+| **Wat** | Overzicht: 1. wat is getest, 2. welke profielen, 3. resultaat (met het percentage weg gemeten groot en het oordeel alleen "voldoet"), en per doorsnede de tabel met kant links, as en kant rechts | Groot dwarsprofiel bij de kleinste vrije hoogte met de box, uitgangspunten en oordeel |
+| **Voordeel** | Alle maten en het oordeel op één blad; de profielen volgen op de volgende bladen | Het kritieke dwarsprofiel in beeld |
+| **Nadeel** | Geen tekening op blad 2 | De maten per doorsnede staan pas op de RWS-bladen |
+
+Voorbeeld: `rws-oplevering-blad2-voorbeeld.png` (in deze map).
+
+**Jouw keuze**
+- [x] Akkoord met: zoals het voorbeeld
+- [ ] Anders:
+- [ ] Vervalt
+
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-09 17:33 · **via** chat · **over** het voorbeeld van blad 2: "dit wil ik allemaal zien", "wat hebben we getest.. welke profielen... en wat is het resultaat in tekst.. daarna de profielen langs en dwars", "misschien het % groter neerzetten.. en bij het oordeel weghalen", "Ja, opnemen"
+
+Meer uitleg: plan, punt 6, B5
+
 ## Historie
 Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in het plan, punt 11.
 
@@ -115,5 +136,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 |---|---|---|
 | 2026-11-09 (vóór 17:25) | Wens: RWS-opleverblad met invulscherm en verificatierapport; opleveren bovenaanzicht, Doorrijhoogte, lengteprofiel en alle doorsnedes; labels KW1/KW2 boven het kunstwerk, hoogtebereik lengteprofiel | Marco van Steenbrugge, via chat |
 | 2026-11-09 17:25 | Plan opgesteld en voorgelegd | Claude Opus 5.5 (agent) |
+| 2026-11-09 17:33 | Voorbeeld van blad 2 gemaakt en twee keer aangepast; B5 besloten (zoals het voorbeeld): "Ja, opnemen" | Marco van Steenbrugge, via chat |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
