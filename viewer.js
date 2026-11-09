@@ -7903,7 +7903,7 @@
        de breedte; speling = vrije hoogte − H. Losse punten tellen niet mee.
      ──────────────────────────────────────────────────────────────── */
   let drWolk = null, drDak = null;   // { naam, xs, ys, zs, idx, half, asSleutel }
-  const DR_STANDAARD = { boxen: [{ voorwaarde: 'weg', naam: 'rijbaan', breedte: 3.5, hoogte: 4.2, verschuiving: 0 }], marge: 0.1, minHoogte: 0.5, stVan: '', stTot: '', minPunten: 3, tonen: true,
+  const DR_STANDAARD = { boxen: [{ voorwaarde: 'weg', naam: 'rijbaan', breedte: 3.5, hoogte: 4.2, verschuiving: 0 }], marge: 0.1, minHoogte: 0.5, stVan: '', stTot: '', minPunten: 3, tonen: true, boxTonen: true,
     rws: { p1: '', p2: '', meetpunten: [], weg: '', object: '', rijbaan: '', meetdatum: '', bijzonderheden: '' } };
   let doorrij = JSON.parse(JSON.stringify(DR_STANDAARD));
   /** Voorwaarden (besluit B3): gangbare maten als voorstel, geen norm. Kies "eigen maten" voor de eis van de opdrachtgever. */
@@ -8201,7 +8201,8 @@
     }
     const n = Math.max(2, Math.min(2000, Math.ceil(r.s1 - r.s0)));
     for (const bx of r.boxen) {
-      for (const o of [bx.c - bx.B / 2, bx.c + bx.B / 2]) {
+      // de box (doorrijprofiel) alleen als hij getekend moet worden; anders alleen de maatvoering en de kleinste vrije hoogte
+      if (doorrij.boxTonen !== false) for (const o of [bx.c - bx.B / 2, bx.c + bx.B / 2]) {
         ctx.beginPath();
         for (let i = 0; i <= n; i++) { const q = puntOpStationOffset(r.s0 + (r.s1 - r.s0) * i / n, o); const [px, py] = naarPx(q.x, q.y); if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py); }
         ctx.setLineDash([10 * pt, 4 * pt, 2 * pt, 4 * pt]); ctx.lineWidth = 1.4 * pt; ctx.strokeStyle = bx.ok ? (bx.krap ? DR_KLEUR.krap : DR_KLEUR.box) : DR_KLEUR.nok; ctx.stroke(); ctx.setLineDash([]);
@@ -8271,6 +8272,7 @@
   function zetDoorrijVelden() {
     for (const [id, sl] of Object.entries(DR_VELDEN)) { const e = document.getElementById(id); if (e) e.value = doorrij[sl] ?? ''; }
     const t = document.getElementById('drTonen'); if (t) t.checked = doorrij.tonen !== false;
+    const tb = document.getElementById('drBoxTonen'); if (tb) tb.checked = doorrij.boxTonen !== false;
     toonDrBoxen();
     const rw = rwsInst(); for (const [id, sl] of RWS_VELDEN) { const e = document.getElementById(id); if (e) e.value = rw[sl] ?? ''; }
     rwsMeetdatumVoorstel();
@@ -8278,6 +8280,7 @@
   function leesDoorrijVelden() {
     for (const [id, sl] of Object.entries(DR_VELDEN)) { const e = document.getElementById(id); if (e) doorrij[sl] = e.value; }
     const t = document.getElementById('drTonen'); if (t) doorrij.tonen = t.checked;
+    const tb = document.getElementById('drBoxTonen'); if (tb) doorrij.boxTonen = tb.checked;
     { const rw = rwsInst(); for (const [id, sl] of RWS_VELDEN) { const e = document.getElementById(id); if (e) rw[sl] = e.value; } }
     for (const rij of document.querySelectorAll('#drBoxen .drBox')) {
       const b = doorrij.boxen[Number(rij.dataset.i)]; if (!b) continue;
@@ -8375,6 +8378,7 @@
       }
     });
     document.getElementById('drTonen')?.addEventListener('change', drGewijzigd);
+    document.getElementById('drBoxTonen')?.addEventListener('change', drGewijzigd);
     document.getElementById('doorrijKnop')?.addEventListener('click', () => { zetDoorrijVelden(); werkDoorrijPaneelBij(); drDialoog.showModal(); });
     document.getElementById('drSluit')?.addEventListener('click', () => drDialoog.close());
     document.getElementById('drAuto')?.addEventListener('click', () => { doorrij.stVan = ''; doorrij.stTot = ''; zetDoorrijVelden(); drGewijzigd(); });
@@ -12039,10 +12043,12 @@ ${r3d}
       if (dr.soort === 'dwars') {
         for (const { bx, z0, vrij } of dr.boxen) {
           const L = bx.c - bx.B / 2, R = bx.c + bx.B / 2;
-          dvEl('rect', { x: px(L), width: Math.max(0, px(R) - px(L)), y: py(z0 + bx.H), height: Math.max(0, py(z0) - py(z0 + bx.H)), ...boxStijl(bx) });
-          if (r.M) dvEl('line', { x1: px(L), x2: px(R), y1: py(z0 + bx.H + r.M), y2: py(z0 + bx.H + r.M), stroke: DR_KLEUR.krap, 'stroke-width': 1.1, 'stroke-dasharray': '5 4', 'vector-effect': 'non-scaling-stroke' });
-          maatV(px(R) + 16 * tegen, py(z0), py(z0 + bx.H), komma(bx.H, 2));
-          maatH(px(L), px(R), py(z0 + bx.H) - 12 * tegen, komma(bx.B, 2));
+          if (doorrij.boxTonen !== false) {   // uit: alleen de maatvoering (B en H van de box vallen dan ook weg)
+            dvEl('rect', { x: px(L), width: Math.max(0, px(R) - px(L)), y: py(z0 + bx.H), height: Math.max(0, py(z0) - py(z0 + bx.H)), ...boxStijl(bx) });
+            if (r.M) dvEl('line', { x1: px(L), x2: px(R), y1: py(z0 + bx.H + r.M), y2: py(z0 + bx.H + r.M), stroke: DR_KLEUR.krap, 'stroke-width': 1.1, 'stroke-dasharray': '5 4', 'vector-effect': 'non-scaling-stroke' });
+            maatV(px(R) + 16 * tegen, py(z0), py(z0 + bx.H), komma(bx.H, 2));
+            maatH(px(L), px(R), py(z0 + bx.H) - 12 * tegen, komma(bx.B, 2));
+          }
           if (vrij != null) {
             const sp = vrij - bx.H, kl = sp < 0 ? 'dv-maatlijn rood' : 'dv-maatlijn';
             maatV(px(L) - 16 * tegen, py(z0), py(z0 + vrij), `vrij ${komma(vrij, 2)}`, kl, true);
@@ -12064,7 +12070,7 @@ ${r3d}
         for (const { bx, lijnB, lijnV } of dr.boxen) {
           const pad = (lijn, dz) => { let d = '', pen = false; for (const p of lijn) { if (!p) { pen = false; continue; } d += `${pen ? 'L' : 'M'}${px(p[0]).toFixed(1)},${py(p[1] + dz).toFixed(1)}`; pen = true; } return d; };
           const st = boxStijl(bx);
-          if (lijnB.some(Boolean)) {
+          if (lijnB.some(Boolean) && doorrij.boxTonen !== false) {
             dvEl('path', { d: pad(lijnB, bx.H), fill: 'none', stroke: st.stroke, 'stroke-width': 1.5, 'stroke-dasharray': st['stroke-dasharray'], 'vector-effect': 'non-scaling-stroke' });
             dvEl('path', { d: pad(lijnB, 0), fill: 'none', stroke: st.stroke, 'stroke-width': 1.1, 'stroke-opacity': 0.6, 'vector-effect': 'non-scaling-stroke' });
           }
@@ -12598,7 +12604,7 @@ ${r3d}
         if (sn.badges.length) items.push(['snnr', 'snoeipunt (nr. in de snoeilijst)']);
       }
       if (dr && dr.boxen.length) {
-        for (const { bx } of dr.boxen) items.push(['snprofiel', `doorrijprofiel ${bx.naam ? bx.naam + ' ' : ''}${komma(bx.B, 2)} × ${komma(bx.H, 2)} m`]);
+        if (doorrij.boxTonen !== false) for (const { bx } of dr.boxen) items.push(['snprofiel', `doorrijprofiel ${bx.naam ? bx.naam + ' ' : ''}${komma(bx.B, 2)} × ${komma(bx.H, 2)} m`]);
         if (dr.punten.some(p => p[2] === 2)) items.push(['blokje', 'dak/obstakel in de box', DR_KLEUR.nok]);
         if (dr.punten.some(p => p[2] === 1)) items.push(['blokje', 'dak / kunstwerk', DR_KLEUR.dak]);
         if (dr.soort === 'langs' && dr.boxen.some(b => b.lijnV?.some(Boolean))) items.push(['hlijn', 'vrije hoogte (onderkant dak)', 'dr-vrij']);

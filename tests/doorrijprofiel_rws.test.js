@@ -111,6 +111,23 @@ function maakData() {
   if (!tabel3.includes(minTekst)) fouten.push('3: minimale doorrijhoogte per rijbaan niet in de tabel');
   await p.screenshot({ path: path.join(H.UIT, 'doorrijprofiel_rws_venster.png') });
 
+  // 6. box uitzetten: alleen de maatvoering blijft (box, B en H weg; doorrijhoogtes blijven)
+  await p.evaluate(() => window.__pvTest.rwsToon(1)); await p.waitForTimeout(400);
+  const telBox = () => p.evaluate(() => document.querySelectorAll('#svgDwars rect[stroke-dasharray="10 4 2 4"]').length);
+  const telMaat = () => p.evaluate(() => [...document.querySelectorAll('#svgDwars text')].filter(t => /^3,[0-9]{2}$/.test(t.textContent.trim())).length);
+  const voor = { box: await telBox(), maat: await telMaat() };
+  if (!(await p.isVisible('#drDialoog[open]'))) { await p.click('#doorrijKnop'); await p.waitForSelector('#drDialoog[open]'); }
+  await p.uncheck('#drBoxTonen'); await p.waitForTimeout(600);
+  await p.click('#drSluit'); await p.waitForTimeout(300);
+  await p.evaluate(() => window.__pvTest.rwsToon(1)); await p.waitForTimeout(400);
+  const na = { box: await telBox(), maat: await telMaat() };
+  console.log('6 box aan:', JSON.stringify(voor), '| box uit:', JSON.stringify(na));
+  if (!(voor.box >= 1)) fouten.push('6: box niet getekend met het vinkje aan');
+  if (na.box !== 0) fouten.push('6: box nog getekend met het vinkje uit');
+  if (!(na.maat >= 2)) fouten.push('6: maatvoering (doorrijhoogtes) verdwenen met de box uit');
+  await p.screenshot({ path: path.join(H.UIT, 'doorrijprofiel_rws_zonder_box.png') });
+  await p.click('#doorrijKnop'); await p.waitForSelector('#drDialoog[open]');
+
   // 5. (F2) PDF: per profiel een blad, drie decimalen met punt, minimale doorrijhoogte in het tekstvak
   await p.fill('#drRwsWeg', 'Teststraat'); await p.fill('#drKwLijst [data-kwnaam="1"]', 'Testviaduct'); await p.dispatchEvent('#drKwLijst [data-kwnaam="1"]', 'change'); await p.fill('#drRwsMeetdatum', '06-11-2026');
   await p.click('#drSluit');
