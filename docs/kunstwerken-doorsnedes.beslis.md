@@ -188,7 +188,7 @@ Meer uitleg: plan, punt 6, B7
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 11:30 · **nodig vóór** F4
+**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 11:28 · **nodig vóór** F4
 
 Meer uitleg: plan, punt 6, B8
 
@@ -206,7 +206,7 @@ Meer uitleg: plan, punt 6, B8
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 11:30 · **nodig vóór** F4
+**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 11:28 · **nodig vóór** F4
 
 Meer uitleg: plan, punt 6, B9
 
@@ -224,7 +224,7 @@ Meer uitleg: plan, punt 6, B9
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 11:30 · **nodig vóór** F4
+**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 11:28 · **nodig vóór** F4
 
 Meer uitleg: plan, punt 6, B10
 
@@ -243,6 +243,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-09 10:20 | F2 gebouwd: in de tool Doorrijhoogte zijn de dwarsprofielen alleen de doorsnedes van de kunstwerken (scherm en PDF), vinkje "alleen doorsnedes" | Claude Opus 5.5 (agent) |
 | 2026-11-09 10:33 | F3 gebouwd: schuine doorsnedes evenwijdig aan de rand van het kunstwerk: hoek uit de dakpunten, veld hoek per kunstwerk, meten, dwarsprofiel, bovenaanzicht en RWS-blad langs de schuine lijn | Claude Opus 5.5 (agent) |
 | 2026-11-09 (vóór 11:27) | Na testen op een echte scan: "hij geeft soms aan dat hij geen dak zit.. dat komt denk ik door de puntdichtheid", "hij zou een soort fictief dak moeten maken van alle punten", op het voorstel "ja.. graag" | Marco van Steenbrugge, via chat |
-| 2026-11-09 11:30 | Planversie 3: dakmodel (F4, B8, B9, B10), oplevering wordt F5; voorgelegd | Claude Opus 5.5 (agent) |
+| 2026-11-09 11:28 | Planversie 3: dakmodel (F4, B8, B9, B10), oplevering wordt F5; voorgelegd | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

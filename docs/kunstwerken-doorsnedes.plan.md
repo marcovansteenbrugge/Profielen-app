@@ -182,7 +182,7 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 |---|---|---|---|---|
 | 1 | 2026-11-09 08:52 | Eerste versie | - | Nog geen vrijgave |
 | 2 | 2026-11-09 09:31 | Drie wensen van Marco toegevoegd: maatvoering in het lengteprofiel (F1), alleen de doorsnedes als dwarsprofielen (nieuwe fase F2, besluit B6) en schuine doorsnedes evenwijdig aan de rand van het kunstwerk (nieuwe fase F3, besluit B7). De oplevering heet nu F4 en hangt ook af van F2 en F3. | F1, F4 (was F2), B5 (nodig vóór F4 in plaats van F2) | F0 blijft vrijgegeven; de vrijgave van F1 vervalt (op planversie 1); F2, F3 en F4 hebben nog geen vrijgave |
-| 3 | 2026-11-09 11:30 | Dakmodel toegevoegd (nieuwe fase F4, besluiten B8, B9, B10) na de test op een echte scan ("geen dak" bij een dunne onderkant). De oplevering heet nu F5; B5 is nodig vóór F5. | F5 (was F4), B5 (nodig vóór F5 in plaats van F4) | F0-F3 blijven gebouwd; F4 en F5 hebben nog geen vrijgave |
+| 3 | 2026-11-09 11:28 | Dakmodel toegevoegd (nieuwe fase F4, besluiten B8, B9, B10) na de test op een echte scan ("geen dak" bij een dunne onderkant). De oplevering heet nu F5; B5 is nodig vóór F5. | F5 (was F4), B5 (nodig vóór F5 in plaats van F4) | F0-F3 blijven gebouwd; F4 en F5 hebben nog geen vrijgave |
 
 ## 14. Bronnen
 - viewer.js op 0945306: `voerDoorrijUit`, `rwsStations`, `rwsMeten`, `rwsBerekenProfiel`, `rwsBreedteLangs`, `tekenLangs`, de pointer-afhandeling van `svgLangs`.
