@@ -11,10 +11,10 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Meerdere kunstwerken, met voor- en achterzijde in het lengteprofiel
 
-> **Nu van jou gevraagd:** niets; F5 wordt gebouwd.
-> **Later nodig:** B5 (versie) en de vrijgave van F6.
+> **Nu van jou gevraagd:** de vrijgave van F6 (lengteprofiel alleen de maat op de as).
+> **Later nodig:** B5 (versie) en de vrijgave van F7.
 
-De Doorrijhoogte vindt zelf de kunstwerken langs de as en meet per kunstwerk een doorsnede aan de voorkant en aan de achterzijde, op kant asfalt links, de as en kant asfalt rechts. De doorsnedes staan als lijnen in het lengteprofiel en je kunt ze daar verschuiven. In planversie 3 komt er een dakmodel bij, omdat bij een dunne scan soms "geen dak" stond. In planversie 2 kwamen er twee wensen bij: alleen deze doorsnedes als dwarsprofielen, en doorsnedes die meedraaien als het kunstwerk schuin over de weg ligt. In planversie 4 komen het doortrekken van de BGT onder het kunstwerk en drie maten in het lengteprofiel erbij. Het werk is nu verdeeld in zeven fasen.
+De Doorrijhoogte vindt zelf de kunstwerken langs de as en meet per kunstwerk een doorsnede aan de voorkant en aan de achterzijde, op kant asfalt links, de as en kant asfalt rechts. De doorsnedes staan als lijnen in het lengteprofiel en je kunt ze daar verschuiven. In planversie 3 komt er een dakmodel bij, omdat bij een dunne scan soms "geen dak" stond. In planversie 2 kwamen er twee wensen bij: alleen deze doorsnedes als dwarsprofielen, en doorsnedes die meedraaien als het kunstwerk schuin over de weg ligt. In planversie 4 komen het doortrekken van de BGT onder het kunstwerk en drie maten in het lengteprofiel erbij. In planversie 5 is B12 gewijzigd: in het lengteprofiel alleen de maat op de as. Het werk is nu verdeeld in acht fasen.
 
 ## Vrijgave per fase
 Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fase op leunt zijn genomen. Een vrijgave blijft geldig zolang het plan voor die fase en die besluiten niet is gewijzigd; het plan houdt dat bij in het wijzigingslog.
@@ -27,7 +27,8 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F3 | Doorsnedes evenwijdig aan de rand van een schuin kunstwerk | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B7 | ✅ 2026-11-09 10:33 |
 | F4 | Een dakmodel: één vlak van de onderkant uit alle dakpunten, zodat er ook bij een dunne scan overal een dak is, met gemeten of ingevuld per meetpunt | ✅ ja, op planversie 3 | Marco van Steenbrugge · 2026-11-09 15:20 | B8, B9, B10 | ✅ 2026-11-09 15:38 |
 | F5 | De BGT-randen onder het kunstwerk doortrekken, zodat kant asfalt links en rechts daar altijd een doorrijhoogte hebben; drie maten per doorsnede in het lengteprofiel | ✅ ja, op planversie 4 | Marco van Steenbrugge · 2026-11-09 15:42 | B11, B12 | ✅ 2026-11-09 15:58 |
-| F6 | Uitleveren als nieuwe versie, met jouw controle op een echte scan | ○ nog niet | - | B5 | - |
+| F6 | In het lengteprofiel alleen de maat op de as; de drie maten blijven in het dwarsprofiel en op het RWS-blad | ○ nog niet | - | B12 | - |
+| F7 | Uitleveren als nieuwe versie, met jouw controle op een echte scan | ○ nog niet | - | B5 | - |
 
 Letterlijk akkoord (F0 tot en met F1, via chat): "Akkoord, bouw F0–F1", als antwoord op de vraag "Akkoord met B1–B4 zoals voorgesteld en bouwen op planversie 1, fase F0 en F1?" (F1 vervallen op versie 2)
 
@@ -44,9 +45,9 @@ Letterlijk akkoord (F5, via chat): "Akkoord, bouw F5", als antwoord op de vraag 
 | ✅ | B2 | Meetpunten per doorsnede | Ons voorstel | F0 |
 | ✅ | B3 | Wat er gebeurt na het verschuiven | Ons voorstel | F1 |
 | ✅ | B4 | Naam per kunstwerk op het RWS-blad | Ons voorstel | F0 |
-| ⏳ | B5 | Versie | **Nog niet beoordeeld** | F6 |
+| ⏳ | B5 | Versie | **Nog niet beoordeeld** | F7 |
 | ✅ | B11 | BGT doortrekken onder het kunstwerk | Ons voorstel | F5 |
-| ✅ | B12 | Maten in het lengteprofiel | Alle drie | F5 |
+| ✏️ | B12 | Maten in het lengteprofiel | Anders: alleen de as (planversie 5) | F5 |
 | ✅ | B8 | Dakmodel | Ons voorstel | F4 |
 | ✅ | B9 | Hoe ver invullen | Ons voorstel | F4 |
 | ✅ | B10 | Waar het dakmodel geldt | Ons voorstel | F4 |
@@ -141,7 +142,7 @@ Meer uitleg: plan, punt 6, B4
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 08:53 · **nodig vóór** F6
+**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 08:53 · **nodig vóór** F7
 
 Meer uitleg: plan, punt 6, B5
 
@@ -253,7 +254,7 @@ Meer uitleg: plan, punt 6, B10
 
 Meer uitleg: plan, punt 6, B11
 
-### ✅ B12 · Maten in het lengteprofiel
+### ✏️ B12 · Maten in het lengteprofiel
 **Je beslist:** welke maten per doorsnede in het lengteprofiel staan.
 
 | | Alle drie | Alleen de as |
@@ -263,11 +264,13 @@ Meer uitleg: plan, punt 6, B11
 | **Nadeel** | Drie maten dicht bij elkaar | Kanten alleen in de doorsnede |
 
 **Jouw keuze**
-- [x] Akkoord met: alle drie
-- [ ] Anders:
+- [ ] Akkoord met: alle drie
+- [x] Anders: alleen de maat op de as (planversie 5)
 - [ ] Vervalt
 
 **Besloten door** Marco van Steenbrugge · **op** 2026-11-09 (vóór 15:42) · **via** chat · **over** de vraag "Wil je in het lengteprofiel alle drie de maten, of alleen de as?": "Alle drie"
+
+**Gewijzigd door** Marco van Steenbrugge · **op** 2026-11-09 (vóór 16:01) · **via** chat · **over** anders dan het eerdere besluit: "In het lengteprofiel... heb je geen 3 maten nodig... alleen in het dwarsprofiel... ik zou in de lengte alleen 1 hoogte van de as neerzetten"
 
 Meer uitleg: plan, punt 6, B12
 
@@ -293,5 +296,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-09 15:42 | Planversie 4: BGT doortrekken en drie maten in het lengteprofiel (F5, B11, B12), oplevering wordt F6; voorgelegd | Claude Opus 5.5 (agent) |
 | 2026-11-09 15:42 | B11 akkoord (ons voorstel) en vrijgave F5 op planversie 4: "Akkoord, bouw F5" | Marco van Steenbrugge, via chat |
 | 2026-11-09 15:58 | F5 gebouwd: BGT-randen onder het kunstwerk doorgetrokken (meetpunten, doorrijbreedte, dwarsprofiel, RWS-blad) en drie maten (L, as, R) per doorsnede in het lengteprofiel | Claude Opus 5.5 (agent) |
+| 2026-11-09 (vóór 16:01) | B12 gewijzigd: in het lengteprofiel alleen de maat op de as | Marco van Steenbrugge, via chat |
+| 2026-11-09 16:01 | Planversie 5: B12 gewijzigd, als nieuwe fase F6 (F5 blijft gebouwd), oplevering wordt F7; voorgelegd | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
