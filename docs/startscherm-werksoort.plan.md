@@ -155,10 +155,10 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F1 | 2026-11-08 12:40 | 3. Met `natief.openen` komt het startscherm niet | B1: startscherm dicht, tool doorvaart uit het projectbestand, "Project geladen (Brug Zuid.pvproj)" | gehaald |
 | F1 | 2026-11-08 12:40 | 4. `node run_alle.js` eindigt met "Alle tests geslaagd" | `tests/uit/run_alle_f1.log`: 25 tests "OK" (incl. werksoort en startscherm), "Alle tests geslaagd" | gehaald |
 | F1 | 2026-11-08 12:40 | 5. Schermafdruk van het startscherm | `tests/uit/startscherm_recent.png` (bekeken): vier tegels, Snoeien gekozen (groene rand, knop "Start Snoeien"), projectnaam, projectmap, recent "Bergstraat test" met rode stip; ook `_leeg.png`, `_gekozen.png`, `_na_start.png` | gehaald |
-| F2 | 2026-11-09 08:56 | 1. `node run_alle.js` eindigt met "Alle tests geslaagd" | `tests/uit/run_alle_f2.log`: alle tests "OK" (o.a. doorrijhoogte, doorrijprofiel_rws, werksoort, startscherm), laatste regel "Alle tests geslaagd" | gehaald |
-| F2 | 2026-11-09 08:56 | 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen` | `tests/uit/bouw_f2.log`: installeren, bijwerken en verwijderen OK, versie in Windows-instellingen 2.15.0, laatste regel "fouten: geen" | gehaald |
-| F2 | 2026-11-09 08:56 | 3. Exe, zip en setup in `dist` | `dist\Lutrea-Profielviewer-2.15.0.exe` (13,6 MB), `dist\Lutrea-Profielviewer_compleet_2.15.0.zip` (6,6 MB), `dist\Lutrea-Profielviewer-2.15.0-setup.exe` (6,1 MB), alle drie 2026-11-09 08:53 | gehaald |
-| F2 | 2026-11-09 08:56 | 4. Marco bevestigt dat het startscherm en de vier tools goed werken | nog niet gevraagd: wacht op de controle van Marco met de gebouwde 2.15.0 | niet toetsbaar |
+| F2 | 2026-11-09 08:53 | 1. `node run_alle.js` eindigt met "Alle tests geslaagd" | `tests/uit/run_alle_f2.log`: alle tests "OK" (o.a. doorrijhoogte, doorrijprofiel_rws, werksoort, startscherm), laatste regel "Alle tests geslaagd" | gehaald |
+| F2 | 2026-11-09 08:53 | 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen` | `tests/uit/bouw_f2.log`: installeren, bijwerken en verwijderen OK, versie in Windows-instellingen 2.15.0, laatste regel "fouten: geen" | gehaald |
+| F2 | 2026-11-09 08:53 | 3. Exe, zip en setup in `dist` | `dist\Lutrea-Profielviewer-2.15.0.exe` (13,6 MB), `dist\Lutrea-Profielviewer_compleet_2.15.0.zip` (6,6 MB), `dist\Lutrea-Profielviewer-2.15.0-setup.exe` (6,1 MB), alle drie 2026-11-09 08:53 | gehaald |
+| F2 | 2026-11-09 08:53 | 4. Marco bevestigt dat het startscherm en de vier tools goed werken | nog niet gevraagd: wacht op de controle van Marco met de gebouwde 2.15.0 | niet toetsbaar |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".

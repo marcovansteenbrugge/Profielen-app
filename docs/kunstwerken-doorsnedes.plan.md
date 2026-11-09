@@ -1,9 +1,9 @@
 ---
 plan: kunstwerken-doorsnedes
 titel: Meerdere kunstwerken, met voor- en achterzijde in het lengteprofiel
-versie: 1
+versie: 2
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ▶ · F2 ⏳           # berekend door de skill
+voortgang: F0 ✅ · F1 ○ · F2 ⏳ · F3 ⏳ · F4 ⏳           # berekend door de skill
 opgesteld: 2026-11-09
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -20,13 +20,17 @@ trefwoorden: [doorrijhoogte, doorrijprofiel, RWS, kunstwerk, viaduct, voorkant, 
 1. De Doorrijhoogte vindt zelf de kunstwerken langs de as: elk stuk met een dak erboven is een kunstwerk (KW1, KW2, …).
 2. Per kunstwerk komen er twee doorsnedes: aan de **voorkant** en aan de **achterzijde**, net binnen de rand van het dak (zoals nu profiel 1 en 2).
 3. In elke doorsnede wordt de doorrijhoogte gemeten op drie vaste punten: **kant asfalt links**, **de as** en **kant asfalt rechts**. Eigen aangeklikte meetpunten (strepen e.d.) blijven mogelijk.
-4. In het **lengteprofiel** staat elke doorsnede als verticale lijn met een label ("KW1 voor · 4,803"). Je kunt die lijn **verschuiven** door hem te slepen; daarna wordt die doorsnede opnieuw gemeten.
+4. In het **lengteprofiel** staat elke doorsnede als verticale lijn met een label ("KW1 voor") en een maatlijn van de weg tot de onderkant van het kunstwerk met de doorrijhoogte op de as ("4.803"), zoals de pijlen in Bijlage C. Je kunt die lijn **verschuiven** door hem te slepen; daarna wordt die doorsnede opnieuw gemeten.
 5. De RWS-bladen in de PDF krijgen één blad per doorsnede (bij twee kunstwerken dus vier).
+6. (versie 2) In de Doorrijhoogte zijn de dwarsprofielen alleen deze doorsnedes, niet meer om de zoveel meter.
+7. (versie 2) Ligt het kunstwerk schuin over de as, dan draaien de doorsnedes mee: ze lopen evenwijdig aan de rand van het kunstwerk.
 
 ## 2. Aanleiding en doel
 Marco (chat, 2026-11-09): "ik wil in het lengteprofiel de dwarsdoorsnedes zien... want de hoogte moeten we testen op: Voorkant kunstwerk 1, Achterzijde kunstwerk 1, Voorkant kunstwerk 2, Achterzijde kunstwerk 2". Bij de vraag hoorde Bijlage C van de RWS-specificatie (voorbeeld kunstwerk: hoogtes op de kant verharding, de strepen en de doorrijbreedte). "In ons geval: kantasfalt links.. midden en kantasfalt rechts". Antwoorden op de vragen: midden is meestal de as van de weg; het zijn twee kunstwerken achter elkaar langs dezelfde as en in dezelfde puntenwolk; voor- en achterzijde graag zelf zoeken, en "misschien kan je het zo maken.. dat ik de doorsnede in het lengteprofiel kan verschuiven".
 
 Nu (2.14.0) kent het doorrijprofiel één kunstwerk met twee doorsnedes (profiel 1 en 2), op het eerste en laatste station waar een dak boven de eerste box ligt. Bij twee kunstwerken achter elkaar liggen profiel 1 en 2 dus aan de voorkant van KW1 en de achterzijde van KW2; de achterzijde van KW1 en de voorkant van KW2 ontbreken. De doorsnedes zijn in het lengteprofiel niet te zien.
+
+Aanvulling (chat, 2026-11-09, na de vrijgave van F0 en F1): "ik zie in de BGT de kantasfalt zitten... kunnen we die in de doorsnede laten zien?? en dan wil ik graag de 3 maten zien... kantasfalt 2x en op de as" (dat is F0); "dus niet profielen elke vaste afstand ... dus maar 4 profielen heb ik nu nodig"; "wat ik zie is dat het kunstwerk schuin over de as gaat... en zou de profielen dus iets willen draaien zodat ze haaks op het kunstwerk zitten".
 
 Geslaagd als: bij een as onder twee viaducten door staan in het lengteprofiel vier lijnen (KW1 voor, KW1 achter, KW2 voor, KW2 achter) met hun doorrijhoogte; elke lijn is te verschuiven; per doorsnede zijn de hoogtes op kant asfalt links, as en kant asfalt rechts bekend, en de PDF heeft vier RWS-bladen.
 
@@ -39,6 +43,8 @@ Uit de code (op 0945306):
 - **Lengteprofiel:** `tekenLangs()` (r. 12510) tekent de SVG; `svgLangs` heeft pointerdown/move/up voor pannen (r. 15288–15302) en wheel voor zoomen. Er is geen sleep-interactie op onderdelen in het lengteprofiel; die moet vóór het pannen gaan (eigen handvat, pannen alleen als niet op een handvat geklikt).
 - **Dialoog:** index.html r. 861 heeft de velden `drP1` en `drP2` ("Profiel 1 st. … Profiel 2 st. …") en r. 867 één veld Object. `RWS_STANDAARD` (r. 8361) bewaart `p1`, `p2`, `meetpunten`, `weg`, `object`, … in het project (`doorrij.rws`).
 - **PDF:** de RWS-bladen komen per `drRws.profielen`-item (zie `pdfOnderdelen` r. ± 12825 en de bladopbouw); meer profielen geeft vanzelf meer bladen, het tekstvak heeft één Object.
+- **Dwarsprofielen:** `dwarsStations` (de stations van de gewone dwarsprofielen, om de "interval" meter) bepalen ◀ ▶ in het scherm en de dwarsprofielbladen in de PDF; `berekenDwarsprofiel(station)` maakt altijd een lijn haaks op de as (via `puntOpStationOffset`). Een schuine doorsnede past daar niet in: die heeft per punt een ander station.
+- **Schuine lijnen lezen:** `rwsLeesLijnen` werkt al met een lijn van punt a in richting (ux, uy) in RD; een andere richting is daar alleen een andere eenheidsvector. De weg onder de lijn (`r.wegOp(station, offset)`) vraagt per punt het station en de offset, die uit de RD-coördinaat te halen zijn (`stationOffsetVan` of de projectie op de as).
 - **Tests:** `tests/doorrijprofiel_rws.test.js` gebruikt `__pvTest.rws()` (nr, station, meetpunten) en de testwolk met één viaduct. Voor twee kunstwerken is een testwolk nodig (uitbreiden van de bestaande generator of een tweede dak in de test).
 
 ## 4. Niet in scope
@@ -75,7 +81,9 @@ Uit de code (op 0945306):
 - **B2 Meetpunten per doorsnede** (nodig vóór F0). Voorstel: kant asfalt links, as, kant asfalt rechts standaard, en eigen meetpunten zoals nu. Alternatief: alleen deze drie, zonder eigen meetpunten. Eigen meetpunten (strepen, ophangconstructie) zijn in RWS-opdrachten nodig (Bijlage C toont ze), dus die blijven.
 - **B3 Verschuiven in het lengteprofiel** (nodig vóór F1). Voorstel: slepen aan het label, daarna die ene doorsnede automatisch opnieuw meten uit de ruwe punten. Alternatief: slepen verschuift alleen de lijn; opnieuw meten pas na een klik op "Profielen meten". Automatisch meten kost bij een grote wolk een paar seconden per doorsnede (alleen de vakken eronder), maar de getallen kloppen dan altijd met de lijn.
 - **B4 Naam per kunstwerk op het RWS-blad** (nodig vóór F0). Voorstel: per kunstwerk een eigen veld Object (standaard "Kunstwerk 1", "Kunstwerk 2"). Alternatief: één veld Object voor alles, met "KW1"/"KW2" erachter.
-- **B5 Versie** (nodig vóór F2). Voorstel: 2.16.0 (nieuw hoofdstuk). Alternatief: 2.15.1.
+- **B5 Versie** (nodig vóór F4). Voorstel: 2.16.0 (nieuw hoofdstuk). Alternatief: 2.15.1.
+- **B6 Alleen de doorsnedes als dwarsprofielen** (nodig vóór F2). Voorstel: in de tool Doorrijhoogte zijn de dwarsprofielen (◀ ▶ in het scherm, de dwarsprofielbladen in de PDF) alleen de doorsnedes van de kunstwerken, zodra die gemeten zijn; een vinkje "alleen de doorsnedes" in het paneel Dwarsprofiel, standaard aan in Doorrijhoogte. Alternatief: de gewone dwarsprofielen blijven en je zet ze zelf uit in de PDF. Technisch: `dwarsStations` wordt in die modus de lijst stations van `drRws.profielen`; het interval-veld is dan uitgeschakeld.
+- **B7 Schuine doorsnedes** (nodig vóór F3). Voorstel: per kunstwerk de richting van de rand zelf bepalen uit de dakpunten (een rechte lijn door de rand aan de voorkant en aan de achterzijde, kleinste kwadraten in RD), met een veld "hoek" per kunstwerk om die bij te stellen (0° = haaks op de as). De doorsnede loopt dan evenwijdig aan de rand, door het punt op de as op dat station. Per punt op de lijn worden station en offset berekend, zodat weg, dak en de vaste meetpunten (kant asfalt uit de BGT langs de schuine lijn, de as op het snijpunt) kloppen; het blad toont de doorsnede met de afstand langs de schuine lijn en vermeldt de hoek. Alternatief: alleen een hoek die je zelf invult. Twijfel: "haaks op het kunstwerk" lezen we als evenwijdig aan de voor- en achterkant (de gevel) van het kunstwerk; dat vragen we na in het beslisdocument.
 
 ## 7. Fasering
 Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar de fase op leunt zijn genomen. Een planwijziging raakt alleen de fasen en besluiten die in het wijzigingslog staan; de vrijgave van de overige fasen blijft geldig. Wacht een fase bewust op iets buiten dit plan in plaats van op de beslisser (zoals het einde van een blok of een livegang), zet dan aan het eind van "Hangt af van" `voorwaarde: <wat>`; tot haar vrijgave vraagt die fase niets van de beslisser.
@@ -83,8 +91,10 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
 | F0 | ✅ gebouwd | Kunstwerken vinden, twee doorsnedes per kunstwerk, meetpunt as, tabel in het venster, een RWS-blad per doorsnede, oude projecten omzetten; testwolk met twee kunstwerken | 1. Test met twee daken: `__pvTest.rws()` geeft vier doorsnedes (KW1 voor/achter, KW2 voor/achter) op de verwachte stations (± 0,3 m). 2. Elke doorsnede heeft meetpunten kant links, as (offset 0) en kant rechts met een doorrijhoogte. 3. De PDF heeft vier RWS-bladen. 4. Een project met `p1`/`p2` opent zonder fout met die stations. 5. `node run_alle.js` geheel groen. | B1, B2, B4 | M | Opus 5.5, medium | `F0:` |
-| F1 | ▶ vrijgegeven | Lijnen en labels in het lengteprofiel, slepen aan het label, opnieuw meten, dubbelklik = automatisch | 1. Het lengteprofiel toont per doorsnede een lijn met label (zichtbaar op een screenshot). 2. In de test: slepen van het label van KW1 achter verschuift het station en geeft nieuwe hoogtes. 3. Pannen naast een label werkt nog. 4. Het verschoven station staat na opslaan en openen nog op dezelfde plek. 5. `node run_alle.js` geheel groen. | F0, B3 | M | Opus 5.5, medium | `F1:` |
-| F2 | ⏳ wacht op B5 | Opleveren: versie, LEESMIJ, handleiding, tests, bouwen, installatietoets, commit; Marco controleert | 1. `node run_alle.js` geheel groen. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat het op een echte scan met twee kunstwerken klopt. | F1, B5 | S | Opus 5.5, medium | `F2:` |
+| F1 | ○ niet vrijgegeven | Lijnen en labels in het lengteprofiel, met maatvoering (maatlijn van de weg tot de onderkant van het kunstwerk op de as, met de doorrijhoogte), slepen aan het label, opnieuw meten, dubbelklik = automatisch | 1. Het lengteprofiel toont per doorsnede een lijn met label en een maatlijn met de doorrijhoogte op de as in drie decimalen (zichtbaar op een screenshot; de waarde gelijk aan die van het meetpunt as). 2. In de test: slepen van het label van KW1 achter verschuift het station en geeft nieuwe hoogtes. 3. Pannen naast een label werkt nog. 4. Het verschoven station staat na opslaan en openen nog op dezelfde plek. 5. `node run_alle.js` geheel groen. | F0, B3 | M | Opus 5.5, medium | `F1:` |
+| F2 | ⏳ wacht op B6 | Alleen de doorsnedes als dwarsprofielen in de tool Doorrijhoogte (scherm en PDF), vinkje in het paneel Dwarsprofiel | 1. Na "Profielen meten" gaat ◀ ▶ in de test alleen langs de vier doorsnedes. 2. De PDF heeft geen dwarsprofielbladen om de 5 m meer, wel de vier RWS-bladen. 3. Vinkje uit: de gewone dwarsprofielen komen terug. 4. `node run_alle.js` geheel groen. | F0, B6 | S | Opus 5.5, medium | `F2:` |
+| F3 | ⏳ wacht op B7 | Schuine doorsnedes: richting van de rand per kunstwerk uit de dakpunten, veld hoek, meten langs de schuine lijn, dwarsprofiel en RWS-blad langs die lijn, lijn in het bovenaanzicht | 1. Testwolk met een kunstwerk onder 20° schuin: de gevonden hoek is 20° ± 1°. 2. De doorsnede ligt in het bovenaanzicht evenwijdig aan de rand (screenshot). 3. De doorrijhoogte op kant asfalt links, as en kant asfalt rechts klopt op < 1 cm. 4. Een ingevulde hoek gaat voor. 5. `node run_alle.js` geheel groen. | F0, B7 | M | Opus 5.5, medium | `F3:` |
+| F4 | ⏳ wacht op B5 | Opleveren: versie, LEESMIJ, handleiding, tests, bouwen, installatietoets, commit; Marco controleert | 1. `node run_alle.js` geheel groen. 2. `.\tools\bouw_installer.ps1 -Toets` eindigt met `fouten: geen`. 3. Exe, zip en setup in `dist`. 4. Marco bevestigt dat het op een echte scan met twee kunstwerken klopt. | F1, F2, F3, B5 | S | Opus 5.5, medium | `F4:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
 
@@ -138,6 +148,7 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
 |---|---|---|---|---|
 | 1 | 2026-11-09 08:52 | Eerste versie | - | Nog geen vrijgave |
+| 2 | 2026-11-09 09:31 | Drie wensen van Marco toegevoegd: maatvoering in het lengteprofiel (F1), alleen de doorsnedes als dwarsprofielen (nieuwe fase F2, besluit B6) en schuine doorsnedes evenwijdig aan de rand van het kunstwerk (nieuwe fase F3, besluit B7). De oplevering heet nu F4 en hangt ook af van F2 en F3. | F1, F4 (was F2), B5 (nodig vóór F4 in plaats van F2) | F0 blijft vrijgegeven; de vrijgave van F1 vervalt (op planversie 1); F2, F3 en F4 hebben nog geen vrijgave |
 
 ## 14. Bronnen
 - viewer.js op 0945306: `voerDoorrijUit`, `rwsStations`, `rwsMeten`, `rwsBerekenProfiel`, `rwsBreedteLangs`, `tekenLangs`, de pointer-afhandeling van `svgLangs`.
