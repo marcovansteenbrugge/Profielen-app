@@ -78,6 +78,48 @@ function maakData() {
   console.log('2 hoogtes KW2 achter:', rws[3]?.meetpunten.map(m => `${m.soort} ${m.offset}: ${m.h?.toFixed(3)}`).join(' | '));
   await p.screenshot({ path: path.join(H.UIT, 'kunstwerken_venster.png') });
 
+  // F1. lengteprofiel: per doorsnede een lijn met label en de maat op de as; slepen verschuift en meet opnieuw
+  await p.click('#drSluit'); await p.waitForTimeout(400);
+  const grepen = await p.evaluate(() => ['1-voor', '1-achter', '2-voor', '2-achter'].map(k => window.__pvTest.kwGreep(k)));
+  const maten = await p.evaluate(() => window.__pvTest.kwMaten());
+  const asMaten = rws.map(d => d.meetpunten.find(m => m.soort === 'as')?.h?.toFixed(3));
+  console.log('F1 grepen:', JSON.stringify(grepen.map(g => g && Math.round(g.x))), '| maten:', maten.join(', '), '| as:', asMaten.join(', '));
+  if (grepen.some(g => !g)) fouten.push('F1: niet bij elke doorsnede een label in het lengteprofiel');
+  for (const m of asMaten) if (!maten.includes(m)) fouten.push(`F1: maat ${m} op de as niet in het lengteprofiel`);
+  await p.locator('#svgLangs').scrollIntoViewIfNeeded();
+  await p.screenshot({ path: path.join(H.UIT, 'kunstwerken_lengteprofiel.png') });
+  // pannen naast een label werkt nog en verschuift geen doorsnede
+  const box = await p.locator('#svgLangs').boundingBox();
+  await p.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.7); await p.mouse.down(); await p.mouse.move(box.x + box.width * 0.5 + 40, box.y + box.height * 0.7, { steps: 4 }); await p.mouse.up();
+  const naPan = await p.evaluate(() => window.__pvTest.rws().map(d => d.station));
+  if (naPan[1] !== rws[1].station) fouten.push('F1: pannen verschoof een doorsnede');
+  await p.evaluate(() => { document.getElementById('langsZoomReset')?.click(); });
+  // slepen: KW1 achter naar st. 42
+  const g1 = await p.evaluate(() => window.__pvTest.kwGreep('1-achter'));
+  const x42 = await p.evaluate(() => window.__pvTest.langsXVoor(42));
+  await p.evaluate(() => document.getElementById('status').textContent = '');
+  await p.mouse.move(g1.x, g1.y); await p.mouse.down(); await p.mouse.move(x42, g1.y, { steps: 8 }); await p.mouse.up();
+  await wacht(/KW1 achter op st\./);
+  let na = await p.evaluate(() => window.__pvTest.rws());
+  const kw1aN = na.find(d => d.sleutel === '1-achter' || d.label === 'KW1 achter');
+  const asN = kw1aN?.meetpunten.find(m => m.soort === 'as');
+  console.log('F1 na slepen: KW1 achter st.', kw1aN?.station, '| as', asN?.h?.toFixed(3), '|', (await st()).slice(0, 90));
+  if (!kw1aN || Math.abs(kw1aN.station - 42) > 0.25) fouten.push(`F1: KW1 achter na slepen op ${kw1aN?.station} (verwacht ± 42)`);
+  if (!asN || Math.abs(asN.h - (dakOp(kw1aN.station) - weg(kw1aN.station, 0))) >= 0.01) fouten.push('F1: na slepen is de doorsnede niet opnieuw gemeten');
+  await p.screenshot({ path: path.join(H.UIT, 'kunstwerken_lengteprofiel_gesleept.png') });
+  // bewaard in het project
+  const inst = await p.evaluate(() => window.__pvTest.doorrijInst());
+  if (Math.abs(Number(inst.rws?.doorsnedes?.['1-achter']) - kw1aN.station) > 0.001) fouten.push('F1: het verschoven station staat niet in het project');
+  // dubbelklik op het label: terug op automatisch
+  const g2 = await p.evaluate(() => window.__pvTest.kwGreep('1-achter'));
+  await p.evaluate(() => document.getElementById('status').textContent = '');
+  await p.mouse.dblclick(g2.x, g2.y); await wacht(/KW1 achter op st\./);
+  na = await p.evaluate(() => window.__pvTest.rws());
+  console.log('F1 na dubbelklik: KW1 achter st.', na[1].station);
+  if (Math.abs(na[1].station - 44.8) > 0.3) fouten.push('F1: dubbelklik zet KW1 achter niet terug op automatisch');
+  rws = na;
+  await p.click('#doorrijKnop'); await p.waitForSelector('#drDialoog[open]');
+
   // 3. PDF: vier RWS-bladen, elk met het label en de naam van zijn kunstwerk
   await p.fill('#drKwLijst [data-kwnaam="1"]', 'Viaduct Noord'); await p.dispatchEvent('#drKwLijst [data-kwnaam="1"]', 'change');
   await p.fill('#drKwLijst [data-kwnaam="2"]', 'Viaduct Zuid'); await p.dispatchEvent('#drKwLijst [data-kwnaam="2"]', 'change');
@@ -125,7 +167,10 @@ function maakData() {
   rws = await meten();
   console.log('6 doorsnedes met oude p1/p2:', rws.map(d => `${d.label} st. ${d.station}`).join(', '));
   if (rws.length !== 4 || Math.abs(rws[0].station - 31) > 0.01 || Math.abs(rws[3].station - 73) > 0.01) fouten.push('6: oude stations p1/p2 niet op KW1 voor en KW2 achter');
+  await p.evaluate(() => document.querySelector('#drKwLijst [data-doorsnede="2-voor"]')?.focus());
+  await p.fill('#drKwLijst [data-doorsnede="2-voor"]', '61.5'); await p.dispatchEvent('#drKwLijst [data-doorsnede="2-voor"]', 'change'); await p.waitForTimeout(200);
   const terug = await p.evaluate(() => window.__pvTest.projectRondje());
+  if (Number(terug.rws?.doorsnedes?.['2-voor']) !== 61.5) fouten.push('F1: een verschoven station komt niet terug na opslaan en openen');
   console.log('6 na opslaan en openen:', JSON.stringify({ p1: terug.rws?.p1, p2: terug.rws?.p2, doorsnedes: terug.rws?.doorsnedes, objecten: terug.rws?.objecten }));
   if (terug.rws?.p1 !== '31' || terug.rws?.p2 !== '73' || terug.rws?.objecten?.[1] !== 'Viaduct Zuid') fouten.push('6: stations of namen van de kunstwerken komen niet terug na opslaan en openen');
 

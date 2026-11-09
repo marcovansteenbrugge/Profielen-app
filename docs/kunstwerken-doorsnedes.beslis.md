@@ -11,7 +11,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 
 # Beslisdocument: Meerdere kunstwerken, met voor- en achterzijde in het lengteprofiel
 
-> **Nu van jou gevraagd:** de vrijgave van F1 opnieuw (er komt maatvoering in het lengteprofiel bij), B6 en B7, en de vrijgave van F2 en F3.
+> **Nu van jou gevraagd:** niets; F1, F2 en F3 worden gebouwd.
 > **Later nodig:** B5 (versie) en de vrijgave van F4.
 
 De Doorrijhoogte vindt zelf de kunstwerken langs de as en meet per kunstwerk een doorsnede aan de voorkant en aan de achterzijde, op kant asfalt links, de as en kant asfalt rechts. De doorsnedes staan als lijnen in het lengteprofiel en je kunt ze daar verschuiven. In planversie 2 zijn er twee wensen bij gekomen: alleen deze doorsnedes als dwarsprofielen, en doorsnedes die meedraaien als het kunstwerk schuin over de weg ligt. Het werk is nu verdeeld in vijf fasen.
@@ -22,12 +22,14 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
 | F0 | Kunstwerken vinden, per kunstwerk een doorsnede voor en achter, meetpunt op de as, een RWS-blad per doorsnede | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 08:54 | B1, B2, B4 | ✅ 2026-11-09 09:30 |
-| F1 | De doorsnedes als lijnen in het lengteprofiel, met maatvoering, verschuiven door te slepen | ⚠ vervallen (was: ja, op planversie 1) | Marco van Steenbrugge · 2026-11-09 08:54 | B3 | - |
-| F2 | Alleen de doorsnedes als dwarsprofielen (niet meer om de zoveel meter) | ○ nog niet | - | B6 | - |
-| F3 | Doorsnedes evenwijdig aan de rand van een schuin kunstwerk | ○ nog niet | - | B7 | - |
+| F1 | De doorsnedes als lijnen in het lengteprofiel, met maatvoering, verschuiven door te slepen | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B3 | ✅ 2026-11-09 10:06 |
+| F2 | Alleen de doorsnedes als dwarsprofielen (niet meer om de zoveel meter) | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B6 | - |
+| F3 | Doorsnedes evenwijdig aan de rand van een schuin kunstwerk | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B7 | - |
 | F4 | Uitleveren als nieuwe versie, met jouw controle op een echte scan | ○ nog niet | - | B5 | - |
 
 Letterlijk akkoord (F0 tot en met F1, via chat): "Akkoord, bouw F0–F1", als antwoord op de vraag "Akkoord met B1–B4 zoals voorgesteld en bouwen op planversie 1, fase F0 en F1?" (F1 vervallen op versie 2)
+
+Letterlijk akkoord (F1 tot en met F3, via chat): "Akkoord, bouw F1–F3", als antwoord op de vraag "Akkoord met B6 en B7 zoals voorgesteld en bouwen op planversie 2, fase F1, F2 en F3?"
 
 ## Overzicht besluiten
 | | # | Onderwerp | Besluit | Nodig vóór |
@@ -37,8 +39,8 @@ Letterlijk akkoord (F0 tot en met F1, via chat): "Akkoord, bouw F0–F1", als an
 | ✅ | B3 | Wat er gebeurt na het verschuiven | Ons voorstel | F1 |
 | ✅ | B4 | Naam per kunstwerk op het RWS-blad | Ons voorstel | F0 |
 | ⏳ | B5 | Versie | **Nog niet beoordeeld** | F4 |
-| ⏳ | B6 | Alleen de doorsnedes als dwarsprofielen | **Nog niet beoordeeld** | F2 |
-| ⏳ | B7 | Doorsnedes bij een schuin kunstwerk | **Nog niet beoordeeld** | F3 |
+| ✅ | B6 | Alleen de doorsnedes als dwarsprofielen | Ons voorstel | F2 |
+| ✅ | B7 | Doorsnedes bij een schuin kunstwerk | Ons voorstel | F3 |
 
 ## Besluiten
 
@@ -132,7 +134,7 @@ Meer uitleg: plan, punt 6, B4
 
 Meer uitleg: plan, punt 6, B5
 
-### ⏳ B6 · Alleen de doorsnedes als dwarsprofielen
+### ✅ B6 · Alleen de doorsnedes als dwarsprofielen
 **Je beslist:** welke dwarsprofielen je ziet in de Doorrijhoogte.
 
 | | Ons voorstel | Alternatief |
@@ -142,15 +144,15 @@ Meer uitleg: plan, punt 6, B5
 | **Nadeel** | Een vinkje extra | Bladen die je niet nodig hebt |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 09:31 · **nodig vóór** F2
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-09 09:42 · **via** chat · **over** ons voorstel, planversie 2
 
 Meer uitleg: plan, punt 6, B6
 
-### ⏳ B7 · Doorsnedes bij een schuin kunstwerk
+### ✅ B7 · Doorsnedes bij een schuin kunstwerk
 **Je beslist:** hoe de doorsnedes liggen als het kunstwerk schuin over de weg gaat.
 
 | | Ons voorstel | Alternatief |
@@ -160,11 +162,11 @@ Meer uitleg: plan, punt 6, B6
 | **Nadeel** | Bij een rommelige rand kan de hoek iets afwijken (dan bijstellen) | Hoek opzoeken of opmeten |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-09 09:31 · **nodig vóór** F3
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-09 09:42 · **via** chat · **over** ons voorstel, planversie 2
 
 Meer uitleg: plan, punt 6, B7
 
@@ -178,5 +180,7 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-09 08:54 | B1, B2, B3 en B4 akkoord (ons voorstel) en vrijgave F0 en F1 op planversie 1: "Akkoord, bouw F0–F1"; Marco als beslisser bevestigd in eerdere plannen | Marco van Steenbrugge, via chat |
 | 2026-11-09 09:30 | F0 gebouwd: kunstwerken vinden, per kunstwerk een doorsnede voor en achter, meetpunt op de as, een RWS-blad per doorsnede | Claude Opus 5.5 (agent) |
 | 2026-11-09 09:31 | Planversie 2: maatvoering in het lengteprofiel (F1), alleen de doorsnedes als dwarsprofielen (F2, B6), schuine doorsnedes (F3, B7), oplevering wordt F4; de vrijgave van F1 vervalt, F0 blijft gebouwd; voorgelegd | Claude Opus 5.5 (agent) |
+| 2026-11-09 09:42 | B6 en B7 akkoord (ons voorstel) en vrijgave F1, F2 en F3 op planversie 2: "Akkoord, bouw F1–F3" | Marco van Steenbrugge, via chat |
+| 2026-11-09 10:06 | F1 gebouwd: doorsnedes als lijnen met label en maatlijn (doorrijhoogte op de as) in het lengteprofiel, verschuiven door te slepen, dubbelklik = automatisch | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
