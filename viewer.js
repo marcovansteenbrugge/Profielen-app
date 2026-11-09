@@ -8244,17 +8244,41 @@
   }
 
   /* ── punten inlezen ── */
+  /** Lopend werk van de Doorrijhoogte (strook inlezen, profielen meten) dat met Stoppen af te breken is. */
+  let drBezig = null;
+  const drGestopt = () => { const e = new Error('gestopt'); e.gestopt = true; return e; };
+  const drTijd = (t0) => { const s = Math.round((performance.now() - t0) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+  function drBegin(knopId) {
+    drBezig = { stop: false, knop: document.getElementById(knopId) };
+    if (drBezig.knop) { drBezig.knop.hidden = false; drBezig.knop.disabled = false; drBezig.knop.textContent = 'Stoppen'; }
+    for (const id of ['drUitA', 'drAnderKnop', 'drDakKnop', 'drControleer', 'drRwsMeten']) { const e = document.getElementById(id); if (e) e.disabled = true; }
+    return drBezig;
+  }
+  function drEinde(b) {
+    if (b?.timer) clearInterval(b.timer);
+    if (b?.knop) b.knop.hidden = true;
+    if (drBezig === b) drBezig = null;
+    for (const id of ['drControleer', 'drRwsMeten']) { const e = document.getElementById(id); if (e) e.disabled = false; }
+    werkDoorrijPaneelBij();
+  }
+
   async function laadDoorrijWolk(bestand, rol = 'weg') {
+    if (drBezig) return;
     if (!xs) { toonFout('Open eerst de puntenwolk (A).'); return; }
     if (asPunten.length < 2) { toonFout('Teken of lees eerst de as van de weg in: de punten worden in een strook langs de as gelezen.'); return; }
     const half = drStrookHalf(), wat = rol === 'dak' ? 'Dak' : 'Doorrijhoogte';
     // de voortgang ook in het venster zelf: de statusbalk ligt dan achter het grijze vlak
     const naamEl = document.getElementById(rol === 'dak' ? 'drDakNaam' : 'drNaam');
     const meld = (t, kort) => { statusEl.textContent = `${wat}: ${t}`; if (naamEl) { naamEl.textContent = kort ?? t; naamEl.title = t; } };
+    const bezig = drBegin(rol === 'dak' ? 'drDakStop' : 'drStop'), t0 = performance.now();
     statusEl.style.color = ''; meld(`${bestand.name} inlezen (strook ± ${komma(half, 1)} m langs de as)…`, `inlezen… 0%`);
     await new Promise(r => setTimeout(r, 10));
     const sink = maakBegroeiingSink(half);
-    const pct = (f) => { const p = Math.round(f * 100), n = sink.binnen.toLocaleString('nl-NL'); meld(`${bestand.name}… ${p}% · ${n} punten in de strook`, `inlezen… ${p}% · ${n} p. in de strook`); };
+    // de tijd loopt elke seconde door, ook als het percentage even stilstaat: staat ook de tijd stil, dan zit hij echt vast
+    let laatste = 0;
+    const toon = () => { const p = Math.round(laatste * 100), n = sink.binnen.toLocaleString('nl-NL'), t = drTijd(t0); meld(`${bestand.name}… ${p}% · ${n} punten in de strook · ${t}`, `inlezen… ${p}% · ${n} p. in de strook · ${t}`); };
+    bezig.timer = setInterval(toon, 1000);
+    const pct = (f) => { if (bezig.stop) throw drGestopt(); laatste = f; toon(); };
     const voortgang = (n, t) => pct(n / Math.max(1, t));
     try {
       if (bestand.tegelbron) await leesTegels(bestand, voortgang, sink, strookKader(half), tegelsLangsAs(half));
@@ -8265,7 +8289,12 @@
         if (header.isCompressed) await leesLazPunten(bestand, header, voortgang, true, s2);
         else await leesLasPunten(bestand, header, voortgang, true, s2);
       } else await leesPts(bestand, (n, t, f) => pct(f ?? (n / Math.max(1, t))), sink);
-    } catch (err) { werkDoorrijPaneelBij(); toonFout(`kon ${bestand.name} niet lezen: ${err.message}`); return; }
+    } catch (err) {
+      drEinde(bezig);
+      if (err.gestopt) { statusEl.style.color = ''; statusEl.textContent = `${wat}: inlezen van ${bestand.name} gestopt na ${drTijd(t0)}`; return; }
+      toonFout(`kon ${bestand.name} niet lezen: ${err.message}`); return;
+    }
+    drEinde(bezig);
     const r = sink.resultaat();
     if (r.xs.length < 50) { werkDoorrijPaneelBij(); toonFout(`${bestand.name}: (bijna) geen punten langs de as gevonden — ligt de as op de weg en is alles in RD (EPSG:28992)?`); return; }
     const wolk = maakBrugWolk(bestand.name, r.xs, r.ys, r.zs);
@@ -8402,6 +8431,7 @@
       }
     });
     document.getElementById('drTonen')?.addEventListener('change', drGewijzigd);
+    for (const id of ['drStop', 'drDakStop', 'drRwsStop']) document.getElementById(id)?.addEventListener('click', (e) => { if (drBezig) { drBezig.stop = true; e.target.disabled = true; e.target.textContent = 'Stoppen…'; } });
     document.getElementById('drBoxTonen')?.addEventListener('change', drGewijzigd);
     document.getElementById('doorrijKnop')?.addEventListener('click', () => { zetDoorrijVelden(); werkDoorrijPaneelBij(); drDialoog.showModal(); });
     document.getElementById('drSluit')?.addEventListener('click', () => drDialoog.close());
@@ -8722,7 +8752,8 @@
     };
     const bron = laatsteBestand;
     let soort = 'ruw';
-    const voortgang = (n, t) => { statusEl.textContent = `Doorrijprofiel: ruwe punten onder ${stations.length === 1 ? 'de doorsnede' : `${stations.length} doorsnedes`} lezen… ${Math.round(100 * n / Math.max(1, t))}%`; };
+    const t0 = performance.now();
+    const voortgang = (n, t) => { if (drBezig?.stop) throw drGestopt(); statusEl.textContent = `Doorrijprofiel: ruwe punten onder ${stations.length === 1 ? 'de doorsnede' : `${stations.length} doorsnedes`} lezen… ${Math.round(100 * n / Math.max(1, t))}% · ${drTijd(t0)}`; };
     if (bron?.tegelbron) {
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
       for (const l of lijnen) for (const q of [l.a, { x: l.a.x + l.ux * l.len, y: l.a.y + l.uy * l.len }]) { minX = Math.min(minX, q.x); maxX = Math.max(maxX, q.x); minY = Math.min(minY, q.y); maxY = Math.max(maxY, q.y); }
@@ -8813,14 +8844,15 @@
   if (drDialoog) {
     document.getElementById('drRwsMeten')?.addEventListener('click', async () => {
       leesDoorrijVelden();
-      const knop = document.getElementById('drRwsMeten'); if (knop) knop.disabled = true;
+      if (drBezig) return;
+      const bezig = drBegin('drRwsStop');
       try {
         const d = await rwsMeten();
         const min = d.profielen.map(p => p.min).filter(Boolean).sort((a, b) => a.h - b.h)[0];
         statusEl.style.color = '';
         statusEl.textContent = `Doorrijprofiel: ${d.profielen.length} doorsnedes (${d.profielen.map(pr => `${pr.label} st. ${komma(pr.station, 1)}`).join(', ')})${min ? ` · laagste doorrijhoogte in de doorsnedes ${komma(min.h, 3)} m` : ''}`;
-      } catch (err) { console.error(err); toonFout('Doorrijprofiel: ' + (err.message || err)); }
-      finally { if (knop) knop.disabled = false; }
+      } catch (err) { if (err.gestopt) { statusEl.style.color = ''; statusEl.textContent = 'Doorrijprofiel: meten gestopt'; } else { console.error(err); toonFout('Doorrijprofiel: ' + (err.message || err)); } }
+      finally { drEinde(bezig); }
       toonRwsResultaat(); if (alleenDoorsnedes()) bijwerkenProfielenBinnen(); tekenDwarsVoorHuidigeStation(); tekenLangs();
     });
     document.getElementById('drRwsKlik')?.addEventListener('click', () => {

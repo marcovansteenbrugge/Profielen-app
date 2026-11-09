@@ -8,7 +8,7 @@ const tests = [
   ['nwb.test.js'], ['zoom_vakken.test.js'], ['instellingen.test.js'], ['natieve_map.test.js'],
   ['omzetten_parity.test.js'], ['omzetten_viewer.test.js'], ['kadaster_dwars.test.js'], ['project_logos.test.js'], ['profielpunten.test.js'], ['klassen_kiezen.test.js'], ['doorrijhoogte.test.js'], ['doorrijprofiel_rws.test.js'], ['kunstwerken.test.js'], ['kunstwerk_schuin.test.js'], ['werksoort.test.js'], ['startscherm.test.js'],
 ];
-if (process.argv.includes('groot')) tests.push(['groot_import.test.js']);
+if (process.argv.includes('groot')) tests.push(['groot_import.test.js'], ['doorrij_stoppen.test.js']);
 let fout = 0;
 for (const [t, ...arg] of tests) {
   const t0 = Date.now();

@@ -835,11 +835,11 @@
           <button type="button" id="drUitA">Uit puntenwolk A</button>
           <input type="file" id="drBestand" accept=".pts,.txt,.las,.laz" hidden>
           <button type="button" class="bestandOpen" data-voor="drBestand" id="drAnderKnop" title="Een ander bestand met weg en dak">Ander bestand…</button></div>
-        <div class="rij"><span></span><span class="bestandNaam" id="drNaam" style="max-width:300px">niet ingelezen</span><button type="button" id="drWis" hidden title="Punten weghalen">✕</button></div>
+        <div class="rij"><span></span><span class="bestandNaam" id="drNaam" style="max-width:300px">niet ingelezen</span><button type="button" id="drWis" hidden title="Punten weghalen">✕</button><button type="button" id="drStop" hidden title="Het inlezen stoppen">Stoppen</button></div>
         <div class="rij" title="Optioneel: het dak (onderzijde van het kunstwerk) uit een apart bestand. De weg komt dan nog steeds uit de puntenwolk hierboven."><span>Dak apart (optioneel)</span>
           <input type="file" id="drDakBestand" accept=".pts,.txt,.las,.laz" hidden>
           <button type="button" class="bestandOpen" data-voor="drDakBestand" id="drDakKnop">Bestand…</button></div>
-        <div class="rij"><span></span><span class="bestandNaam" id="drDakNaam" style="max-width:300px">niet ingelezen</span><button type="button" id="drDakWis" hidden title="Apart dak weghalen">✕</button></div>
+        <div class="rij"><span></span><span class="bestandNaam" id="drDakNaam" style="max-width:300px">niet ingelezen</span><button type="button" id="drDakWis" hidden title="Apart dak weghalen">✕</button><button type="button" id="drDakStop" hidden title="Het inlezen stoppen">Stoppen</button></div>
       </fieldset>
       <fieldset>
         <legend>Doorrijprofiel</legend>
@@ -862,7 +862,7 @@
         <p class="hint" style="margin:0 0 4px">Volgens de Productspecificaties Doorrijprofielen (RWS): per kunstwerk een doorsnede aan de voorkant en de achterzijde, doorrijhoogtes op kant verharding links, de as en kant verharding rechts (en eigen meetpunten) uit de ruwe punten (± 10 cm), en de minimale doorrijhoogte per rijbaan. De kant verharding komt uit de BGT.</p>
         <div class="rij" title="Stukken dak met een kleiner gat ertussen horen bij hetzelfde kunstwerk (bijvoorbeeld een naad of een lichtstraat)"><span>Kunstwerken</span>samen als het gat kleiner is dan <input type="number" id="drKwGat" step="0.5" min="0" placeholder="5" style="width:60px"> m</div>
         <div id="drKwLijst"></div>
-        <div class="rij"><span></span><button type="button" id="drRwsMeten" class="primair" title="De ruwe punten onder de doorsnedes van elk kunstwerk lezen en de doorrijhoogtes op de meetpunten berekenen">Profielen meten</button></div>
+        <div class="rij"><span></span><button type="button" id="drRwsMeten" class="primair" title="De ruwe punten onder de doorsnedes van elk kunstwerk lezen en de doorrijhoogtes op de meetpunten berekenen">Profielen meten</button> <button type="button" id="drRwsStop" hidden title="Het meten stoppen">Stoppen</button></div>
         <div class="rij"><span>Meetpunten</span><select id="drMeetSoort" title="Soort van het volgende aangeklikte meetpunt"><option value="markering">wegmarkering</option><option value="kantstreep">kantstreep + 1 m</option><option value="ophang">ophangconstructie</option><option value="overig">overig</option></select> <button type="button" id="drRwsKlik" title="Het venster gaat dicht; klik in het dwarsprofiel op de plekken, Esc om te stoppen">Meetpunten aanklikken</button></div>
         <div id="drMeetLijst"></div>
         <div id="drRwsResultaat"></div>
