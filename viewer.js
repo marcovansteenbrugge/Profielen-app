@@ -1150,6 +1150,12 @@
   const dwarsZoomInKnop = document.getElementById('dwarsZoomIn');
   const dwarsZoomUitKnop = document.getElementById('dwarsZoomUit');
   const langsOverdrijvingVeld = document.getElementById('langsOverdrijving');
+  const langsVanVeld = document.getElementById('langsHoogteVan'), langsTotVeld = document.getElementById('langsHoogteTot');
+  /** (rws-oplevering F0, B2) Vast hoogtebereik van het lengteprofiel in m NAP, of null (automatisch). */
+  function langsHoogteBereik() {
+    const van = dvGetal(langsVanVeld?.value), tot = dvGetal(langsTotVeld?.value);
+    return van != null && tot != null && tot > van ? { van, tot } : null;
+  }
   const langsZoomResetKnop = document.getElementById('langsZoomReset');
   const langsZoomInKnop = document.getElementById('langsZoomIn');
   const langsZoomUitKnop = document.getElementById('langsZoomUit');
@@ -3239,6 +3245,7 @@
     dakModelInfo: () => drResultaat?.dakModel ? { cel: drResultaat.dakModel.cel, gemeten: drResultaat.dakModel.nGemeten, ingevuld: drResultaat.dakModel.nIngevuld, gered: drResultaat.gered, ruis: drResultaat.ruis } : null,
     rwsToon: (nr) => rwsToon(nr),
     dwarsStations: () => dwarsStations.slice(),
+    langsAs: () => { const a = svgLangs.__pvY; return a || null; },
     kwGreep: (sleutel) => { const e = svgLangs.querySelector(`[data-kwgreep="${sleutel}"] rect`); if (!e) return null; const b = e.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; },
     langsXVoor: (st) => { const a = svgLangs.__pvX, rect = svgLangs.getBoundingClientRect(); return rect.left + (a.zX + a.zS * (a.margeL + (st - a.xMin) * a.xSchaal)) * rect.width / a.breed; },
     kwMaten: () => [...svgLangs.querySelectorAll('.dv-maatlijn-tekst, .dv-maatlijn-tekst.rood')].map(t => t.textContent),
@@ -5617,6 +5624,7 @@
     if (inst.maatDwars != null) maatDwarsVeld.value = inst.maatDwars;
     if (inst.dwarsOverdrijving != null) dwarsOverdrijvingVeld.value = inst.dwarsOverdrijving;
     if (inst.langsOverdrijving != null) langsOverdrijvingVeld.value = inst.langsOverdrijving;
+    if (langsVanVeld) langsVanVeld.value = inst.langsHoogteVan ?? ''; if (langsTotVeld) langsTotVeld.value = inst.langsHoogteTot ?? '';
     if (inst.printOverdrijving != null) printOverdrijvingVeld.value = inst.printOverdrijving;
     if (inst.maatLangs != null) maatLangsVeld.value = inst.maatLangs;
     if (inst.stapLangs != null) stapLangsVeld.value = inst.stapLangs;
@@ -11287,6 +11295,7 @@ ${r3d}
         maatDwars: Number(maatDwarsVeld.value),
         dwarsOverdrijving: Number(dwarsOverdrijvingVeld.value),
         langsOverdrijving: Number(langsOverdrijvingVeld.value),
+        langsHoogteVan: langsVanVeld?.value ?? '', langsHoogteTot: langsTotVeld?.value ?? '',
         printOverdrijving: Number(printOverdrijvingVeld.value),
         maatLangs: Number(maatLangsVeld.value),
         stapLangs: Number(stapLangsVeld.value),
@@ -11793,6 +11802,8 @@ ${r3d}
     if (hMax - hMin < 0.2) { const m = (hMax + hMin) / 2; hMin = m - 0.1; hMax = m + 0.1; }
     const marge = (hMax - hMin) * 0.1;
     hMin -= marge; hMax += marge;
+    const langsBereik = !isDwars && xVeld === 'station' ? langsHoogteBereik() : null;
+    if (langsBereik) { hMin = langsBereik.van; hMax = langsBereik.tot; overdrijving = 0; }   // vast bereik: precies van–tot in beeld
 
     const xSchaal = (breed - margeL - margeR) / Math.max(1e-9, xMax - xMin);
     const px = (v) => margeL + (v - xMin) * xSchaal;
@@ -11830,6 +11841,7 @@ ${r3d}
 
     svgEl.setAttribute('viewBox', `0 0 ${breed} ${hoog}`);
     svgEl.__pvX = { margeL, xMin, xSchaal, zX, zS, breed };   // voor klikken in het dwarsprofiel (meetpunten)
+    svgEl.__pvY = { hMin, hMax, yBoven: py(hMax), yOnder: py(hMin), margeT, margeB, hoog };   // voor de tests (hoogtebereik)
     const ns = 'http://www.w3.org/2000/svg';
     const g = document.createElementNS(ns, 'g');
     if (zoomState) {
@@ -12305,7 +12317,13 @@ ${r3d}
             const st = sleep ? kwSleep.station : pr.station, x = px(st);
             dvEl('line', { x1: x, x2: x, y1: margeT, y2: hoog - margeB, stroke: KW_KLEUR, 'stroke-width': sleep ? 2 : 1.3, 'stroke-dasharray': '8 3 2 3', 'vector-effect': 'non-scaling-stroke' });
             const label = sleep ? `${pr.label} · st. ${komma(st, 1)}` : pr.label;
-            const lw = (label.length * 6.6 + 10) * tegen, lh = 16 * tegen, ly = margeT + 2 * tegen;
+            const lw = (label.length * 6.6 + 10) * tegen, lh = 16 * tegen;
+            // (rws-oplevering F0, B3) het label net boven het kunstwerk: boven het hoogste dakpunt rond dit station
+            // (binnen de breedte van de box), binnen het zichtbare deel van de grafiek
+            let top = -Infinity;
+            const bx0 = r.boxen[0];
+            drVenster(r, st - 1, st + 1, (q) => { if ((r.cls[q] === 1 || r.cls[q] === 2) && (!bx0 || Math.abs(r.O[q] - bx0.c) <= bx0.B / 2 + 1) && r.Z[q] > top) top = r.Z[q]; });
+            const ly = Number.isFinite(top) ? Math.max(margeT + 2 * tegen, Math.min(hoog - margeB - lh, py(top) - lh - 6 * tegen)) : margeT + 2 * tegen;
             const greep = dvEl('g', { 'data-kwgreep': pr.sleutel, style: 'cursor:ew-resize; pointer-events:all' });
             dvEl('rect', { x: x - lw / 2, y: ly, width: lw, height: lh, rx: 3 * tegen, fill: sleep ? KW_KLEUR : '#fff', stroke: KW_KLEUR, 'stroke-width': 1.2, 'vector-effect': 'non-scaling-stroke' }, greep);
             const t = document.createElementNS(ns, 'text');
@@ -15487,7 +15505,8 @@ ${r3d}
         const lengte = langsprofiel[langsprofiel.length - 1].station - langsprofiel[0].station;
         const plotWMm = vak.w - plotMarges;
         const mmPerM = plotWMm / Math.max(1e-6, lengte);
-        const bereik = vulHoogtebereik(langsprofiel) || 1;
+        const vastBereik = langsHoogteBereik();
+        const bereik = vastBereik ? vastBereik.tot - vastBereik.van : (vulHoogtebereik(langsprofiel) || 1);
         const nodigMm = (MARGE_T + 40) / VIRT_PER_MM + bereik * mmPerM * overdrijvingLangs;
         const grafHMm = Math.max(60, Math.min(vak.h - kopMm, nodigMm));
         const horN = 1000 / mmPerM;
@@ -15499,7 +15518,7 @@ ${r3d}
         doc.setFontSize(12 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
         doc.text(`${asVoor}Lengteprofiel — station 0 tot ${lengte.toFixed(1)} m${stationeringAan() ? ` (${paalTekst(0)} – ${paalTekst(lengte)})` : ''}`, vak.x, vak.y + 5 * TS);
         doc.setFontSize(8 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
-        doc.text(`hor. ${schaalTekst(horN)} · hoogteverschillen ${overdrijvingLangs}× overdreven`, vak.x + vak.w, vak.y + 5 * TS, { align: 'right' });
+        doc.text(`hor. ${schaalTekst(horN)} · ${vastBereik ? `hoogte ${komma(vastBereik.van, 2)} - ${komma(vastBereik.tot, 2)} m NAP` : `hoogteverschillen ${overdrijvingLangs}× overdreven`}`, vak.x + vak.w, vak.y + 5 * TS, { align: 'right' });
         const data = await beeldVanSvg(svgEl, naarPx(vak.w), naarPx(grafHMm), horN);
         svgEl.innerHTML = ''; svgEl.removeAttribute('width'); svgEl.removeAttribute('height');
         doc.addImage(data, 'JPEG', vak.x, vak.y + kopMm, vak.w, grafHMm);
@@ -15728,6 +15747,7 @@ ${r3d}
   }
 
   langsOverdrijvingVeld.addEventListener('change', () => { wisLangsZoom(); tekenLangs(); });
+  for (const v of [langsVanVeld, langsTotVeld]) v?.addEventListener('change', () => { wisLangsZoom(); tekenLangs(); });
   langsZoomResetKnop.addEventListener('click', () => { wisLangsZoom(); tekenLangs(); });
   langsZoomInKnop.addEventListener('click', () => {
     const rect = svgLangs.getBoundingClientRect();

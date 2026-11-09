@@ -2,8 +2,8 @@
 plan: rws-oplevering
 titel: RWS-opleverset voor de doorrijhoogte, met invulscherm en verificatierapport
 versie: 1
-status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ⏳ · F1 ⏳ · F2 ⏳ · F3 ○           # berekend door de skill
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ✅ · F1 ▶ · F2 ▶ · F3 ○           # berekend door de skill
 opgesteld: 2026-11-09
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -77,9 +77,9 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ⏳ wacht op B2, B3 | Lengteprofiel: hoogtebereik van/tot (scherm en PDF, in het project) en labels boven het kunstwerk | 1. Met "van 9 tot 18" toont het lengteprofiel precies 9–18 m NAP, op het scherm en in de PDF (screenshot). 2. Leeg = automatisch zoals nu. 3. De labels KW1 voor/achter staan boven het dak van het kunstwerk, niet bovenin de grafiek (screenshot), en slepen werkt nog. 4. Het bereik komt terug na opslaan en openen. 5. `node run_alle.js` geheel groen. | B2, B3 | S | Opus 5.5, medium | `F0:` |
-| F1 | ⏳ wacht op B1 | Keuze RWS-oplevering: vier onderdelen in de volgorde bovenaanzicht, blad 2 Doorrijhoogte (overzicht volgens B5), lengteprofiel, doorsnedes; oordeel zonder m² (ook in het venster); titel `pdfRws` bijgewerkt | 1. Met de keuze heeft de PDF precies: Bovenaanzicht, Doorrijhoogte, Lengteprofiel, en per doorsnede een RWS-blad, in die volgorde (test op de paginatitels). 2. Blad 2 heeft de kopjes "Wat is getest", "Welke profielen", "Resultaat" en per doorsnede een tabel met kant links, as en kant rechts, en lijkt op het voorbeeld (screenshot). 3. Het oordeel staat zonder "m² weg niet gemeten", op blad 2 en in het venster. 4. Zonder de keuze blijft de PDF zoals nu. 5. `node run_alle.js` geheel groen. | F0, B1, B5 | S | Opus 5.5, medium | `F1:` |
-| F2 | ⏳ wacht op B4 | Invulscherm: extra velden, op de RWS-bladen en in het titelblok, bewaard in het project | 1. De ingevulde velden staan op elk RWS-blad (test op de PDF-tekst). 2. Ze komen terug na opslaan en openen. 3. `node run_alle.js` geheel groen. | F1, B4 | S | Opus 5.5, medium | `F2:` |
+| F0 | ✅ gebouwd | Lengteprofiel: hoogtebereik van/tot (scherm en PDF, in het project) en labels boven het kunstwerk | 1. Met "van 9 tot 18" toont het lengteprofiel precies 9–18 m NAP, op het scherm en in de PDF (screenshot). 2. Leeg = automatisch zoals nu. 3. De labels KW1 voor/achter staan boven het dak van het kunstwerk, niet bovenin de grafiek (screenshot), en slepen werkt nog. 4. Het bereik komt terug na opslaan en openen. 5. `node run_alle.js` geheel groen. | B2, B3 | S | Opus 5.5, medium | `F0:` |
+| F1 | ▶ vrijgegeven | Keuze RWS-oplevering: vier onderdelen in de volgorde bovenaanzicht, blad 2 Doorrijhoogte (overzicht volgens B5), lengteprofiel, doorsnedes; oordeel zonder m² (ook in het venster); titel `pdfRws` bijgewerkt | 1. Met de keuze heeft de PDF precies: Bovenaanzicht, Doorrijhoogte, Lengteprofiel, en per doorsnede een RWS-blad, in die volgorde (test op de paginatitels). 2. Blad 2 heeft de kopjes "Wat is getest", "Welke profielen", "Resultaat" en per doorsnede een tabel met kant links, as en kant rechts, en lijkt op het voorbeeld (screenshot). 3. Het oordeel staat zonder "m² weg niet gemeten", op blad 2 en in het venster. 4. Zonder de keuze blijft de PDF zoals nu. 5. `node run_alle.js` geheel groen. | F0, B1, B5 | S | Opus 5.5, medium | `F1:` |
+| F2 | ▶ vrijgegeven, na F1 | Invulscherm: extra velden, op de RWS-bladen en in het titelblok, bewaard in het project | 1. De ingevulde velden staan op elk RWS-blad (test op de PDF-tekst). 2. Ze komen terug na opslaan en openen. 3. `node run_alle.js` geheel groen. | F1, B4 | S | Opus 5.5, medium | `F2:` |
 | F3 | ○ niet vrijgegeven | Verificatierapport volgens de RWS-eisen (inhoud en vorm volgen in een nieuwe planversie) | Wordt vastgesteld in de planversie na aanlevering van de eisen. | F2, voorwaarde: RWS-eisen voor het verificatierapport en bij voorkeur een voorbeeld aangeleverd door Marco | M | Opus 5.5, medium | `F3:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
@@ -108,6 +108,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
+| F0 | 2026-11-09 17:35 | 2026-11-09 17:49 | Marco van Steenbrugge ("Akkoord, bouw F0–F2") | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 54 / 32.444 | onbekend (commit volgt na deze toetsing) | transcript (Claude Code 2.1.317) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -116,6 +117,11 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 
 | Fase | Tijdstip | Criterium | Controle en uitkomst | Oordeel |
 |---|---|---|---|---|
+| F0 | 2026-11-09 17:49 | 1. Met "van 9 tot 18" toont het lengteprofiel precies 9–18 m NAP, op het scherm en in de PDF (screenshot) | `node rws_oplevering.test.js` (`tests/uit/rws_oplevering_log.txt`): "F0-1 vast: {hMin 9, hMax 18, yBoven 24 = margeT 24, yOnder 251 = hoog 283 − margeB 32}"; PDF: "hoogte 9,00 - 18,00 m NAP"; `tests/uit/rws_oplevering_lengteprofiel.png` en `tests/uit/rws_oplevering_lengte_pdf.png` bekeken: as van 9,00 tot 18,00 | gehaald |
+| F0 | 2026-11-09 17:49 | 2. Leeg = automatisch zoals nu | zelfde log: "F0-2 automatisch: {hMin 9.38, hMax 16.86}" (uit de gegevens met marge) | gehaald |
+| F0 | 2026-11-09 17:49 | 3. De labels KW1 voor/achter staan boven het dak van het kunstwerk, niet bovenin de grafiek (screenshot), en slepen werkt nog | zelfde log: "F0-3 labels: onder 86.1 / dakTop 92.1 (KW1), onder 71 / dakTop 77 (KW2)": onderkant label 6 px boven de bovenkant van het dak; screenshots bekeken; slepen: `kunstwerken.test.js` in de volledige run "OK" (F1 na slepen en dubbelklik) | gehaald |
+| F0 | 2026-11-09 17:49 | 4. Het bereik komt terug na opslaan en openen | zelfde log: "F0-4 na opslaan en openen: [\"9\",\"18\"]" | gehaald |
+| F0 | 2026-11-09 17:49 | 5. `node run_alle.js` geheel groen | `tests/uit/run_alle_r0.log`: 30 tests "OK" (incl. rws_oplevering.test.js), "Alle tests geslaagd" | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
