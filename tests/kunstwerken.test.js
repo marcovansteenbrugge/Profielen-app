@@ -174,6 +174,51 @@ function maakData() {
   console.log('6 na opslaan en openen:', JSON.stringify({ p1: terug.rws?.p1, p2: terug.rws?.p2, doorsnedes: terug.rws?.doorsnedes, objecten: terug.rws?.objecten }));
   if (terug.rws?.p1 !== '31' || terug.rws?.p2 !== '73' || terug.rws?.objecten?.[1] !== 'Viaduct Zuid') fouten.push('6: stations of namen van de kunstwerken komen niet terug na opslaan en openen');
 
+  // F2. tool Doorrijhoogte: de dwarsprofielen zijn alleen de doorsnedes (scherm en PDF); vinkje uit = gewone profielen
+  await p.evaluate(() => window.__pvTest.rwsOudeStations('', ''));
+  await p.evaluate(() => window.__pvTest.zetWerksoort('doorrij')); await p.waitForTimeout(300);
+  if (!(await p.isVisible('#drDialoog[open]'))) { await p.click('#doorrijKnop'); await p.waitForSelector('#drDialoog[open]'); }
+  await p.click('#drControleer'); await p.waitForTimeout(800);
+  rws = await meten();
+  await p.click('#drSluit'); await p.waitForTimeout(300);
+  let ds = await p.evaluate(() => window.__pvTest.dwarsStations());
+  const kwSt = rws.map(d => d.station).sort((a, b) => a - b);
+  console.log('F2 dwarsprofielen:', ds.join(', '), '| vinkje zichtbaar:', await p.isVisible('#dwarsAlleenKw'));
+  if (ds.length !== 4 || ds.some((v, i) => Math.abs(v - kwSt[i]) > 1e-6)) fouten.push(`F2: dwarsprofielen zijn niet de vier doorsnedes (${ds.join(', ')})`);
+  if (!(await p.isVisible('#dwarsAlleenKw'))) fouten.push('F2: vinkje "alleen doorsnedes" niet zichtbaar in Doorrijhoogte');
+  if (!(await p.isDisabled('#dwarsInterval'))) fouten.push('F2: interval niet uitgeschakeld');
+  // ◀ ▶ gaat langs de vier doorsnedes
+  const labels = [];
+  await p.evaluate(() => { for (let i = 0; i < 5; i++) document.getElementById('vorigeStation')?.click(); });
+  for (let i = 0; i < 4; i++) { labels.push((await p.textContent('#stationLabel')).trim()); await p.click('#volgendeStation').catch(() => {}); await p.waitForTimeout(150); }
+  console.log('F2 ◀ ▶:', labels.map(l => l.slice(0, 40)).join(' / '));
+  ['KW1 voor', 'KW1 achter', 'KW2 voor', 'KW2 achter'].forEach((l, i) => { if (!labels[i]?.includes(l)) fouten.push(`F2: dwarsprofiel ${i + 1} is niet ${l} (${labels[i]})`); });
+  await p.screenshot({ path: path.join(H.UIT, 'kunstwerken_alleen_doorsnedes.png') });
+  // PDF: geen gewone dwarsprofielbladen, wel de vier RWS-bladen
+  await p.click('#printKnop'); await p.waitForTimeout(400);
+  await p.evaluate(() => { const z = (k, v) => { const e = document.getElementById(k); if (!e) return; if (typeof v === 'boolean') e.checked = v; else e.value = v; e.dispatchEvent(new Event('change')); }; z('pdfLuchtfoto', false); z('pdfFormaat', 'A3'); z('pdf3D', false); z('pdfRws', true); z('pdfDwarsprofielen', true); });
+  const [dl2] = await Promise.all([p.waitForEvent('download', { timeout: 300000 }), p.click('#pdfMaak')]);
+  const pdf2 = path.join(H.UIT, 'kunstwerken_alleen.pdf'); await dl2.saveAs(pdf2);
+  const py2 = spawnSync('python', ['-I', '-c', [
+    'import sys, pymupdf',
+    'd = pymupdf.open(sys.argv[1])',
+    'for pg in d:',
+    '    t = " ".join(pg.get_text().split())',
+    '    print("RWS" if t.startswith("Doorrijprofiel ") else ("DWARS" if "Dwarsprofielen station" in t else "ANDER"))',
+  ].join(String.fromCharCode(10)), pdf2], { encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
+  const soorten = (py2.stdout || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+  console.log('F2 PDF-bladen:', soorten.join(' '), py2.stderr ? py2.stderr.slice(0, 200) : '');
+  if (soorten.filter(x => x === 'RWS').length !== 4) fouten.push('F2: niet vier RWS-bladen');
+  if (soorten.includes('DWARS')) fouten.push('F2: toch gewone dwarsprofielbladen in de PDF');
+  await p.keyboard.press('Escape').catch(() => {}); await p.waitForTimeout(300);
+  if (await p.isVisible('#pdfDialoog[open]')) await p.evaluate(() => document.getElementById('pdfDialoog')?.close());
+  // vinkje uit: de gewone dwarsprofielen om de 5 m komen terug
+  await p.uncheck('#dwarsAlleenKw'); await p.waitForTimeout(300);
+  ds = await p.evaluate(() => window.__pvTest.dwarsStations());
+  console.log('F2 vinkje uit:', ds.length, 'dwarsprofielen');
+  if (ds.length !== 21) fouten.push(`F2: met het vinkje uit ${ds.length} dwarsprofielen (verwacht 21, elke 5 m)`);
+  await p.check('#dwarsAlleenKw');
+
   console.log('fouten:', fouten.join(' | ') || 'geen');
   await b.close();
 })();

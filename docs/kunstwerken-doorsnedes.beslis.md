@@ -23,7 +23,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 |---|---|---|---|---|---|
 | F0 | Kunstwerken vinden, per kunstwerk een doorsnede voor en achter, meetpunt op de as, een RWS-blad per doorsnede | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 08:54 | B1, B2, B4 | ✅ 2026-11-09 09:30 |
 | F1 | De doorsnedes als lijnen in het lengteprofiel, met maatvoering, verschuiven door te slepen | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B3 | ✅ 2026-11-09 10:06 |
-| F2 | Alleen de doorsnedes als dwarsprofielen (niet meer om de zoveel meter) | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B6 | - |
+| F2 | Alleen de doorsnedes als dwarsprofielen (niet meer om de zoveel meter) | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B6 | ✅ 2026-11-09 10:20 |
 | F3 | Doorsnedes evenwijdig aan de rand van een schuin kunstwerk | ✅ ja, op planversie 2 | Marco van Steenbrugge · 2026-11-09 09:42 | B7 | - |
 | F4 | Uitleveren als nieuwe versie, met jouw controle op een echte scan | ○ nog niet | - | B5 | - |
 
@@ -182,5 +182,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-09 09:31 | Planversie 2: maatvoering in het lengteprofiel (F1), alleen de doorsnedes als dwarsprofielen (F2, B6), schuine doorsnedes (F3, B7), oplevering wordt F4; de vrijgave van F1 vervalt, F0 blijft gebouwd; voorgelegd | Claude Opus 5.5 (agent) |
 | 2026-11-09 09:42 | B6 en B7 akkoord (ons voorstel) en vrijgave F1, F2 en F3 op planversie 2: "Akkoord, bouw F1–F3" | Marco van Steenbrugge, via chat |
 | 2026-11-09 10:06 | F1 gebouwd: doorsnedes als lijnen met label en maatlijn (doorrijhoogte op de as) in het lengteprofiel, verschuiven door te slepen, dubbelklik = automatisch | Claude Opus 5.5 (agent) |
+| 2026-11-09 10:20 | F2 gebouwd: in de tool Doorrijhoogte zijn de dwarsprofielen alleen de doorsnedes van de kunstwerken (scherm en PDF), vinkje "alleen doorsnedes" | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

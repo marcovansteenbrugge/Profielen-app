@@ -859,6 +859,14 @@
     if (icoon) icoon.setAttribute('d', ws ? ws.icoon : '');
     document.title = ws ? `${ws.naam} · Lutrea Profielviewer` : 'Lutrea Profielviewer';
     if (typeof tekenVlak === 'function' && xs) tekenVlak();
+    const kwVak = document.getElementById('dwarsAlleenKwVak'); if (kwVak) kwVak.hidden = w !== 'doorrij';
+    try { if (asPunten.length >= 2) bijwerkenProfielenBinnen(); } catch { /* bij het starten nog niet klaar */ }
+  }
+  /** B6: in de tool Doorrijhoogte zijn de dwarsprofielen alleen de doorsnedes van de kunstwerken, zodra die gemeten
+   *  zijn (vinkje "alleen doorsnedes" in het paneel Dwarsprofiel, standaard aan). */
+  function alleenDoorsnedes() {
+    if (werksoort !== 'doorrij' || !drRws?.profielen?.length) return false;
+    return document.getElementById('dwarsAlleenKw')?.checked !== false;
   }
   /** Mag de toets van deze tool (doorvaart, doorrij, snoei) meedoen in de huidige tool? */
   const magToets = (t) => werksoort === 'alles' || werksoort === t;
@@ -3221,11 +3229,12 @@
       boxen: r.boxen.map(b => ({ B: b.B, H: b.H, c: b.c, vrijMin: b.vrijMin, speling: b.speling, ok: b.ok, krap: b.krap, nConflict: b.nConflict, kritiek: b.kritiek })) } : null; },
     doorrijWeg: (s, o) => drResultaat ? drResultaat.wegOp(s, o) : null,
     doorrijInst: () => JSON.parse(JSON.stringify(doorrij)),
-    rwsMeten: async () => { const d = await rwsMeten(); toonRwsResultaat(); tekenLangs(); return d.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, n: p.punten.o.length, min: p.min ? { offset: p.min.offset, h: p.min.h } : null, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, weg: m.weg, dak: m.dak, h: m.h, nW: m.nW, nD: m.nD, sW: m.sW, sD: m.sD })) })); },
+    rwsMeten: async () => { const d = await rwsMeten(); toonRwsResultaat(); if (alleenDoorsnedes()) bijwerkenProfielenBinnen(); tekenLangs(); return d.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, n: p.punten.o.length, min: p.min ? { offset: p.min.offset, h: p.min.h } : null, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, weg: m.weg, dak: m.dak, h: m.h, nW: m.nW, nD: m.nD, sW: m.sW, sD: m.sD })) })); },
     rws: () => drRws ? drRws.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, breedte: p.breedte, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, h: m.h })) })) : null,
     kunstwerken: () => drResultaat ? drKunstwerken(drResultaat) : null,
     rwsBreedteMin: () => drRws?.breedteMin || null,
     rwsToon: (nr) => rwsToon(nr),
+    dwarsStations: () => dwarsStations.slice(),
     kwGreep: (sleutel) => { const e = svgLangs.querySelector(`[data-kwgreep="${sleutel}"] rect`); if (!e) return null; const b = e.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; },
     langsXVoor: (st) => { const a = svgLangs.__pvX, rect = svgLangs.getBoundingClientRect(); return rect.left + (a.zX + a.zS * (a.margeL + (st - a.xMin) * a.xSchaal)) * rect.width / a.breed; },
     kwMaten: () => [...svgLangs.querySelectorAll('.dv-maatlijn-tekst, .dv-maatlijn-tekst.rood')].map(t => t.textContent),
@@ -3444,8 +3453,11 @@
     }
     vulBrugHoogtes(langsprofiel, (p) => puntOpStation(p.station));
     const interval = Math.max(0.5, Number(dwarsIntervalVeld.value) || 5);
-    dwarsStations = berekenDwarsStations(totaal, interval);
-    huidigeStationIndex = Math.min(huidigeStationIndex, dwarsStations.length - 1);
+    const kwSt = alleenDoorsnedes() ? drRws.profielen.map(pr => pr.station).sort((a, b) => a - b) : null;
+    dwarsStations = kwSt || berekenDwarsStations(totaal, interval);
+    dwarsIntervalVeld.disabled = !!kwSt;
+    dwarsIntervalVeld.title = kwSt ? 'De dwarsprofielen zijn nu alleen de doorsnedes van de kunstwerken (vinkje "alleen doorsnedes")' : '';
+    huidigeStationIndex = Math.max(0, Math.min(huidigeStationIndex, dwarsStations.length - 1));
 
     langsLeeg.hidden = true;
     dwarsLeeg.hidden = dwarsStations.length === 0;
@@ -8556,7 +8568,8 @@
     const asm = pr.meetpunten.find(m => m.soort === 'as');
     statusEl.style.color = '';
     statusEl.textContent = `Doorrijprofiel: ${pr.label} op st. ${komma(pr.station, 2)}${asm?.h != null ? ` · doorrijhoogte op de as ${komma(asm.h, 3)} m` : ''}${d.eigen ? '' : ' (automatisch)'}`;
-    toonRwsResultaat(); tekenLangs(); tekenDwarsVoorHuidigeStation();
+    toonRwsResultaat();
+    if (alleenDoorsnedes()) bijwerkenProfielenBinnen(); else { tekenLangs(); tekenDwarsVoorHuidigeStation(); }
   }
   /** Een doorsnede terug op automatisch (ook de oude velden profiel 1 en 2 van vóór 2.16.0). */
   function rwsAutomatisch(sleutel) {
@@ -8684,7 +8697,7 @@
         statusEl.textContent = `Doorrijprofiel: ${d.profielen.length} doorsnedes (${d.profielen.map(pr => `${pr.label} st. ${komma(pr.station, 1)}`).join(', ')})${min ? ` · laagste doorrijhoogte in de doorsnedes ${komma(min.h, 3)} m` : ''}`;
       } catch (err) { console.error(err); toonFout('Doorrijprofiel: ' + (err.message || err)); }
       finally { if (knop) knop.disabled = false; }
-      toonRwsResultaat(); tekenDwarsVoorHuidigeStation(); tekenLangs();
+      toonRwsResultaat(); if (alleenDoorsnedes()) bijwerkenProfielenBinnen(); tekenDwarsVoorHuidigeStation(); tekenLangs();
     });
     document.getElementById('drRwsKlik')?.addEventListener('click', () => {
       if (!drRws) { toonFout('Doorrijprofiel: klik eerst op "Profielen meten".'); return; }
@@ -12641,7 +12654,8 @@ ${r3d}
     const reeks = berekenDwarsprofiel(station);
     const bron = volleProfielenGeldig()
       ? ` · uit alle punten (${reeks.reduce((n, p) => n + (p.aantal || 0), 0).toLocaleString('nl-NL')} meetpunten)` : '';
-    stationLabel.textContent = toon ? `· profiel ${toon.nr} (RWS) · station ${station.toFixed(2)} m${paalAchter(station, ' · ')}` : `· station ${station.toFixed(1)} m${paalAchter(station, ' · ')} (${huidigeStationIndex + 1}/${dwarsStations.length})${bron}`;
+    const kwPr = rwsVoorGrafiek(station);
+    stationLabel.textContent = kwPr ? `· ${kwPr.label} · ${kwNaam(kwPr.kw)} · station ${station.toFixed(2)} m${paalAchter(station, ' · ')}${toon ? '' : ` (${huidigeStationIndex + 1}/${dwarsStations.length})`}` : toon ? `· profiel ${toon.nr} (RWS) · station ${station.toFixed(2)} m${paalAchter(station, ' · ')}` : `· station ${station.toFixed(1)} m${paalAchter(station, ' · ')} (${huidigeStationIndex + 1}/${dwarsStations.length})${bron}`;
     const overdrijving = Math.max(0.25, Number(dwarsOverdrijvingVeld.value) || 1);
     const breedte = profielBreedte(), pL = profielL(), pR = profielR();
     const bomen = boomVindenBijStation(station, breedte);
@@ -12692,6 +12706,13 @@ ${r3d}
     if (v) {
       try { const b = localStorage.getItem('ptsviewer-dwarslijnen'); if (b === '0' || b === '1') v.checked = b === '1'; } catch { /* */ }
       v.addEventListener('change', () => { try { localStorage.setItem('ptsviewer-dwarslijnen', v.checked ? '1' : '0'); } catch { /* */ } if (xs) tekenVlak(); });
+    }
+  }
+  {
+    const v = document.getElementById('dwarsAlleenKw');
+    if (v) {
+      try { if (localStorage.getItem('pv.alleenDoorsnedes') === '0') v.checked = false; } catch { /* */ }
+      v.addEventListener('change', () => { try { localStorage.setItem('pv.alleenDoorsnedes', v.checked ? '1' : '0'); } catch { /* */ } bijwerkenProfielenBinnen(); });
     }
   }
   maatLangsVeld.addEventListener('change', () => tekenLangs());
@@ -12926,6 +12947,7 @@ ${r3d}
   try { zetPdfInstellingen(JSON.parse(localStorage.getItem(PDF_OPSLAG) || 'null')); } catch (e) { /* negeren */ }
 
   function geselecteerdeStations(inst) {
+    if (alleenDoorsnedes() && inst.rws && drResultaat) return [];   // de doorsnedes staan op de RWS-bladen
     const van = inst.stationVan === '' ? -Infinity : Number(inst.stationVan);
     const tot = inst.stationTot === '' ? Infinity : Number(inst.stationTot);
     return dwarsStations.filter(st => st >= van - 1e-6 && st <= tot + 1e-6);
