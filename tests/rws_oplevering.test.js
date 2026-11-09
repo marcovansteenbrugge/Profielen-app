@@ -146,6 +146,31 @@ function maakData() {
   if (await p.isVisible('#pdfDialoog[open]')) await p.evaluate(() => document.getElementById('pdfDialoog')?.close());
   await p.evaluate(() => { const e = document.getElementById('pdfRwsSet'); if (e) { e.checked = false; e.dispatchEvent(new Event('change')); } });
 
+  // F4. toets bewaren: na opslaan en openen (zonder de scan) dezelfde uitkomst en dezelfde getallen op blad 2
+  const voor = await p.evaluate(() => window.__pvTest.doorrijVingerafdruk());
+  const getallen = (t) => (t.split('4. Doorrijhoogtes per doorsnede')[1] || '').match(/\d+\.\d{3}/g) || [];
+  const b2Voor = getallen(b2);
+  await p.evaluate(() => document.getElementById('status').textContent = '');
+  const na = await p.evaluate(() => window.__pvTest.projectRondjeVol()); await p.waitForTimeout(800);
+  const status = await st();
+  console.log('F4-1 voor:', JSON.stringify(voor).slice(0, 200));
+  console.log('F4-1 na  :', JSON.stringify(na).slice(0, 200));
+  console.log('F4-2 status:', status.slice(0, 160));
+  if (JSON.stringify(voor) !== JSON.stringify(na)) fouten.push('F4-1: uitkomst na opslaan en openen anders dan ervoor');
+  if (!voor.doorsnedes.length || voor.doorsnedes.length !== 4) fouten.push(`F4-1: ${voor.doorsnedes.length} doorsnedes bewaard (verwacht 4)`);
+  if (!/hersteld, zelfde uitkomst/.test(status)) fouten.push('F4-2: status meldt niet "toets … hersteld, zelfde uitkomst"');
+  await p.click('#printKnop'); await p.waitForTimeout(400);
+  await p.evaluate(() => { const z = (k, v) => { const e = document.getElementById(k); if (!e) return; if (typeof v === 'boolean') e.checked = v; else e.value = v; e.dispatchEvent(new Event('change')); }; z('pdfLuchtfoto', false); z('pdfFormaat', 'A3'); z('pdfRwsSet', true); });
+  const [dl4] = await Promise.all([p.waitForEvent('download', { timeout: 300000 }), p.click('#pdfMaak')]);
+  const pdf4 = path.join(H.UIT, 'rws_opleverset_na_openen.pdf'); await dl4.saveAs(pdf4);
+  const py4 = spawnSync('python', ['-I', '-c', ['import sys, pymupdf', 'd = pymupdf.open(sys.argv[1])', 'for pg in d:', '    t = " ".join(pg.get_text().split())', '    if t.startswith("Doorrijhoogte"): print(t[:8000]); break'].join(String.fromCharCode(10)), pdf4], { encoding: 'utf8', env: { ...process.env, PYTHONIOENCODING: 'utf-8' } });
+  const b2Na = getallen(py4.stdout || '');
+  console.log('F4-3 getallen blad 2 voor/na:', b2Voor.length, '/', b2Na.length, '| gelijk:', b2Voor.join(',') === b2Na.join(','));
+  if (!b2Voor.length || b2Voor.join(',') !== b2Na.join(',')) fouten.push('F4-3: getallen op blad 2 na openen anders dan ervoor');
+  await p.keyboard.press('Escape').catch(() => {}); await p.waitForTimeout(300);
+  if (await p.isVisible('#pdfDialoog[open]')) await p.evaluate(() => document.getElementById('pdfDialoog')?.close());
+  await p.evaluate(() => { const e = document.getElementById('pdfRwsSet'); if (e) { e.checked = false; e.dispatchEvent(new Event('change')); } });
+
   // F0-5. automatisch bereik bij verh. 1: het hele kunstwerk (tot de bovenkant) staat in het PDF-lengteprofiel
   await p.fill('#langsHoogteVan', ''); await p.dispatchEvent('#langsHoogteVan', 'change');
   await p.fill('#langsHoogteTot', ''); await p.dispatchEvent('#langsHoogteTot', 'change');

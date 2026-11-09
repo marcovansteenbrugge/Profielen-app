@@ -3245,6 +3245,8 @@
     dakModelInfo: () => drResultaat?.dakModel ? { cel: drResultaat.dakModel.cel, gemeten: drResultaat.dakModel.nGemeten, ingevuld: drResultaat.dakModel.nIngevuld, gered: drResultaat.gered, ruis: drResultaat.ruis } : null,
     rwsToon: (nr) => rwsToon(nr),
     dwarsStations: () => dwarsStations.slice(),
+    doorrijVingerafdruk: () => drVingerafdruk(drResultaat, drRws),
+    projectRondjeVol: async () => { const blob = maakProjectBlob(); drWolk = null; drDak = null; drRws = null; drResultaat = null; await laadProjectBestand(new File([blob], 'rondje.json')); return drVingerafdruk(drResultaat, drRws); },
     langsAs: () => { const a = svgLangs.__pvY; return a || null; },
     kwGreep: (sleutel) => { const e = svgLangs.querySelector(`[data-kwgreep="${sleutel}"] rect`); if (!e) return null; const b = e.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; },
     langsXVoor: (st) => { const a = svgLangs.__pvX, rect = svgLangs.getBoundingClientRect(); return rect.left + (a.zX + a.zS * (a.margeL + (st - a.xMin) * a.xSchaal)) * rect.width / a.breed; },
@@ -5653,7 +5655,11 @@
     werkDoorvaartPaneelBij();
     if (inst.snoei?.gecontroleerd && begroeiing) { try { voerSnoeiUit(); } catch { snResultaat = null; } }
     werkSnoeiPaneelBij();
+    drWolk = null; drDak = null; drRws = null;
+    let drMelding = '';
+    if (project.doorrijToets) { try { drMelding = herstelDoorrijToets(project.doorrijToets, !!inst.doorrij?.gecontroleerd); } catch (err) { console.error(err); drMelding = '⚠ Doorrijhoogte: bewaarde toets niet te herstellen: ' + err.message; } }
     werkDoorrijPaneelBij();
+    if (drMelding) setTimeout(() => { statusEl.style.color = drMelding.startsWith('⚠') ? '#B86A00' : ''; statusEl.textContent = drMelding; }, 50);
     tekenVlak();
     bijwerkenProfielen();
     if (drieDActief) bouwDrieDGeometrie();
@@ -8259,6 +8265,51 @@
       ingevuld(cb) { for (let c = 0; c < N; c++) if (bron[c] === 2) cb(s0 + (Math.floor(c / no2) + 0.5) * cel, o0 + (c % no2 + 0.5) * cel, Z[c], afst[c]); },
     };
   }
+  /** (rws-oplevering F4, B6) Vingerafdruk van de uitkomst: oordeel, kleinste vrije hoogte per box en per doorsnede de
+   *  doorrijhoogtes (afgerond op 0,1 mm). Na openen moet die gelijk zijn. */
+  function drVingerafdruk(r, rws) {
+    const mm = (v) => v == null ? null : Math.round(v * 10000) / 10000;
+    return {
+      oordeel: r ? (r.ok ? (r.krap ? 'krap' : 'voldoet') : 'voldoet niet') : null,
+      boxen: r ? r.boxen.map(b => mm(b.vrijMin)) : [],
+      doorsnedes: rws ? rws.profielen.map(pr => ({ label: pr.label, station: mm(pr.station), h: pr.meetpunten.map(m => mm(m.h)) })) : [],
+    };
+  }
+  const f32NaarDeel = (a) => binairDeel(new Uint8Array(Float32Array.from(a).buffer));
+  const deelNaarF32 = (d) => { const b = base64NaarBytes(d); return new Float32Array(b.buffer, b.byteOffset, Math.floor(b.length / 4)).slice(); };
+  /** Wat er van de doorrijhoogte in het project gaat (B6). */
+  function maakDoorrijToets(metWolk) {
+    const wolkDeel = (w) => w ? { naam: w.naam, half: w.half, asSleutel: w.asSleutel, wolk: metWolk ? codeerWolk(w.xs, w.ys, w.zs, null) : null } : null;
+    return {
+      tijd: new Date().toISOString(), versie: document.getElementById('appVersie')?.textContent?.trim() || '',
+      weg: wolkDeel(drWolk), dak: wolkDeel(drDak),
+      rws: drRws ? {
+        bron: drRws.bron, tijd: drRws.tijd, asSl: drRws.asSl, breedtePerKw: drRws.breedtePerKw, breedteMin: drRws.breedteMin,
+        profielen: drRws.profielen.map(pr => ({ nr: pr.nr, kw: pr.kw, kant: pr.kant, sleutel: pr.sleutel, label: pr.label, station: pr.station, hoek: pr.hoek || 0,
+          meetpunten: pr.meetpunten, min: pr.meetpunten.indexOf(pr.min), breedte: pr.breedte, o: f32NaarDeel(pr.punten.o), z: f32NaarDeel(pr.punten.z) })),
+      } : null,
+      uitkomst: drVingerafdruk(drResultaat, drRws),
+    };
+  }
+  /** Bij openen: strook terug, Controleren uit die strook, de doorsnedes terug zoals ze bewaard zijn (niet opnieuw
+   *  meten) en de uitkomst vergeleken met de vingerafdruk. Geeft een statustekst. */
+  function herstelDoorrijToets(t, gecontroleerd) {
+    const wolkUit = (d) => { const w = d?.wolk ? decodeerPuntenwolk(d.wolk) : null; if (!w || w.xs.length < 50) return null; const bw = maakBrugWolk(d.naam || 'strook', w.xs, w.ys, w.zs); bw.half = d.half; bw.asSleutel = d.asSleutel; return bw; };
+    drWolk = wolkUit(t.weg); drDak = wolkUit(t.dak);
+    drRws = null; drResultaat = null;
+    if (!drWolk) return t.weg ? 'Doorrijhoogte: het project bevat de strook niet (opgeslagen zonder puntenwolk); lees de punten opnieuw in' : '';
+    if (gecontroleerd) { try { voerDoorrijUit(); } catch { drResultaat = null; } }
+    if (t.rws && drResultaat) {
+      drRws = { bron: t.rws.bron, tijd: new Date(t.rws.tijd), asSl: drResultaat.asSl, breedtePerKw: t.rws.breedtePerKw || [], breedteMin: t.rws.breedteMin || null,
+        profielen: t.rws.profielen.map(pr => ({ ...pr, punten: { o: deelNaarF32(pr.o), z: deelNaarF32(pr.z) }, min: pr.meetpunten[pr.min] || null, o: undefined, z: undefined })) };
+    }
+    const nu = drVingerafdruk(drResultaat, drRws), was = t.uitkomst;
+    const gelijk = JSON.stringify(nu) === JSON.stringify(was);
+    const wanneer = new Date(t.tijd).toLocaleString('nl-NL', { dateStyle: 'short', timeStyle: 'short' });
+    if (!drResultaat) return `Doorrijhoogte: strook van ${wanneer} hersteld (nog niet gecontroleerd)`;
+    if (gelijk) return `Doorrijhoogte: toets van ${wanneer} hersteld, zelfde uitkomst (${nu.oordeel}${nu.doorsnedes.length ? `, ${nu.doorsnedes.length} doorsnedes` : ''})`;
+    return `⚠ Doorrijhoogte: toets van ${wanneer} hersteld, maar de uitkomst wijkt af van de bewaarde (was ${was?.oordeel}, nu ${nu.oordeel}; kleinste vrije hoogte was ${was?.boxen?.join(' / ')}, nu ${nu.boxen.join(' / ')})`;
+  }
   /** Het resultaat, opnieuw berekend als de as intussen is gewijzigd. */
   function drGeldig() {
     if (!drResultaat || !drWolk) return null;
@@ -8438,6 +8489,10 @@
     drEinde(bezig);
     const r = sink.resultaat();
     if (r.xs.length < 50) { werkDoorrijPaneelBij(); toonFout(`${bestand.name}: (bijna) geen punten langs de as gevonden — ligt de as op de weg en is alles in RD (EPSG:28992)?`); return; }
+    // (rws-oplevering F4) coördinaten afronden zoals codeerWolk ze bewaart (float32 t.o.v. een hele oorsprong), zodat de
+    // toets na opslaan en openen precies dezelfde invoer heeft en dus dezelfde uitkomst geeft
+    { const ox = Math.floor(r.xs[0]), oy = Math.floor(r.ys[0]);
+      for (let i = 0; i < r.xs.length; i++) { r.xs[i] = Math.fround(r.xs[i] - ox) + ox; r.ys[i] = Math.fround(r.ys[i] - oy) + oy; r.zs[i] = Math.fround(r.zs[i]); } }
     const wolk = maakBrugWolk(bestand.name, r.xs, r.ys, r.zs);
     wolk.half = half; wolk.asSleutel = asSleutelNu();
     if (rol === 'dak') drDak = wolk; else drWolk = wolk;
@@ -11291,6 +11346,7 @@ ${r3d}
         onder: brugOnder ? { naam: brugOnder.naam, wolk: metWolk ? codeerWolk(brugOnder.xs, brugOnder.ys, brugOnder.zs, null) : null } : null,
         boven: brugBoven ? { naam: brugBoven.naam, wolk: metWolk ? codeerWolk(brugBoven.xs, brugBoven.ys, brugBoven.zs, null) : null } : null,
       } : null,
+      doorrijToets: drWolk ? maakDoorrijToets(metWolk) : null,
       begroeiing: begroeiing ? { naam: begroeiing.naam, half: begroeiing.half, asSleutel: begroeiing.asSleutel,
         wolk: metWolk ? codeerWolk(begroeiing.xs, begroeiing.ys, begroeiing.zs, null) : null } : null,
       percelen: percelen.length ? { bron: perceelBron, lijst: percelen.map(pc => ({ gemeente: pc.gemeente, code: pc.code, sectie: pc.sectie, nummer: pc.nummer, grootte: pc.grootte, ringen: pc.ringen.map(r => r.map(q => [Math.round(q.x * 1000) / 1000, Math.round(q.y * 1000) / 1000])) })) } : null,

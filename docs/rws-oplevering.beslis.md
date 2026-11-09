@@ -25,7 +25,7 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F1 | Eén keuze "RWS-oplevering": bovenaanzicht, blad 2 Doorrijhoogte (overzicht zoals het voorbeeld), lengteprofiel, alle doorsnedes, in die volgorde | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B1, B5 | ✅ 2026-11-09 18:09 |
 | F2 | Invulscherm: gegevens die niet uit de scan komen, op de RWS-bladen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B4 | ✅ 2026-11-09 18:22 |
 | F3 | Verificatierapport volgens de RWS-eisen | ○ nog niet | - | eisen van RWS | - |
-| F4 | De toets bewaren in het project: na openen precies hetzelfde resultaat, zonder de scan en zonder opnieuw te meten | ✅ ja, op planversie 2 (via delegatie) | Marco van Steenbrugge · 2026-11-09 18:23 | B6 | - |
+| F4 | De toets bewaren in het project: na openen precies hetzelfde resultaat, zonder de scan en zonder opnieuw te meten | ✅ ja, op planversie 2 (via delegatie) | Marco van Steenbrugge · 2026-11-09 18:23 | B6 | ✅ 2026-11-09 18:35 |
 
 Letterlijk akkoord (F0 tot en met F2, via chat): "Akkoord, bouw F0–F2", als antwoord op de vraag "Akkoord met B1–B4 zoals voorgesteld en bouwen op planversie 1, fase F0, F1 en F2?"
 
@@ -167,5 +167,6 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-09 17:49 | F0 gebouwd: lengteprofiel: hoogtebereik van/tot (scherm en PDF, in het project) en de labels van de doorsnedes boven het kunstwerk | Claude Opus 5.5 (agent) |
 | 2026-11-09 18:09 | F1 gebouwd: keuze RWS-opleverset (bovenaanzicht, blad 2 Doorrijhoogte als overzicht, lengteprofiel, de doorsnedes), oordeel zonder m², percentage groot | Claude Opus 5.5 (agent) |
 | 2026-11-09 18:22 | F2 gebouwd: invulvelden (opdrachtgever, meetbedrijf, meetmethode en instrument, uitgevoerd door, gecontroleerd door) op blad 2, in het tekstvak van de RWS-bladen en in het titelblok, bewaard in het project | Claude Opus 5.5 (agent) |
+| 2026-11-09 18:35 | F4 gebouwd: toets bewaren in het project: strook, doorsnedes met ruwe punten en vingerafdruk; bij openen dezelfde uitkomst zonder de scan en zonder opnieuw te meten | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*
