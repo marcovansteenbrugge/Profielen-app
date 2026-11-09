@@ -19,6 +19,8 @@ function maakData() {
   const punt = (s, o, z) => r.push(`${(X0 + s).toFixed(3)} ${(Y0 - o).toFixed(3)} ${z.toFixed(4)}`);
   for (let i = 0; i <= 1000; i++) for (let j = -80; j <= 80; j++) punt(i / 10, j / 10, weg(i / 10, j / 10));
   for (let i = 400; i <= 550; i++) for (let j = -60; j <= 60; j++) { punt(i / 10, j / 10, DAK); punt(i / 10, j / 10, DAK + 0.7); }
+  // vangrail / opstaande rand vlak naast de rechter kant verharding (0,6–0,9 m boven de weg): mag geen "dak" worden
+  for (let i = 0; i <= 1000; i++) for (let k = 0; k <= 6; k++) { const s = i / 10, o = rand(s) - 0.04; punt(s, o, weg(s, o) + 0.6 + k * 0.05); }
   const pts = path.join(UIT, 'weg_dak.pts');
   fs.writeFileSync(pts, `${r.length}\n${r.join('\n')}\n`);
   const as = path.join(UIT, 'as_weg.geojson');

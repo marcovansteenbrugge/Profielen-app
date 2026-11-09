@@ -120,10 +120,11 @@ function maakData() {
   await p.uncheck('#drBoxTonen'); await p.waitForTimeout(600);
   await p.click('#drSluit'); await p.waitForTimeout(300);
   await p.evaluate(() => window.__pvTest.rwsToon(1)); await p.waitForTimeout(400);
-  const na = { box: await telBox(), maat: await telMaat() };
+  const na = { box: await telBox(), maat: await telMaat(), vrij: await p.evaluate(() => [...document.querySelectorAll('#svgDwars text, #svgLangs text')].filter(t => /^vrij /.test(t.textContent.trim())).length) };
   console.log('6 box aan:', JSON.stringify(voor), '| box uit:', JSON.stringify(na));
   if (!(voor.box >= 1)) fouten.push('6: box niet getekend met het vinkje aan');
   if (na.box !== 0) fouten.push('6: box nog getekend met het vinkje uit');
+  if (na.vrij !== 0) fouten.push('6: maat "vrij" nog getekend met de box uit');
   if (!(na.maat >= 2)) fouten.push('6: maatvoering (doorrijhoogtes) verdwenen met de box uit');
   await p.screenshot({ path: path.join(H.UIT, 'doorrijprofiel_rws_zonder_box.png') });
   await p.click('#doorrijKnop'); await p.waitForSelector('#drDialoog[open]');

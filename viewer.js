@@ -3230,7 +3230,7 @@
     doorrijWeg: (s, o) => drResultaat ? drResultaat.wegOp(s, o) : null,
     doorrijInst: () => JSON.parse(JSON.stringify(doorrij)),
     rwsMeten: async () => { const d = await rwsMeten(); toonRwsResultaat(); if (alleenDoorsnedes()) bijwerkenProfielenBinnen(); tekenLangs(); return d.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, n: p.punten.o.length, min: p.min ? { offset: p.min.offset, h: p.min.h } : null, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, weg: m.weg, dak: m.dak, h: m.h, nW: m.nW, nD: m.nD, sW: m.sW, sD: m.sD })) })); },
-    rws: () => drRws ? drRws.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, hoek: p.hoek || 0, breedte: p.breedte, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, h: m.h, dakBron: m.dakBron, dakAfstand: m.dakAfstand, doorgetrokken: !!m.doorgetrokken })) })) : null,
+    rws: () => drRws ? drRws.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, hoek: p.hoek || 0, breedte: p.breedte, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, h: m.h, dakBron: m.dakBron, dakAfstand: m.dakAfstand, doorgetrokken: !!m.doorgetrokken, wegBron: m.wegBron })) })) : null,
     kunstwerken: () => drResultaat ? drKunstwerken(drResultaat).map(kw => ({ ...kw, rand: kwRandFit(drResultaat, kw) })) : null,
     dwarslijnScherm: (st) => { const h = dwarsHoek(st), a = puntOpDwarslijn(st, -profielL(), h), b = puntOpDwarslijn(st, profielR(), h); return { hoek: h, a, b }; },
     rwsBreedteMin: () => drRws?.breedteMin || null,
@@ -8755,8 +8755,11 @@
     alle.sort((a, b) => a - b);
     const wegRef = r.wegOp(...opLijn(station, offset, hoek));
     const grens = (wegRef ?? (alle[0] ?? 0)) + r.minH;
+    // het object (onderkant kunstwerk) pas vanaf DAK_MIN_H boven de weg: een vangrail of opstaande rand naast de
+    // kant verharding (0,5–1 m) is geen dak (die telt wel mee voor de doorrijbreedte)
+    const dakGrens = (wegRef ?? (alle[0] ?? 0)) + Math.max(r.minH, DAK_MIN_H);
     const dz = [];
-    for (const z of alle) (z < grens ? wz : dz).push(z);
+    for (const z of alle) { if (z < grens) wz.push(z); else if (z >= dakGrens) dz.push(z); }
     let weg = null, sW = null, nW = 0;
     if (wz.length) {
       // bij weinig punten (< 10) het laagste punt zelf; anders een laag percentiel tegen uitschieters
@@ -8770,12 +8773,16 @@
       const laag = dz.filter(z => Math.abs(z - ref) <= 0.05);
       dak = mediaan(laag); sD = spreiding(laag); nD = laag.length;
     }
+    // geen wegpunten binnen ± 0,10 m (bv. een schaduw achter een auto of een vangrail): de weg uit het wegmodel
+    // (zoals bij het overbruggen onder het dak), en dat staat erbij
+    let wegBron = weg != null ? 'punten' : null;
+    if (weg == null && wegRef != null) { weg = wegRef; wegBron = 'model'; }
     let dakBron = dak != null ? 'punten' : null, dakAfstand = null;
     if (dak == null && r.dakOp) {
       const q = r.dakOp(...opLijn(station, offset, hoek));
-      if (q && (weg == null || q.z - weg >= r.minH)) { dak = q.z; dakBron = q.ingevuld ? 'ingevuld' : 'raster'; dakAfstand = q.afstand; }
+      if (q && (weg == null || q.z - weg >= Math.max(r.minH, DAK_MIN_H))) { dak = q.z; dakBron = q.ingevuld ? 'ingevuld' : 'raster'; dakAfstand = q.afstand; }
     }
-    return { weg, dak, h: weg != null && dak != null ? dak - weg : null, nW, nD, sW, sD, dakBron, dakAfstand };
+    return { weg, dak, h: weg != null && dak != null ? dak - weg : null, nW, nD, sW, sD, dakBron, dakAfstand, wegBron };
   }
   /** Doorrijbreedte (B4, RWS § 2.5): obstakels zijn punten tussen 0,5 en 1,0 m boven de weg; vanaf het midden van de
    *  rijbaan het dichtstbijzijnde obstakel links en rechts; zonder obstakel de kant verharding (BGT), anders de rand
@@ -8925,8 +8932,8 @@
   }
   const rwsM = (v, d = 2) => v == null ? '—' : komma(v, d);
   /** Hoe het dak bij een meetpunt bepaald is (F4): uit de punten (± 10 cm), uit een gemeten vakje of ingevuld (met afstand). */
-  const dakBronTekst = (m, pdf = false) => m.dakBron === 'punten' ? 'gemeten' : m.dakBron === 'raster' ? `gemeten (vakje ${pdf ? '25' : komma(DAK_CEL * 100, 0)} cm)`
-    : m.dakBron === 'ingevuld' ? `ingevuld (${pdf ? m.dakAfstand.toFixed(1) : komma(m.dakAfstand, 1)} m)` : '—';
+  const dakBronTekst = (m, pdf = false) => (m.dakBron === 'punten' ? 'gemeten' : m.dakBron === 'raster' ? `gemeten (vakje ${pdf ? '25' : komma(DAK_CEL * 100, 0)} cm)`
+    : m.dakBron === 'ingevuld' ? `ingevuld (${pdf ? m.dakAfstand.toFixed(1) : komma(m.dakAfstand, 1)} m)` : '—') + (m.wegBron === 'model' ? '; weg uit model' : '');
   function toonRwsResultaat() {
     const vak = document.getElementById('drRwsResultaat');
     if (!vak) return;
@@ -12078,11 +12085,11 @@ ${r3d}
       t.setAttribute('transform', `translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})${draai ? ` rotate(${draai} ${x} ${y})` : ''}`);
       return t;
     };
-    const maatH = (x0, x1, y, tekst, klasse = 'dv-maatlijn', onder = false) => {
+    const maatH = (x0, x1, y, tekst, klasse = 'dv-maatlijn', onder = false, inMidden = false) => {
       const t = 5 * tegen;
-      // tekst niet midden op de as (daar staat de asnaam)
+      // tekst niet midden op de as (daar staat de asnaam), behalve als hij bewust in het midden moet (doorrijbreedte)
       let tx = (x0 + x1) / 2;
-      if (midden != null && Math.abs(tx - px(midden)) * zS < 30) tx = x0 + (x1 - x0) * 0.27;
+      if (!inMidden && midden != null && Math.abs(tx - px(midden)) * zS < 30) tx = x0 + (x1 - x0) * 0.27;
       dvEl('path', { d: `M${x0},${y} L${x1},${y} M${x0 - t},${y + t} L${x0 + t},${y - t} M${x1 - t},${y + t} L${x1 + t},${y - t} M${x0},${y - t * 1.4} L${x0},${y + t * 1.4} M${x1},${y - t * 1.4} L${x1},${y + t * 1.4}`, class: klasse, 'vector-effect': 'non-scaling-stroke' });
       if (Math.abs(x1 - x0) * zS >= tekst.length * 7.4 + 6) dvTekst(tx, onder ? y + 15 * tegen : y - 5 * tegen, tekst, klasse.replace('dv-maatlijn', 'dv-maatlijn-tekst'));
     };
@@ -12247,7 +12254,7 @@ ${r3d}
           }
           if (vrij != null) {
             const sp = vrij - bx.H, kl = sp < 0 ? 'dv-maatlijn rood' : 'dv-maatlijn';
-            maatV(px(L) - 16 * tegen, py(z0), py(z0 + vrij), `vrij ${komma(vrij, 2)}`, kl, true);
+            if (doorrij.boxTonen !== false) maatV(px(L) - 16 * tegen, py(z0), py(z0 + vrij), `vrij ${komma(vrij, 2)}`, kl, true);   // box uit: alleen de maatvoering
           }
         }
         // doorrijprofiel (RWS): meetpunten als pijlen van de weg naar het dak, de laagste rood
@@ -12275,7 +12282,7 @@ ${r3d}
         }
         if (rp?.breedte) {
           const wb = r.wegOp(rp.station, r.boxen[0].c);
-          if (wb != null) maatH(px(rp.breedte.links.offset), px(rp.breedte.rechts.offset), py(wb + 0.75), `b ${opties.rwsNotatie ? rp.breedte.breedte.toFixed(3) : komma(rp.breedte.breedte, 2)}`, 'dv-maatlijn grijs', true);
+          if (wb != null) maatH(px(rp.breedte.links.offset), px(rp.breedte.rechts.offset), py(wb + 0.75), `b ${opties.rwsNotatie ? rp.breedte.breedte.toFixed(3) : komma(rp.breedte.breedte, 2)}`, 'dv-maatlijn grijs', true, true);
         }
       } else {
         for (const { bx, lijnB, lijnV } of dr.boxen) {
@@ -12288,7 +12295,7 @@ ${r3d}
           if (lijnV.some(Boolean)) dvEl('path', { d: pad(lijnV, 0), ...vrijStijl });
           if (bx.kritiek) {
             const x = px(bx.kritiek.station), sp = bx.speling;
-            maatV(x, py(bx.kritiek.bodem), py(bx.kritiek.z), `vrij ${komma(bx.vrijMin, 2)}`, sp < 0 ? 'dv-maatlijn rood' : 'dv-maatlijn');
+            if (doorrij.boxTonen !== false) maatV(x, py(bx.kritiek.bodem), py(bx.kritiek.z), `vrij ${komma(bx.vrijMin, 2)}`, sp < 0 ? 'dv-maatlijn rood' : 'dv-maatlijn');
           }
         }
         // doorsnedes van de kunstwerken (RWS): verticale lijn, label bovenaan (sleepbaar op het scherm) en de maat op de as
