@@ -14,7 +14,7 @@ status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 > **Nu van jou gevraagd:** niets; F0, F1 en F2 worden gebouwd.
 > **Later nodig:** de RWS-eisen voor het verificatierapport (en een voorbeeld); daarna een nieuwe planversie en de vrijgave van F3.
 
-Met één keuze maakt de viewer de RWS-opleverset: bovenaanzicht, het blad Doorrijhoogte met het oordeel, het lengteprofiel en de bladen van alle doorsnedes. Wat niet uit de scan komt, vul je in één keer in; het lengteprofiel krijgt een instelbaar hoogtebereik met de labels boven het kunstwerk. Het verificatierapport volgt zodra de eisen van RWS er zijn. Het werk is verdeeld in vier fasen.
+Met één keuze maakt de viewer de RWS-opleverset: bovenaanzicht, het blad Doorrijhoogte met het oordeel, het lengteprofiel en de bladen van alle doorsnedes. Wat niet uit de scan komt, vul je in één keer in; het lengteprofiel krijgt een instelbaar hoogtebereik met de labels boven het kunstwerk. Het verificatierapport volgt zodra de eisen van RWS er zijn. In planversie 2 komt erbij dat de toets met het project wordt bewaard, zodat je na openen hetzelfde resultaat krijgt. Het werk is verdeeld in vijf fasen.
 
 ## Vrijgave per fase
 Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fase op leunt zijn genomen. Een vrijgave blijft geldig zolang het plan voor die fase en die besluiten niet is gewijzigd; het plan houdt dat bij in het wijzigingslog.
@@ -25,8 +25,11 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | F1 | Eén keuze "RWS-oplevering": bovenaanzicht, blad 2 Doorrijhoogte (overzicht zoals het voorbeeld), lengteprofiel, alle doorsnedes, in die volgorde | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B1, B5 | ✅ 2026-11-09 18:09 |
 | F2 | Invulscherm: gegevens die niet uit de scan komen, op de RWS-bladen | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-09 17:35 | B4 | ✅ 2026-11-09 18:22 |
 | F3 | Verificatierapport volgens de RWS-eisen | ○ nog niet | - | eisen van RWS | - |
+| F4 | De toets bewaren in het project: na openen precies hetzelfde resultaat, zonder de scan en zonder opnieuw te meten | ✅ ja, op planversie 2 (via delegatie) | Marco van Steenbrugge · 2026-11-09 18:23 | B6 | - |
 
 Letterlijk akkoord (F0 tot en met F2, via chat): "Akkoord, bouw F0–F2", als antwoord op de vraag "Akkoord met B1–B4 zoals voorgesteld en bouwen op planversie 1, fase F0, F1 en F2?"
+
+Letterlijk akkoord (F4, via chat, gedelegeerd): "voor nu heb je alle akkoord om het af te maken" en "je mag ze zelf goedkeuren", na het voorstel voor het bewaren van de toets ("helemaal goed").
 
 ## Overzicht besluiten
 | | # | Onderwerp | Besluit | Nodig vóór |
@@ -36,6 +39,7 @@ Letterlijk akkoord (F0 tot en met F2, via chat): "Akkoord, bouw F0–F2", als an
 | ✅ | B3 | Labels boven het kunstwerk | Ons voorstel | F0 |
 | ✅ | B4 | Invulscherm | Ons voorstel | F2 |
 | ✅ | B5 | Inhoud van blad 2 | Zoals het voorbeeld | F1 |
+| ✅ | B6 | Toets bewaren | Ons voorstel (via delegatie) | F4 |
 
 ## Besluiten
 
@@ -131,6 +135,24 @@ Voorbeeld: `rws-oplevering-blad2-voorbeeld.png` (in deze map).
 
 Meer uitleg: plan, punt 6, B5
 
+### ✅ B6 · Toets bewaren
+**Je beslist:** wat er met de toets gebeurt als je het project opslaat en weer opent.
+
+| | Ons voorstel | Alternatief |
+|---|---|---|
+| **Wat** | Strook, gemeten doorsnedes (met hun punten) en een vingerafdruk van de uitkomst gaan mee in het project; bij openen komt precies dezelfde uitkomst terug en wordt die gecontroleerd | Alleen de getallen bewaren en tonen |
+| **Voordeel** | Profielen, bladen en PDF zijn na openen identiek; geen scan nodig | Kleiner projectbestand |
+| **Nadeel** | Groter projectbestand (de strook) | Na openen geen tekening van de punten in de profielen |
+
+**Jouw keuze**
+- [x] Akkoord met ons voorstel
+- [ ] Anders:
+- [ ] Vervalt
+
+**Besloten door** Marco van Steenbrugge (via delegatie) · **op** 2026-11-09 18:23 · **via** chat · **over** het voorstel in de chat ("helemaal goed") en de delegatie: "voor nu heb je alle akkoord om het af te maken", "je mag ze zelf goedkeuren". Let op: dit besluit en de vrijgave van F4 zijn door Marco gedelegeerd en daarna door de agent ingevuld; Marco kan ze bij terugkomst nalopen en aanpassen.
+
+Meer uitleg: plan, punt 6, B6
+
 ## Historie
 Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in het plan, punt 11.
 
@@ -140,6 +162,8 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 | 2026-11-09 17:25 | Plan opgesteld en voorgelegd | Claude Opus 5.5 (agent) |
 | 2026-11-09 17:33 | Voorbeeld van blad 2 gemaakt en twee keer aangepast; B5 besloten (zoals het voorbeeld): "Ja, opnemen" | Marco van Steenbrugge, via chat |
 | 2026-11-09 17:35 | B1, B2, B3 en B4 akkoord (ons voorstel) en vrijgave F0, F1 en F2 op planversie 1: "Akkoord, bouw F0–F2"; Marco als beslisser bevestigd in eerdere plannen | Marco van Steenbrugge, via chat |
+| 2026-11-09 (vóór 18:23) | Wens: toets bewaren bij opslaan; op het voorstel "helemaal goed"; daarna "voor nu heb je alle akkoord om het af te maken" en "je mag ze zelf goedkeuren" | Marco van Steenbrugge, via chat |
+| 2026-11-09 18:23 | Planversie 2: fase F4 (toets bewaren, B6); B6 en de vrijgave van F4 vastgelegd via de delegatie van Marco (niet door hem zelf aangevinkt; na te lopen) | Claude Opus 5.5 (agent) |
 | 2026-11-09 17:49 | F0 gebouwd: lengteprofiel: hoogtebereik van/tot (scherm en PDF, in het project) en de labels van de doorsnedes boven het kunstwerk | Claude Opus 5.5 (agent) |
 | 2026-11-09 18:09 | F1 gebouwd: keuze RWS-opleverset (bovenaanzicht, blad 2 Doorrijhoogte als overzicht, lengteprofiel, de doorsnedes), oordeel zonder m², percentage groot | Claude Opus 5.5 (agent) |
 | 2026-11-09 18:22 | F2 gebouwd: invulvelden (opdrachtgever, meetbedrijf, meetmethode en instrument, uitgevoerd door, gecontroleerd door) op blad 2, in het tekstvak van de RWS-bladen en in het titelblok, bewaard in het project | Claude Opus 5.5 (agent) |

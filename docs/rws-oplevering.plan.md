@@ -1,9 +1,9 @@
 ---
 plan: rws-oplevering
 titel: RWS-opleverset voor de doorrijhoogte, met invulscherm en verificatierapport
-versie: 1
+versie: 2
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ○           # berekend door de skill
+voortgang: F0 ✅ · F1 ✅ · F2 ✅ · F3 ○ · F4 ▶           # berekend door de skill
 opgesteld: 2026-11-09
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -20,7 +20,8 @@ trefwoorden: [RWS, oplevering, opleverset, verificatierapport, doorrijhoogte, do
 1. Eén keuze **RWS-oplevering** in het PDF-venster zet precies de vier onderdelen aan, in deze volgorde: **bovenaanzicht**, blad 2 **Doorrijhoogte** (overzicht: wat is getest, welke profielen, het resultaat en de doorrijhoogtes per doorsnede, B5), het **lengteprofiel** en **alle doorsnedes** van de kunstwerken (bij twee kunstwerken vier RWS-bladen).
 2. Het **lengteprofiel** krijgt velden "hoogte van … tot … m NAP" (leeg = automatisch), op het scherm en in de PDF; de labels KW1 voor, KW1 achter enz. komen **boven het kunstwerk** te staan in plaats van bovenin de grafiek.
 3. Een **invulscherm** voor wat niet uit de scan komt (opdrachtgever, meetbedrijf, meetmethode en instrument, uitgevoerd en gecontroleerd door, naast de bestaande weg, rijbaan, object, meetdatum en bijzonderheden); die gegevens komen op de bladen.
-4. Later een **verificatierapport** volgens de RWS-eisen, met alle maten automatisch eruit. Die fase start pas als de eisen (hoofdstuk of bijlage van de Productspecificaties) en bij voorkeur een voorbeeld zijn aangeleverd.
+4. (versie 2) **De toets bewaren in het project**: bij opslaan gaat de strook van de doorrijhoogte, de gemeten doorsnedes en een vingerafdruk van de uitkomst mee; bij openen komt precies hetzelfde resultaat terug, zonder de scan opnieuw te lezen of de doorsnedes opnieuw te meten.
+5. Later een **verificatierapport** volgens de RWS-eisen, met alle maten automatisch eruit. Die fase start pas als de eisen (hoofdstuk of bijlage van de Productspecificaties) en bij voorkeur een voorbeeld zijn aangeleverd.
 
 ## 2. Aanleiding en doel
 Marco (chat, 2026-11-09): "Nu wil ik nadenken over een RWS opleverblad.. iets in de trent van het invul / test scherm wat we invullen.. en daar komen alle maten uit lopen... die moeten we denk ik terug laten komen. een door verrificatei rapport". Daarna: "wat leveren 1) bovenaanzicht 2) de inhoud onder het kopje Doorrijhoogte (daar staat dan Voldoet) 3) het lengteprofiel 4) alle 4 de doorsnedes" en "let op bij het lengteprofiel.. dat de tekst KW1 en KW2 boven het kunstwerk staan (misschien een invul veld maken.. vanaf welke hoogte tot welke hoogte het profiel zichtbaar".
@@ -28,6 +29,8 @@ Marco (chat, 2026-11-09): "Nu wil ik nadenken over een RWS opleverblad.. iets in
 Nu (op fcb3b4c) bestaan de onderdelen al als losse vinkjes in het PDF-venster (`pdfBovenaanzicht`, `pdfDoorrij`, `pdfRws`, `pdfLengteprofiel`, `pdfDwarsprofielen`), maar in een andere volgorde (bovenaanzicht, Doorrijhoogte, RWS-bladen, lengteprofiel, dwarsprofielen) en zonder één keuze voor de set. Het lengteprofiel schaalt de hoogte vanzelf; de kunstwerklabels staan vast bovenin de grafiek, waar ze in een echte scan over de dakpunten heen kunnen vallen. Een verificatierapport bestaat niet (bewust buiten scope gelaten in doorrijprofielen-rws).
 
 Daarna (chat, 2026-11-09), bij het voorbeeld van blad 2: "dit wil ik allemaal zien" (het Resultaat en de RWS-tabellen uit het Doorrijhoogte-venster), "wat hebben we getest.. welke profielen... en wat is het resultaat in tekst.. daarna de profielen langs en dwars", over "2 m² niet gemeten": "dat staat ook 2 regels hoger... misschien het % groter neerzetten.. en bij het oordeel weghalen", en "Ja, opnemen".
+
+Aanvulling (chat, 2026-11-09, versie 2): "en als ik het model opsla.. moet hij wel de toets onhouden.. en niet daarna opnieuw gaan rekenene... ik moet het zelfde resultaat krijgen als daarvoor"; op het voorstel (uitkomst in het projectbestand, bij openen dezelfde uitkomst, opnieuw rekenen alleen op verzoek): "helemaal goed"; daarna "voor nu heb je alle akkoord om het af te maken" en "je mag ze zelf goedkeuren".
 
 Geslaagd als: met één keuze komt er een PDF met bovenaanzicht, blad Doorrijhoogte, lengteprofiel en de RWS-bladen van alle doorsnedes, in die volgorde, met de ingevulde gegevens op de bladen; in het lengteprofiel staan de labels boven het kunstwerk binnen een hoogtebereik dat je zelf kunt zetten.
 
@@ -70,6 +73,7 @@ Uit de code (op fcb3b4c):
 - **B2 Hoogtebereik lengteprofiel** (nodig vóór F0). Voorstel: velden "hoogte van … tot … m NAP", leeg = automatisch, voor scherm én PDF. Alternatief: alleen in de PDF.
 - **B3 Labels boven het kunstwerk** (nodig vóór F0). Voorstel: label net boven het hoogste dakpunt van het kunstwerk (binnen het zichtbare bereik). Alternatief: bovenin de grafiek laten staan en alleen het hoogtebereik instelbaar maken.
 - **B5 Inhoud van blad 2** (nodig vóór F1). Besloten door Marco op basis van het voorbeeld (`docs/rws-oplevering-blad2-voorbeeld.png`): een overzichtsblad zonder groot dwarsprofiel. Links 1. Wat is getest (toets, box, gecontroleerd stuk, meetpunten, niet meegeteld), 2. Welke profielen (per kunstwerk de stations en hoek, KW1 voor/achter enz., en op welk blad lengte- en dwarsprofielen staan), 3. Resultaat (kleinste vrije hoogte, speling, minimale doorrijhoogte, laagste in de doorsnedes, weg gemeten onder het dak met het percentage groot, niet gemeten met de plek, oordeel). Rechts per doorsnede de tabel met kant links, as en kant rechts (offset, weg, dak, doorrijhoogte, dak bepaald, punten, spreiding), de laagste rood. Het oordeel zonder de m² niet gemeten (die staat al twee regels hoger), ook in het Doorrijhoogte-venster. Technisch: een nieuwe paginafunctie in `maakPdf` die bij de opleverset het huidige blad Doorrijhoogte vervangt; de gegevens komen uit `drRegels` en `drRws`.
+- **B6 Toets bewaren** (nodig vóór F4). Voorstel: bij opslaan gaan mee (net als de strook van de snoeicheck, `project.begroeiing`): de strook van de doorrijhoogte (`drWolk`, en `drDak` als die er is) via `codeerWolk`, alle doorsnedes van `drRws` met hun ruwe punten (o, z), en een vingerafdruk van de uitkomst (oordeel, kleinste vrije hoogte per box, per doorsnede de doorrijhoogtes). Bij openen: strook terug, Controleren opnieuw uit die strook (zelfde invoer, zelfde uitkomst), de doorsnedes terug uit de bewaarde punten (niet opnieuw lezen), en de uitkomst vergeleken met de vingerafdruk; gelijk: "toets van <datum> hersteld, zelfde uitkomst"; anders een melding met wat afwijkt. Alternatief: alleen de getallen bewaren en tonen zonder de strook (dan geen tekening van de punten na openen). Het voorstel houdt profielen, bladen en PDF volledig gelijk.
 - **B4 Invulscherm** (nodig vóór F2). Voorstel: extra velden in het bestaande Doorrijhoogte-venster (opdrachtgever, meetbedrijf, meetmethode en instrument, uitgevoerd door, gecontroleerd door). Alternatief: een apart venster "RWS-oplevering" met alle velden en een knop "Opleverset maken".
 
 ## 7. Fasering
@@ -81,6 +85,7 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | F1 | ✅ gebouwd | Keuze RWS-oplevering: vier onderdelen in de volgorde bovenaanzicht, blad 2 Doorrijhoogte (overzicht volgens B5), lengteprofiel, doorsnedes; oordeel zonder m² (ook in het venster); titel `pdfRws` bijgewerkt | 1. Met de keuze heeft de PDF precies: Bovenaanzicht, Doorrijhoogte, Lengteprofiel, en per doorsnede een RWS-blad, in die volgorde (test op de paginatitels). 2. Blad 2 heeft de kopjes "Wat is getest", "Welke profielen", "Resultaat" en per doorsnede een tabel met kant links, as en kant rechts, en lijkt op het voorbeeld (screenshot). 3. Het oordeel staat zonder "m² weg niet gemeten", op blad 2 en in het venster. 4. Zonder de keuze blijft de PDF zoals nu. 5. `node run_alle.js` geheel groen. | F0, B1, B5 | S | Opus 5.5, medium | `F1:` |
 | F2 | ✅ gebouwd | Invulscherm: extra velden, op de RWS-bladen en in het titelblok, bewaard in het project | 1. De ingevulde velden staan op elk RWS-blad (test op de PDF-tekst). 2. Ze komen terug na opslaan en openen. 3. `node run_alle.js` geheel groen. | F1, B4 | S | Opus 5.5, medium | `F2:` |
 | F3 | ○ niet vrijgegeven | Verificatierapport volgens de RWS-eisen (inhoud en vorm volgen in een nieuwe planversie) | Wordt vastgesteld in de planversie na aanlevering van de eisen. | F2, voorwaarde: RWS-eisen voor het verificatierapport en bij voorkeur een voorbeeld aangeleverd door Marco | M | Opus 5.5, medium | `F3:` |
+| F4 | ▶ vrijgegeven | Toets bewaren: strook, doorsnedes met ruwe punten en vingerafdruk in het projectbestand; bij openen dezelfde uitkomst zonder de scan en zonder opnieuw te meten | 1. Na opslaan en openen (zonder de scan bij de hand) staan het resultaat, alle doorsnedes en hun doorrijhoogtes er weer, identiek tot op 0,1 mm (test). 2. De status meldt "toets … hersteld, zelfde uitkomst". 3. De PDF-opleverset na openen heeft dezelfde getallen als ervoor (test op de PDF-tekst). 4. Een project zonder bewaarde toets opent zoals nu. 5. `node run_alle.js` geheel groen. | F2, B6 | M | Opus 5.5, medium | `F4:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
 De oplevering (versie, LEESMIJ, handleiding, bouwen) gebeurt samen met de oplevering van het plan kunstwerken-doorsnedes (fase F7 daar, besluit B5).
@@ -144,6 +149,7 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |
 |---|---|---|---|---|
 | 1 | 2026-11-09 17:25 | Eerste versie | - | Nog geen vrijgave |
+| 2 | 2026-11-09 18:23 | Nieuwe fase F4 (toets bewaren in het project) met besluit B6, op verzoek van Marco | F4, B6 (nieuw) | F0-F2 blijven vrijgegeven; F4 vrijgegeven via delegatie (zie beslisdocument) |
 
 ## 14. Bronnen
 - viewer.js op fcb3b4c: `maakPdf` (paginavolgorde), `tekenLangs`/`tekenGrafiek` (lengteprofiel, labels doorsnedes), `doorrij.rws`.
