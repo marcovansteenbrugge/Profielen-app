@@ -3230,10 +3230,12 @@
     doorrijWeg: (s, o) => drResultaat ? drResultaat.wegOp(s, o) : null,
     doorrijInst: () => JSON.parse(JSON.stringify(doorrij)),
     rwsMeten: async () => { const d = await rwsMeten(); toonRwsResultaat(); if (alleenDoorsnedes()) bijwerkenProfielenBinnen(); tekenLangs(); return d.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, n: p.punten.o.length, min: p.min ? { offset: p.min.offset, h: p.min.h } : null, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, weg: m.weg, dak: m.dak, h: m.h, nW: m.nW, nD: m.nD, sW: m.sW, sD: m.sD })) })); },
-    rws: () => drRws ? drRws.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, hoek: p.hoek || 0, breedte: p.breedte, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, h: m.h })) })) : null,
+    rws: () => drRws ? drRws.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, hoek: p.hoek || 0, breedte: p.breedte, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, h: m.h, dakBron: m.dakBron, dakAfstand: m.dakAfstand })) })) : null,
     kunstwerken: () => drResultaat ? drKunstwerken(drResultaat).map(kw => ({ ...kw, rand: kwRandFit(drResultaat, kw) })) : null,
     dwarslijnScherm: (st) => { const h = dwarsHoek(st), a = puntOpDwarslijn(st, -profielL(), h), b = puntOpDwarslijn(st, profielR(), h); return { hoek: h, a, b }; },
     rwsBreedteMin: () => drRws?.breedteMin || null,
+    dakOp: (s, o) => drResultaat?.dakOp(s, o) || null,
+    dakModelInfo: () => drResultaat?.dakModel ? { cel: drResultaat.dakModel.cel, gemeten: drResultaat.dakModel.nGemeten, ingevuld: drResultaat.dakModel.nIngevuld, gered: drResultaat.gered, ruis: drResultaat.ruis } : null,
     rwsToon: (nr) => rwsToon(nr),
     dwarsStations: () => dwarsStations.slice(),
     kwGreep: (sleutel) => { const e = svgLangs.querySelector(`[data-kwgreep="${sleutel}"] rect`); if (!e) return null; const b = e.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; },
@@ -7929,7 +7931,10 @@
   };
   const DR_MAX_BOXEN = 4;
   let drResultaat = null;
-  const DR_KLEUR = { box: '#1F4E79', ok: '#16803D', nok: '#C6472B', krap: '#E08A1E', dak: '#5B6670', weg: '#A3ADB8' };
+  const DR_KLEUR = { box: '#1F4E79', ok: '#16803D', nok: '#C6472B', krap: '#E08A1E', dak: '#5B6670', weg: '#A3ADB8', dakIn: '#7A3E9D' };
+  // (F4) dakmodel: vakjes van 25 cm (B8), invullen tot 2 m van een gemeten vakje (B9); dak = minstens 2 m boven de weg;
+  // een punt van een dunne onderkant telt als dak als het minstens 4 buren heeft in vakjes van 1 m × 1 m × 0,3 m
+  const DAK_CEL = 0.25, DAK_MAX = 2, DAK_MIN_H = 2, DAK_LAAG = 4;
 
   /** Halve breedte van de strook die gelezen wordt: de breedste box plus wat ruimte ernaast. */
   function drStrookHalf() {
@@ -8048,15 +8053,12 @@
     let nP = 0;
     const CEL = 0.5;
     const sleutel = (s, o, z) => (Math.floor(s / CEL) * 1024 + (Math.floor(o / CEL) + 512)) * 16384 + (Math.floor(z / CEL) + 8192);
-    // telling per vakje van 0,5 m voor de ruisfilter: hashtabel van vaste grootte in plaats van een Map
-    let tSlots = 1; while (tSlots < Math.max(16, cap * 2)) tSlots *= 2;
-    const tMask = tSlots - 1;
-    let tSleutel = new Float64Array(tSlots), tBezet = new Uint8Array(tSlots), tTel = new Uint32Array(tSlots);   // na de ruisfilter vrijgegeven
-    const tHash = (key) => { const lo = key % 4294967296, hi = Math.floor(key / 4294967296); return (Math.imul(lo | 0, 2654435761) ^ Math.imul(hi | 0, 40503)) & tMask; };
-    const telR = {
-      plus(key) { let h = tHash(key); while (tBezet[h] && tSleutel[h] !== key) h = (h + 1) & tMask; tBezet[h] = 1; tSleutel[h] = key; tTel[h]++; },
-      get(key) { let h = tHash(key); while (tBezet[h]) { if (tSleutel[h] === key) return tTel[h]; h = (h + 1) & tMask; } return 0; },
-    };
+    // telling per vakje voor de ruisfilter: hashtabellen van vaste grootte in plaats van een Map
+    let telR = maakVakTeller(cap);
+    // (F4) een dunne onderkant (bv. 1 punt per m²) valt door de ruisfilter van 0,5 m; zo'n punt telt toch als dak
+    // als het in een vlakke laag met zijn buren ligt: vakjes van 1 m vlak en 0,3 m hoog, minstens DAK_LAAG buren
+    let telL = maakVakTeller(cap);
+    const sleutelL = (s, o, z) => (Math.floor(s) * 4096 + (Math.floor(o) + 2048)) * 65536 + (Math.floor(z / 0.3) + 32768);
     for (const { b, S, O } of bronnen) {
       for (let i = 0; i < b.xs.length; i++) {
         const s = S[i]; if (Number.isNaN(s) || s < k.s0 - 1 || s > k.s1 + 1) continue;
@@ -8065,17 +8067,23 @@
         PS[nP] = s; PO[nP] = O[i]; PZ[nP] = b.zs[i]; PX[nP] = b.xs[i]; PY[nP] = b.ys[i];
         if (h < k.minH) { PC[nP++] = 0; continue; }
         PC[nP++] = 1;
-        telR.plus(sleutel(s, O[i], b.zs[i]));
+        telR.plus(sleutel(s, O[i], b.zs[i])); telL.plus(sleutelL(s, O[i], b.zs[i]));
       }
     }
-    let ruis = 0, metDak = 0;
+    let ruis = 0, metDak = 0, gered = 0;
     const dakS = [], dakO = [], dakBoven = [];   // dakBoven: stations van dakpunten boven een box (kunstwerken vinden)
     for (let p = 0; p < nP; p++) {
       if (PC[p] !== 1) continue;
       const cs = Math.floor(PS[p] / CEL), co = Math.floor(PO[p] / CEL), cz = Math.floor(PZ[p] / CEL);
       let m = -1;
       for (let a = -1; a <= 1; a++) for (let b2 = -1; b2 <= 1; b2++) for (let c2 = -1; c2 <= 1; c2++) m += telR.get(((cs + a) * 1024 + (co + b2 + 512)) * 16384 + (cz + c2 + 8192));
-      if (m < k.minP) { PC[p] = 3; ruis++; continue; }
+      if (m < k.minP) {
+        const ls = Math.floor(PS[p]), lo = Math.floor(PO[p]), lz = Math.floor(PZ[p] / 0.3);
+        let m2 = -1;
+        for (let a = -1; a <= 1; a++) for (let b2 = -1; b2 <= 1; b2++) for (let c2 = -1; c2 <= 1; c2++) m2 += telL.get(((ls + a) * 4096 + (lo + b2 + 2048)) * 65536 + (lz + c2 + 32768));
+        if (m2 < Math.max(DAK_LAAG, k.minP + 1)) { PC[p] = 3; ruis++; continue; }
+        gered++;
+      }
       if (PS[p] < k.s0 || PS[p] > k.s1) continue;
       dakS.push(PS[p]); dakO.push(PO[p]);
       const i = Math.min(ns - 1, Math.max(0, Math.floor(PS[p] / BS)));
@@ -8093,7 +8101,19 @@
         if (vrij < bx.H) { bx.nConflict++; PC[p] = 2; }
       }
     }
-    tSleutel = tBezet = tTel = null;   // anders houden de functies in het resultaat (gedeelde context) ze vast
+    telR = telL = null;   // vrijgeven: anders houden de functies in het resultaat (gedeelde context) ze vast
+    // 6b. (F4) dakmodel: één vlak van de onderkant, ook waar de scan dun is; de kleinste vrije hoogte ook op ingevulde plekken (B10)
+    const dakModel = maakDakmodel(PS, PO, PZ, PC, nP, wegOp, k, half);
+    if (dakModel) for (const bx of boxen) {
+      dakModel.ingevuld((s, o, z, afstand) => {
+        if (s < k.s0 || s > k.s1 || Math.abs(o - bx.c) > bx.B / 2) return;
+        const i = Math.min(ns - 1, Math.max(0, Math.floor(s / BS)));
+        const z0 = bx.bodem[i]; if (Number.isNaN(z0)) return;
+        const vrij = z - z0; if (vrij <= 0) return;
+        if (Number.isNaN(bx.vrijLangs[i]) || vrij < bx.vrijLangs[i]) bx.vrijLangs[i] = vrij;
+        if (bx.vrijMin == null || vrij < bx.vrijMin) { const q = puntOpStationOffset(s, o); bx.vrijMin = vrij; bx.kritiek = { station: s, offset: o, z, bodem: z0, x: q.x, y: q.y, ingevuld: true, afstand }; }
+      });
+    }
     for (const bx of boxen) {
       bx.speling = bx.vrijMin == null ? null : bx.vrijMin - bx.H;
       bx.ok = bx.speling == null || bx.speling >= -1e-9;
@@ -8114,7 +8134,8 @@
     const vul = start.slice(0, nb), volgorde = new Int32Array(nP);
     for (let p = 0; p < nP; p++) volgorde[vul[bin[p]]++] = p;
     const res = {
-      ...k, boxen, half, BS, BO, ns, no, wegOp, ruis, metDak, dekking,
+      ...k, boxen, half, BS, BO, ns, no, wegOp, ruis, gered, metDak, dekking, dakModel,
+      dakOp: (s, o) => dakModel ? dakModel.op(s, o) : null,
       S: PS.slice(0, nP), O: PO.slice(0, nP), Z: PZ.slice(0, nP), X: PX.slice(0, nP), Y: PY.slice(0, nP), cls: PC.slice(0, nP),
       nb, start, volgorde, asSl: asSleutelNu(), tijd: new Date(),
       dakStations: Float32Array.from(dakBoven).sort(),
@@ -8126,6 +8147,68 @@
     drResultaat = res;
     if (drRws) { if (drRws.asSl && drRws.asSl !== res.asSl) drRws = null; else { drRws.asSl = res.asSl; rwsHerbereken(); } }
     return res;
+  }
+  /** Telt punten per vakje (sleutel = geheel getal < 2^53) in een hashtabel van vaste grootte. */
+  function maakVakTeller(max) {
+    let n = 1; while (n < Math.max(16, max * 2)) n *= 2;
+    const mask = n - 1, sl = new Float64Array(n), bezet = new Uint8Array(n), tel = new Uint32Array(n);
+    const hash = (key) => { const lo = key % 4294967296, hi = Math.floor(key / 4294967296); return (Math.imul(lo | 0, 2654435761) ^ Math.imul(hi | 0, 40503)) & mask; };
+    return {
+      plus(key) { let h = hash(key); while (bezet[h] && sl[h] !== key) h = (h + 1) & mask; bezet[h] = 1; sl[h] = key; tel[h]++; },
+      get(key) { let h = hash(key); while (bezet[h]) { if (sl[h] === key) return tel[h]; h = (h + 1) & mask; } return 0; },
+    };
+  }
+  /** (F4, B8/B9) Dakmodel: de onderkant van het kunstwerk als raster in station/offset (vakjes van DAK_CEL, per vakje het
+   *  laagste dakpunt minstens DAK_MIN_H boven de weg). Lege vakjes worden ingevuld door lineair te interpoleren in
+   *  driehoeken tussen de gemeten vakjes (d3.Delaunay), alleen in driehoeken met zijden ≤ 2·DAK_MAX en tot DAK_MAX van het
+   *  dichtstbijzijnde gemeten vakje; zo komt er geen dak buiten de rand of boven een groot gat.
+   *  op(s, o) → { z, ingevuld, afstand } of null. */
+  function maakDakmodel(PS, PO, PZ, PC, nP, wegOp, k, half) {
+    let cel = DAK_CEL, ns2, no2;
+    for (;;) { ns2 = Math.max(1, Math.ceil((k.s1 - k.s0) / cel)); no2 = Math.max(1, Math.ceil((2 * half) / cel)); if (ns2 * no2 <= 4e6) break; cel *= 1.5; }
+    const N = ns2 * no2, s0 = k.s0, o0 = -half;
+    const Z = new Float32Array(N).fill(NaN), bron = new Uint8Array(N), afst = new Float32Array(N);
+    const vak = (s, o) => { const i = Math.floor((s - s0) / cel), j = Math.floor((o - o0) / cel); return i < 0 || j < 0 || i >= ns2 || j >= no2 ? -1 : i * no2 + j; };
+    for (let p = 0; p < nP; p++) {
+      if (PC[p] !== 1 && PC[p] !== 2) continue;
+      const c = vak(PS[p], PO[p]); if (c < 0) continue;
+      const w = wegOp(PS[p], PO[p]); if (w == null || PZ[p] - w < Math.max(DAK_MIN_H, k.minH)) continue;
+      if (Number.isNaN(Z[c]) || PZ[p] < Z[c]) Z[c] = PZ[p];
+      bron[c] = 1;
+    }
+    let nGem = 0; for (let c = 0; c < N; c++) if (bron[c]) nGem++;
+    if (!nGem) return null;
+    let nIn = 0;
+    if (nGem >= 3 && window.d3?.Delaunay) {
+      const xy = new Float64Array(nGem * 2), id = new Int32Array(nGem);
+      for (let c = 0, t = 0; c < N; c++) if (bron[c]) { xy[2 * t] = s0 + (Math.floor(c / no2) + 0.5) * cel; xy[2 * t + 1] = o0 + (c % no2 + 0.5) * cel; id[t++] = c; }
+      const tri = new d3.Delaunay(xy).triangles, maxZijde = 2 * DAK_MAX;
+      for (let t = 0; t < tri.length; t += 3) {
+        const a = tri[t], b = tri[t + 1], c3 = tri[t + 2];
+        const ax = xy[2 * a], ay = xy[2 * a + 1], bx2 = xy[2 * b], by = xy[2 * b + 1], cx = xy[2 * c3], cy = xy[2 * c3 + 1];
+        if (Math.hypot(ax - bx2, ay - by) > maxZijde || Math.hypot(bx2 - cx, by - cy) > maxZijde || Math.hypot(cx - ax, cy - ay) > maxZijde) continue;
+        const za = Z[id[a]], zb = Z[id[b]], zc = Z[id[c3]];
+        const d = (by - cy) * (ax - cx) + (cx - bx2) * (ay - cy); if (Math.abs(d) < 1e-12) continue;
+        const i0 = Math.max(0, Math.floor((Math.min(ax, bx2, cx) - s0) / cel)), i1 = Math.min(ns2 - 1, Math.floor((Math.max(ax, bx2, cx) - s0) / cel));
+        const j0 = Math.max(0, Math.floor((Math.min(ay, by, cy) - o0) / cel)), j1 = Math.min(no2 - 1, Math.floor((Math.max(ay, by, cy) - o0) / cel));
+        for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
+          const c = i * no2 + j; if (bron[c] === 1) continue;
+          const x = s0 + (i + 0.5) * cel, y = o0 + (j + 0.5) * cel;
+          const l1 = ((by - cy) * (x - cx) + (cx - bx2) * (y - cy)) / d, l2 = ((cy - ay) * (x - cx) + (ax - cx) * (y - cy)) / d, l3 = 1 - l1 - l2;
+          if (l1 < -1e-9 || l2 < -1e-9 || l3 < -1e-9) continue;
+          const dmin = Math.min(Math.hypot(x - ax, y - ay), Math.hypot(x - bx2, y - by), Math.hypot(x - cx, y - cy));
+          if (dmin > DAK_MAX) continue;
+          if (bron[c] === 2 && afst[c] <= dmin) continue;
+          if (bron[c] !== 2) nIn++;
+          Z[c] = l1 * za + l2 * zb + l3 * zc; bron[c] = 2; afst[c] = dmin;
+        }
+      }
+    }
+    return {
+      cel, s0, o0, ns: ns2, no: no2, nGemeten: nGem, nIngevuld: nIn,
+      op(s, o) { const c = vak(s, o); if (c < 0 || !bron[c]) return null; return { z: Z[c], ingevuld: bron[c] === 2, afstand: bron[c] === 2 ? afst[c] : 0 }; },
+      ingevuld(cb) { for (let c = 0; c < N; c++) if (bron[c] === 2) cb(s0 + (Math.floor(c / no2) + 0.5) * cel, o0 + (c % no2 + 0.5) * cel, Z[c], afst[c]); },
+    };
   }
   /** Het resultaat, opnieuw berekend als de as intussen is gewijzigd. */
   function drGeldig() {
@@ -8214,6 +8297,12 @@
     if (!r) return;
     const pt = opt.pt || 1, W = opt.w ?? Infinity, Hc = opt.h ?? Infinity;
     tekenDekkingOpCanvas(ctx, naarPx, r.dekking, { pt, w: W, h: Hc, labels: 0 });
+    // (F4) ingevuld dak (dakmodel): paarse vakjes, zodat te zien is waar het dak is afgeleid in plaats van gemeten
+    if (r.dakModel?.nIngevuld) {
+      ctx.fillStyle = 'rgba(122,62,157,0.35)';
+      const zijde = Math.max(1, DAK_CEL * (opt.pxPerM || 4));
+      r.dakModel.ingevuld((s, o) => { const q = puntOpStationOffset(s, o); const [px, py] = naarPx(q.x, q.y); if (px > -6 && py > -6 && px < W + 6 && py < Hc + 6) ctx.fillRect(px - zijde / 2, py - zijde / 2, zijde, zijde); });
+    }
     // dak binnen de boxen: licht; in de box: rood
     const stip = Math.max(1.5 * pt, Math.min(4 * pt, 0.08 * (opt.pxPerM || 4) * 1.6));
     for (const [cls, kleur] of [[1, 'rgba(91,102,112,0.25)'], [2, 'rgba(198,71,43,0.85)']]) {
@@ -8350,7 +8439,7 @@
       regels.push([`${kop}box`, `${komma(bx.B, 2)} m breed × ${komma(bx.H, 2)} m hoog${Math.abs(bx.c) < 1e-9 ? ', midden op de as' : `, ${komma(Math.abs(bx.c), 2)} m ${bx.c < 0 ? 'links' : 'rechts'} van de as`}`, null]);
       if (bx.vrijMin == null) regels.push([`${kop}vrije hoogte`, 'geen dak boven de box gevonden', null]);
       else {
-        regels.push([`${kop}kleinste vrije hoogte`, `${drM(bx.vrijMin)} bij st. ${komma(bx.kritiek.station, 1)}${paalAchter(bx.kritiek.station, ' (') ? paalAchter(bx.kritiek.station, ' (') + ')' : ''}, ${komma(Math.abs(bx.kritiek.offset), 2)} m ${bx.kritiek.offset < 0 ? 'links' : 'rechts'}`, null]);
+        regels.push([`${kop}kleinste vrije hoogte`, `${drM(bx.vrijMin)}${bx.kritiek.ingevuld ? ` (dak ingevuld, ${komma(bx.kritiek.afstand, 1)} m van een dakpunt)` : ''} bij st. ${komma(bx.kritiek.station, 1)}${paalAchter(bx.kritiek.station, ' (') ? paalAchter(bx.kritiek.station, ' (') + ')' : ''}, ${komma(Math.abs(bx.kritiek.offset), 2)} m ${bx.kritiek.offset < 0 ? 'links' : 'rechts'}`, null]);
         regels.push([`${kop}speling`, `${drSpeling(bx.speling)} t.o.v. H${bx.nConflict ? ` · ${bx.nConflict.toLocaleString('nl-NL')} punten in de box` : ''}`, bx.ok ? (bx.krap ? 'let' : 'ok') : 'nok']);
       }
     }
@@ -8479,7 +8568,7 @@
   const KW_KLEUR = '#1F4E79';   // lijn en label van een doorsnede in het lengteprofiel
   let kwSleep = null;           // { sleutel, station } tijdens het slepen in het lengteprofiel
   let kwVorigeKlik = null;      // { sleutel, t }: voor de dubbelklik op een label           // m: stukken dak met een kleiner gat ertussen horen bij één kunstwerk
-  const KW_MIN = { lengte: 1, punten: 20 };   // kortere stukken (bord, tak) tellen niet als kunstwerk
+  const KW_MIN = { lengte: 1, punten: 5 };   // kortere stukken (bord, tak) tellen niet als kunstwerk; 5 punten: ook een dunne onderkant (F4)
   const RWS_VENSTER = 0.10;   // m rond het meetpunt (langs en dwars)
   const RWS_VELDEN = [['drKwGat', 'kwGat'], ['drRwsWeg', 'weg'], ['drRwsMeetdatum', 'meetdatum'], ['drRwsBijz', 'bijzonderheden']];
   /** Meetdatum als voorstel: de datum in de LAS-header (dag van het jaar + jaar), anders de datum van het bestand. */
@@ -8638,7 +8727,12 @@
       const laag = dz.filter(z => Math.abs(z - ref) <= 0.05);
       dak = mediaan(laag); sD = spreiding(laag); nD = laag.length;
     }
-    return { weg, dak, h: weg != null && dak != null ? dak - weg : null, nW, nD, sW, sD };
+    let dakBron = dak != null ? 'punten' : null, dakAfstand = null;
+    if (dak == null && r.dakOp) {
+      const q = r.dakOp(...opLijn(station, offset, hoek));
+      if (q && (weg == null || q.z - weg >= r.minH)) { dak = q.z; dakBron = q.ingevuld ? 'ingevuld' : 'raster'; dakAfstand = q.afstand; }
+    }
+    return { weg, dak, h: weg != null && dak != null ? dak - weg : null, nW, nD, sW, sD, dakBron, dakAfstand };
   }
   /** Doorrijbreedte (B4, RWS § 2.5): obstakels zijn punten tussen 0,5 en 1,0 m boven de weg; vanaf het midden van de
    *  rijbaan het dichtstbijzijnde obstakel links en rechts; zonder obstakel de kant verharding (BGT), anders de rand
@@ -8787,6 +8881,9 @@
     return null;
   }
   const rwsM = (v, d = 2) => v == null ? '—' : komma(v, d);
+  /** Hoe het dak bij een meetpunt bepaald is (F4): uit de punten (± 10 cm), uit een gemeten vakje of ingevuld (met afstand). */
+  const dakBronTekst = (m, pdf = false) => m.dakBron === 'punten' ? 'gemeten' : m.dakBron === 'raster' ? `gemeten (vakje ${pdf ? '25' : komma(DAK_CEL * 100, 0)} cm)`
+    : m.dakBron === 'ingevuld' ? `ingevuld (${pdf ? m.dakAfstand.toFixed(1) : komma(m.dakAfstand, 1)} m)` : '—';
   function toonRwsResultaat() {
     const vak = document.getElementById('drRwsResultaat');
     if (!vak) return;
@@ -8807,10 +8904,10 @@
     const lijst = document.getElementById('drMeetLijst');
     if (lijst) lijst.innerHTML = inst.meetpunten.length ? inst.meetpunten.map((m, i) => `<div class="rij"><span>${komma(m.offset, 2)} m</span><select data-mp="${i}">${Object.entries(RWS_SOORTEN).filter(([k]) => k !== 'kant' && k !== 'as').map(([k, v]) => `<option value="${k}"${k === m.soort ? ' selected' : ''}>${v}</option>`).join('')}</select> <button type="button" class="drMpWeg" data-mp="${i}" title="Meetpunt weghalen">✕</button></div>`).join('') : '<p class="hint" style="margin:0">Nog geen eigen meetpunten. Klik op <b>Meetpunten aanklikken</b> en klik in het dwarsprofiel op de strepen, 1 m uit de kantstreep en ophangconstructies.</p>';
     if (!drRws) { vak.innerHTML = '<p class="hint">Klik op <b>Profielen meten</b>: de ruwe punten onder de doorsnedes van elk kunstwerk worden gelezen.</p>'; return; }
-    const kop = '<tr><th>meetpunt</th><th>offset</th><th>weg</th><th>dak</th><th>doorrij&shy;hoogte</th><th>punten weg/dak</th><th>spreiding weg/dak</th></tr>';
+    const kop = '<tr><th>meetpunt</th><th>offset</th><th>weg</th><th>dak</th><th>doorrij&shy;hoogte</th><th>dak bepaald</th><th>punten weg/dak</th><th>spreiding weg/dak</th></tr>';
     vak.innerHTML = (drRws.bron === 'strook' ? '<p class="hint waarschuw">Geen bestand bij de hand: de hoogtes komen uit de uitgedunde strook, niet uit de ruwe punten.</p>' : '') +
       drRws.profielen.map(pr => `<p style="margin:6px 0 2px"><b>${pr.label}</b> · ${kwNaam(pr.kw)}${pr.hoek ? ` · schuin ${komma(pr.hoek, 1)}°` : ''} · st. ${komma(pr.station, 2)}${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''} <button type="button" class="drToon" data-nr="${pr.nr}">Toon</button></p>` +
-        '<table class="snTabel">' + kop + pr.meetpunten.map(m => `<tr class="${pr.min === m ? 'rood' : ''}"><td>${rwsSoortTekst(m)}</td><td>${komma(m.offset, 2)}</td><td>${rwsM(m.weg)}</td><td>${rwsM(m.dak)}</td><td><b>${m.h == null ? (m.weg == null ? 'weg niet gemeten' : 'geen dak') : komma(m.h, 3)}</b></td><td>${m.nW} / ${m.nD}</td><td>${m.sW == null ? '—' : Math.round(m.sW * 1000)} / ${m.sD == null ? '—' : Math.round(m.sD * 1000)} mm</td></tr>`).join('') + '</table>').join('') +
+        '<table class="snTabel">' + kop + pr.meetpunten.map(m => `<tr class="${pr.min === m ? 'rood' : ''}"><td>${rwsSoortTekst(m)}</td><td>${komma(m.offset, 2)}</td><td>${rwsM(m.weg)}</td><td>${rwsM(m.dak)}</td><td><b>${m.h == null ? (m.weg == null ? 'weg niet gemeten' : 'geen dak (niet gemeten)') : komma(m.h, 3)}</b></td><td${m.dakBron === 'ingevuld' ? ' style="color:#7A3E9D"' : ''}>${dakBronTekst(m)}</td><td>${m.nW} / ${m.nD}</td><td>${m.sW == null ? '—' : Math.round(m.sW * 1000)} / ${m.sD == null ? '—' : Math.round(m.sD * 1000)} mm</td></tr>`).join('') + '</table>').join('') +
       (() => {
         const b = (x) => `${komma(x.breedte, 3)} m <span class="zacht">(L: ${x.links.soort} op ${komma(x.links.offset, 2)}, R: ${x.rechts.soort} op ${komma(x.rechts.offset, 2)})</span>`;
         return `<p style="margin:6px 0 2px"><b>Doorrijbreedte</b> op ${komma(RWS_BAND[0], 1)}–${komma(RWS_BAND[1], 1)} m boven de weg</p><table class="snTabel">` +
@@ -12118,6 +12215,21 @@ ${r3d}
           if (m.h != null) maatV(x, py(m.weg), py(m.dak), opties.rwsNotatie ? m.h.toFixed(3) : komma(m.h, 2), kl, m.offset < 0);
           dvEl('circle', { cx: x, cy: py(m.weg), r: 2.6 * tegen, fill: m.auto ? '#1F4E79' : '#E08A1E', stroke: '#fff', 'stroke-width': 1, 'vector-effect': 'non-scaling-stroke' });
         }
+        if (rp && r.dakOp) {
+          // dakmodel langs de doorsnede: gemeten vakjes doorgetrokken, ingevulde gestippeld (paars)
+          const xMin2 = reeks[0].offset, xMax2 = reeks[reeks.length - 1].offset;
+          let dG = '', dI = '', vorige = null;
+          for (let o = xMin2; o <= xMax2 + 1e-9; o += DAK_CEL) {
+            const q = r.dakOp(...opLijn(rp.station, o, rp.hoek || 0));
+            if (!q) { vorige = null; continue; }
+            const pnt = `${px(o).toFixed(1)},${py(q.z).toFixed(1)}`;
+            if (vorige) { if (q.ingevuld || vorige.ingevuld) dI += `M${vorige.p}L${pnt}`; else dG += `M${vorige.p}L${pnt}`; }
+            vorige = { p: pnt, ingevuld: q.ingevuld };
+          }
+          if (dG) dvEl('path', { d: dG, fill: 'none', stroke: DR_KLEUR.dak, 'stroke-width': 1.2, 'vector-effect': 'non-scaling-stroke' });
+          if (dI) dvEl('path', { d: dI, fill: 'none', stroke: DR_KLEUR.dakIn, 'stroke-width': 1.6, 'stroke-dasharray': '4 3', 'vector-effect': 'non-scaling-stroke' });
+          dr.dakIngevuld = !!dI;
+        }
         if (rp?.breedte) {
           const wb = r.wegOp(rp.station, r.boxen[0].c);
           if (wb != null) maatH(px(rp.breedte.links.offset), px(rp.breedte.rechts.offset), py(wb + 0.75), `b ${opties.rwsNotatie ? rp.breedte.breedte.toFixed(3) : komma(rp.breedte.breedte, 2)}`, 'dv-maatlijn grijs', true);
@@ -12663,6 +12775,7 @@ ${r3d}
         if (doorrij.boxTonen !== false) for (const { bx } of dr.boxen) items.push(['snprofiel', `doorrijprofiel ${bx.naam ? bx.naam + ' ' : ''}${komma(bx.B, 2)} × ${komma(bx.H, 2)} m`]);
         if (dr.punten.some(p => p[2] === 2)) items.push(['blokje', 'dak/obstakel in de box', DR_KLEUR.nok]);
         if (dr.punten.some(p => p[2] === 1)) items.push(['blokje', 'dak / kunstwerk', DR_KLEUR.dak]);
+        if (dr.dakIngevuld) items.push(['blokje', 'dak ingevuld (dakmodel, tot 2 m van een dakpunt)', DR_KLEUR.dakIn]);
         if (dr.soort === 'langs' && dr.boxen.some(b => b.lijnV?.some(Boolean))) items.push(['hlijn', 'vrije hoogte (onderkant dak)', 'dr-vrij']);
       }
       if (kad && kad.grenzen.length) items.push(['kadgrens', 'kadastrale perceelgrens (sectie + nr.)']);
@@ -15115,7 +15228,7 @@ ${r3d}
         // tabel met de meetpunten
         let ty = vak.y + kopMm + grafH + 9 * TS;
         const rh = 5 * TS;
-        const kol = [['meetpunt', 42], ['offset', 22], ['weg (m NAP)', 26], ['object (m NAP)', 28], ['doorrijhoogte', 28], ['punten weg/object', 32], ['spreiding (mm)', 28]];
+        const kol = [['meetpunt', 42], ['offset', 20], ['weg (m NAP)', 25], ['object (m NAP)', 27], ['doorrijhoogte', 26], ['object bepaald', 36], ['punten weg/object', 30], ['spreiding (mm)', 26]];
         const kx = []; { let x = vak.x; for (const k of kol) { kx.push(x); x += k[1] * TS; } }
         doc.setFontSize(7.5 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
         kol.forEach((k, j) => doc.text(k[0], kx[j] + 1, ty));
@@ -15126,7 +15239,7 @@ ${r3d}
           if (ty > vak.y + vak.h - 40 * TS) break;
           const rood = pr.min === m;
           doc.setTextColor(...(rood ? [198, 71, 43] : [27, 42, 56]));
-          const w = [rwsSoortTekst(m), m.offset.toFixed(2), rws3(m.weg), rws3(m.dak), m.h == null ? (m.weg == null ? 'niet gemeten' : 'geen object') : rws3(m.h), `${m.nW} / ${m.nD}`, `${m.sW == null ? '-' : Math.round(m.sW * 1000)} / ${m.sD == null ? '-' : Math.round(m.sD * 1000)}`];
+          const w = [rwsSoortTekst(m), m.offset.toFixed(2), rws3(m.weg), rws3(m.dak), m.h == null ? (m.weg == null ? 'niet gemeten' : 'geen object') : rws3(m.h), dakBronTekst(m, true), `${m.nW} / ${m.nD}`, `${m.sW == null ? '-' : Math.round(m.sW * 1000)} / ${m.sD == null ? '-' : Math.round(m.sD * 1000)}`];
           doc.setFont('helvetica', rood ? 'bold' : 'normal');
           w.forEach((t, j) => doc.text(pdfTekst(t), kx[j] + 1, ty));
           ty += rh;
@@ -15157,7 +15270,8 @@ ${r3d}
         });
         doc.setFontSize(6.5 * TS); doc.setFont('helvetica', 'normal'); doc.setTextColor(107, 122, 140);
         const voet = `Opgezet naar de Productspecificaties Doorrijprofielen (RWS, 1 juli 2022). Doorrijhoogte = object min weg, uit de ${drRws.bron === 'ruw' ? 'ruwe meetpunten' : 'uitgedunde punten'} binnen 0,10 m van het meetpunt; aantal punten en spreiding per meetpunt in de tabel. ` +
-          'De precisie (RWS: sigma <= 1,0 cm) hangt af van de meting zelf. Minimale doorrijhoogte per rijbaan: kleinste vrije hoogte boven de box van die rijbaan, ook buiten de profielen.';
+          'De precisie (RWS: sigma <= 1,0 cm) hangt af van de meting zelf. Minimale doorrijhoogte per rijbaan: kleinste vrije hoogte boven de box van die rijbaan, ook buiten de profielen.' +
+          (pr.meetpunten.some(m => m.dakBron === 'raster' || m.dakBron === 'ingevuld') ? ' Waar binnen 0,10 m geen object gemeten is, komt het object uit het dakmodel: vakjes van 25 cm met het laagste punt, ingevuld tot 2 m van een gemeten vakje (kolom "object bepaald").' : '');
         doc.splitTextToSize(pdfTekst(voet), vak.w).slice(0, 3).forEach((regel, j) => doc.text(regel, vak.x, Math.min(vak.y + vak.h - 1, tvY + tvH + 4 * TS + j * 3.2 * TS)));
       }
     }
