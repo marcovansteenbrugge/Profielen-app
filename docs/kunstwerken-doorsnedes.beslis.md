@@ -265,7 +265,7 @@ Meer uitleg: plan, punt 6, B11
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** Marco van Steenbrugge · **op** 2026-11-09 15:42 (vóór het voorleggen) · **via** chat · **over** de vraag "Wil je in het lengteprofiel alle drie de maten, of alleen de as?": "Alle drie"
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-09 (vóór 15:42) · **via** chat · **over** de vraag "Wil je in het lengteprofiel alle drie de maten, of alleen de as?": "Alle drie"
 
 Meer uitleg: plan, punt 6, B12
 
