@@ -3230,11 +3230,12 @@
     doorrijWeg: (s, o) => drResultaat ? drResultaat.wegOp(s, o) : null,
     doorrijInst: () => JSON.parse(JSON.stringify(doorrij)),
     rwsMeten: async () => { const d = await rwsMeten(); toonRwsResultaat(); if (alleenDoorsnedes()) bijwerkenProfielenBinnen(); tekenLangs(); return d.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, n: p.punten.o.length, min: p.min ? { offset: p.min.offset, h: p.min.h } : null, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, weg: m.weg, dak: m.dak, h: m.h, nW: m.nW, nD: m.nD, sW: m.sW, sD: m.sD })) })); },
-    rws: () => drRws ? drRws.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, hoek: p.hoek || 0, breedte: p.breedte, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, h: m.h, dakBron: m.dakBron, dakAfstand: m.dakAfstand })) })) : null,
+    rws: () => drRws ? drRws.profielen.map(p => ({ nr: p.nr, kw: p.kw, kant: p.kant, label: p.label, station: p.station, hoek: p.hoek || 0, breedte: p.breedte, meetpunten: p.meetpunten.map(m => ({ offset: m.offset, soort: m.soort, auto: !!m.auto, h: m.h, dakBron: m.dakBron, dakAfstand: m.dakAfstand, doorgetrokken: !!m.doorgetrokken })) })) : null,
     kunstwerken: () => drResultaat ? drKunstwerken(drResultaat).map(kw => ({ ...kw, rand: kwRandFit(drResultaat, kw) })) : null,
     dwarslijnScherm: (st) => { const h = dwarsHoek(st), a = puntOpDwarslijn(st, -profielL(), h), b = puntOpDwarslijn(st, profielR(), h); return { hoek: h, a, b }; },
     rwsBreedteMin: () => drRws?.breedteMin || null,
     dakOp: (s, o) => drResultaat?.dakOp(s, o) || null,
+    bgtDwars: (st) => { const b = bgtDoorsnedeKw(st, profielL(), profielR()); return b && { doorgetrokken: !!b.doorgetrokken, stroken: b.stroken.map(v => ({ label: v.label, van: v.van, tot: v.tot })) }; },
     dakModelInfo: () => drResultaat?.dakModel ? { cel: drResultaat.dakModel.cel, gemeten: drResultaat.dakModel.nGemeten, ingevuld: drResultaat.dakModel.nIngevuld, gered: drResultaat.gered, ruis: drResultaat.ruis } : null,
     rwsToon: (nr) => rwsToon(nr),
     dwarsStations: () => dwarsStations.slice(),
@@ -3548,17 +3549,57 @@
     return { grenzen: uniek, stroken: stroken.filter(s => s.label) };
   }
 
+  /** (F5, B11) BGT in een doorsnede; onder een kunstwerk niet de BGT op dat station (daar overlappen de vlakken van
+   *  de weg en het kunstwerk erboven), maar doorgetrokken van BGT_UIT vóór tot BGT_UIT ná het kunstwerk: per strook
+   *  lineair naar station als de opbouw aan beide kanten gelijk is, anders de dichtstbijzijnde kant met de randen
+   *  van het weg-vak (onder de as) geïnterpoleerd. Geeft het resultaat van bgtDoorsnede, met doorgetrokken: true. */
+  function bgtDoorsnedeKw(station, pL, pR) {
+    const kw = kwOnderStation(station);
+    if (!kw) return bgtDoorsnede(station, pL, pR);
+    const sA = Math.max(0, kw.van - BGT_UIT), sB = kw.tot + BGT_UIT;
+    const a = bgtDoorsnede(sA, pL, pR), b = bgtDoorsnede(sB, pL, pR);
+    const goed = (d) => !!d?.stroken?.length;
+    if (!goed(a) && !goed(b)) return bgtDoorsnede(station, pL, pR);
+    const t = goed(a) && goed(b) ? Math.max(0, Math.min(1, (station - sA) / Math.max(1e-6, sB - sA))) : (goed(a) ? 0 : 1);
+    const lerp = (x, y) => x + (y - x) * t;
+    let stroken;
+    if (goed(a) && goed(b) && a.stroken.length === b.stroken.length && a.stroken.every((v, i) => v.label === b.stroken[i].label)) {
+      stroken = a.stroken.map((v, i) => ({ ...v, van: lerp(v.van, b.stroken[i].van), tot: lerp(v.tot, b.stroken[i].tot) }));
+    } else {
+      const basis = (t < 0.5 && goed(a)) || !goed(b) ? a : b;
+      stroken = basis.stroken.map(v => ({ ...v }));
+      const wa = goed(a) ? a.stroken.find(v => v.van <= 0 && v.tot >= 0 && /weg/i.test(v.label)) : null;
+      const wb = goed(b) ? b.stroken.find(v => v.van <= 0 && v.tot >= 0 && /weg/i.test(v.label)) : null;
+      const k = stroken.findIndex(v => v.van <= 0 && v.tot >= 0 && /weg/i.test(v.label));
+      if (k >= 0 && (wa || wb)) {
+        const van = wa && wb ? lerp(wa.van, wb.van) : (wa || wb).van, tot = wa && wb ? lerp(wa.tot, wb.tot) : (wa || wb).tot;
+        stroken[k].van = van; stroken[k].tot = tot;
+        if (k > 0) stroken[k - 1].tot = van;
+        if (k < stroken.length - 1) stroken[k + 1].van = tot;
+      }
+    }
+    const grenzen = [];
+    for (let i = 1; i < stroken.length; i++) grenzen.push({ offset: stroken[i].van, soort: 'vlak', doorgetrokken: true });
+    return { grenzen, stroken, doorgetrokken: true, kw: kw.nr };
+  }
+  /** Het kunstwerk waar dit station onder ligt (met 0,5 m speling), of null. */
+  function kwOnderStation(station) {
+    if (!magToets('doorrij') || doorrij.tonen === false) return null;
+    const r = drResultaat; if (!r) return null;
+    return drKunstwerken(r).find(kw => station >= kw.van - 0.5 && station <= kw.tot + 0.5) || null;
+  }
+
   function berekenDwarsprofiel(station) {
     const hoek = dwarsHoek(station);
     const reeks = berekenDwarsprofielReeks(station, hoek);
     if (wolkB) for (const p of reeks) { const q = puntOpDwarslijn(station, p.offset, hoek); p.hoogteB = hoogteOpB(q.x, q.y); }
     vulBrugHoogtes(reeks, (p) => puntOpDwarslijn(station, p.offset, hoek));
-    if (!hoek) reeks.bgt = bgtDoorsnede(station, profielL(), profielR());
+    if (!hoek) reeks.bgt = bgtDoorsnedeKw(station, profielL(), profielR());
     else {
       // schuine doorsnede: de BGT haaks op de as, de randen omgerekend naar de afstand langs de schuine lijn
       // (benadering: wegranden evenwijdig aan de as)
-      const c = Math.cos(hoek * Math.PI / 180), b = bgtDoorsnede(station, profielL() * c, profielR() * c);
-      reeks.bgt = b && { grenzen: b.grenzen.map(g => ({ ...g, offset: g.offset / c })), stroken: b.stroken.map(v => ({ ...v, van: v.van / c, tot: v.tot / c })) };
+      const c = Math.cos(hoek * Math.PI / 180), b = bgtDoorsnedeKw(station, profielL() * c, profielR() * c);
+      reeks.bgt = b && { grenzen: b.grenzen.map(g => ({ ...g, offset: g.offset / c })), stroken: b.stroken.map(v => ({ ...v, van: v.van / c, tot: v.tot / c })), doorgetrokken: b.doorgetrokken };
     }
     reeks.station = station; reeks.hoek = hoek;
     reeks.punten = (!hoek && volleProfielenGeldig() && volleProfielen.punten?.get(station)) || null;
@@ -8563,7 +8604,8 @@
   const RWS_STANDAARD = { p1: '', p2: '', meetpunten: [], weg: '', object: '', rijbaan: '', meetdatum: '', bijzonderheden: '', kwGat: '', doorsnedes: {}, objecten: [], hoeken: [] };
   const RWS_SOORTEN = { kant: 'kant verharding', as: 'as', markering: 'wegmarkering', kantstreep: 'kantstreep + 1 m', ophang: 'ophangconstructie', overig: 'overig' };
   /** Naam van een meetpunt: bij de kant verharding ook links of rechts. */
-  const rwsSoortTekst = (m) => m.soort === 'kant' ? `kant verharding ${m.offset < 0 ? 'links' : 'rechts'}` : (RWS_SOORTEN[m.soort] || m.soort);
+  const rwsSoortTekst = (m) => m.soort === 'kant' ? `kant verharding ${m.offset < 0 ? 'links' : 'rechts'}${m.doorgetrokken ? ' (BGT doorgetrokken)' : ''}` : (RWS_SOORTEN[m.soort] || m.soort);
+  const BGT_UIT = 2;   // m: onder een kunstwerk de BGT doortrekken vanaf 2 m vóór tot 2 m ná het kunstwerk (B11)
   const KW_GAT = 5;
   const KW_KLEUR = '#1F4E79';   // lijn en label van een doorsnede in het lengteprofiel
   let kwSleep = null;           // { sleutel, station } tijdens het slepen in het lengteprofiel
@@ -8685,14 +8727,15 @@
   }
   /** Kant verharding links en rechts uit de BGT: de randen van het weg-vak waar de eerste box in ligt. */
   function rwsKantVerharding(station, r) {
-    const d = bgtDoorsnede(station, profielL(), profielR());
+    const d = bgtDoorsnedeKw(station, profielL(), profielR());
     if (!d?.stroken?.length) return [];
     const c = r.boxen[0].c;
     const strook = d.stroken.find(s => s.van <= c && s.tot >= c && /weg/i.test(s.label));
     if (!strook) return [];
     const uit = [];
-    if (strook.van > -profielL() + 0.05) uit.push({ offset: strook.van + 0.05, soort: 'kant', auto: true });
-    if (strook.tot < profielR() - 0.05) uit.push({ offset: strook.tot - 0.05, soort: 'kant', auto: true });
+    const dg = !!d.doorgetrokken;
+    if (strook.van > -profielL() + 0.05) uit.push({ offset: strook.van + 0.05, soort: 'kant', auto: true, doorgetrokken: dg });
+    if (strook.tot < profielR() - 0.05) uit.push({ offset: strook.tot - 0.05, soort: 'kant', auto: true, doorgetrokken: dg });
     return uit;
   }
   /** De vaste meetpunten (B2): kant verharding links en rechts uit de BGT en de as. Bij een schuine doorsnede de
@@ -8752,7 +8795,7 @@
   }
   /** Het weg-vak uit de BGT waar de eerste box in ligt: { van, tot } of null. */
   function rwsKantVak(station, r) {
-    const d = bgtDoorsnede(station, profielL(), profielR());
+    const d = bgtDoorsnedeKw(station, profielL(), profielR());
     const c = r.boxen[0].c;
     const s = d?.stroken?.find(v => v.van <= c && v.tot >= c && /weg/i.test(v.label));
     return s ? { van: s.van, tot: s.tot } : null;
@@ -12263,10 +12306,14 @@ ${r3d}
             t.setAttribute('style', `font:700 ${(11 * tegen).toFixed(2)}px "Segoe UI",system-ui,sans-serif; pointer-events:none`);
             t.setAttribute('fill', sleep ? '#fff' : KW_KLEUR); t.textContent = label; greep.append(t);
             if (sleep) continue;   // de maat hoort bij de oude plek: pas na het loslaten opnieuw gemeten
+            // (F5, B12) drie maten: kant links, as, kant rechts, elk met hun eigen weg en dak, iets naast elkaar
+            const kantL = pr.meetpunten?.filter(m => m.soort === 'kant' && m.offset < 0).sort((a, b) => b.offset - a.offset)[0];
+            const kantR = pr.meetpunten?.filter(m => m.soort === 'kant' && m.offset > 0).sort((a, b) => a.offset - b.offset)[0];
             const asm = pr.meetpunten?.find(m => m.soort === 'as');
-            if (asm && asm.h != null) {
-              const te = r.boxen[0]?.H != null && asm.h < r.boxen[0].H;
-              maatV(x, py(asm.weg), py(asm.dak), asm.h.toFixed(3), te ? 'dv-maatlijn rood' : 'dv-maatlijn', true);
+            const H0 = r.boxen[0]?.H;
+            for (const [m, dx, tag] of [[kantL, -14, 'L'], [asm, 0, 'as'], [kantR, 14, 'R']]) {
+              if (!m || m.h == null || m.weg == null || m.dak == null) continue;
+              maatV(x + dx * tegen, py(m.weg), py(m.dak), `${tag} ${m.h.toFixed(3)}`, H0 != null && m.h < H0 ? 'dv-maatlijn rood' : 'dv-maatlijn', dx <= 0);
             }
           }
         }
@@ -12640,6 +12687,7 @@ ${r3d}
         balk.setAttribute('x1', x0 + 0.6 / zS); balk.setAttribute('x2', x1 - 0.6 / zS);
         balk.setAttribute('y1', stripY); balk.setAttribute('y2', stripY);
         balk.setAttribute('stroke', kleur); balk.setAttribute('stroke-width', '4');
+        if (reeks.bgt.doorgetrokken) balk.setAttribute('stroke-dasharray', '7 4');   // (F5) onder het kunstwerk doorgetrokken
         balk.setAttribute('vector-effect', 'non-scaling-stroke');
         g.append(balk);
         // naam + breedte van de strook (maatketting), anders alleen de breedte,
@@ -12790,6 +12838,7 @@ ${r3d}
       if (waterInfo) items.push(['water', `water ${waterInfo.totRand ? '≥ ' : ''}${komma(waterInfo.breedte)} m breed`]);
       if (bomen && bomen.length) items.push(['boom', 'boom']);
       if (heeftBgtStrip) for (const st of reeks.bgt.stroken) if (!bgtSoorten.includes(st.label)) bgtSoorten.push(st.label);
+      if (heeftBgt && reeks.bgt.doorgetrokken) items.push(['blokje', 'BGT doorgetrokken onder het kunstwerk (2 m vóór tot 2 m ná)', '#7A8794']);
       return { items, bgtSoorten };
     };
     if (legendaUit) {
@@ -15228,7 +15277,7 @@ ${r3d}
         // tabel met de meetpunten
         let ty = vak.y + kopMm + grafH + 9 * TS;
         const rh = 5 * TS;
-        const kol = [['meetpunt', 42], ['offset', 20], ['weg (m NAP)', 25], ['object (m NAP)', 27], ['doorrijhoogte', 26], ['object bepaald', 36], ['punten weg/object', 30], ['spreiding (mm)', 26]];
+        const kol = [['meetpunt', 62], ['offset', 17], ['weg (m NAP)', 23], ['object (m NAP)', 25], ['doorrijhoogte', 24], ['object bepaald', 34], ['punten weg/object', 28], ['spreiding (mm)', 24]];
         const kx = []; { let x = vak.x; for (const k of kol) { kx.push(x); x += k[1] * TS; } }
         doc.setFontSize(7.5 * TS); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 42, 56);
         kol.forEach((k, j) => doc.text(k[0], kx[j] + 1, ty));

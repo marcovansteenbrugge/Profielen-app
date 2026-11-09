@@ -85,7 +85,7 @@ function maakData() {
   const asMaten = rws.map(d => d.meetpunten.find(m => m.soort === 'as')?.h?.toFixed(3));
   console.log('F1 grepen:', JSON.stringify(grepen.map(g => g && Math.round(g.x))), '| maten:', maten.join(', '), '| as:', asMaten.join(', '));
   if (grepen.some(g => !g)) fouten.push('F1: niet bij elke doorsnede een label in het lengteprofiel');
-  for (const m of asMaten) if (!maten.includes(m)) fouten.push(`F1: maat ${m} op de as niet in het lengteprofiel`);
+  for (const m of asMaten) if (!maten.includes(`as ${m}`)) fouten.push(`F1: maat ${m} op de as niet in het lengteprofiel`);
   await p.locator('#svgLangs').scrollIntoViewIfNeeded();
   await p.screenshot({ path: path.join(H.UIT, 'kunstwerken_lengteprofiel.png') });
   // pannen naast een label werkt nog en verschuift geen doorsnede
