@@ -11719,11 +11719,17 @@ ${r3d}
     for (const r of lijst) {
       const k = document.createElement('button');
       k.type = 'button'; k.className = 'breed'; k.style.textAlign = 'left';
-      k.innerHTML = `<b></b> <span class="zacht"></span>`;
-      k.prepend(maakToolStip(r.soort)); k.style.display = 'flex'; k.style.alignItems = 'center'; k.style.gap = '8px'; k.style.justifyContent = 'flex-start';
-      k.querySelector('b').textContent = r.naam;
-      k.querySelector('span').textContent = '· ' + new Date(r.tijd).toLocaleString('nl-NL', { dateStyle: 'medium', timeStyle: 'short' });
-      if (r.pad) k.title = r.pad;
+      k.style.display = 'flex'; k.style.alignItems = 'center'; k.style.gap = '8px'; k.style.justifyContent = 'flex-start'; k.style.minWidth = '0';
+      // naam: lange namen afkappen met "…" (hele naam in de tooltip); datum: altijd op één regel, rechts
+      const naam = document.createElement('b'), tijd = document.createElement('span');
+      naam.textContent = r.naam;
+      naam.style.cssText = 'flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap';
+      tijd.className = 'zacht';
+      tijd.textContent = new Date(r.tijd).toLocaleString('nl-NL', { dateStyle: 'medium', timeStyle: 'short' });
+      tijd.style.cssText = 'flex:none; white-space:nowrap; color:var(--ink-dim); font-size:12px';
+      const stip = maakToolStip(r.soort); stip.style.flex = 'none';
+      k.append(stip, naam, tijd);
+      k.title = r.pad ? `${r.naam}\n${r.pad}` : r.naam;
       k.onclick = async () => {
         if (r.pad) {   // eigen venster: geen toestemming nodig
           if (!r.bestaat) {
