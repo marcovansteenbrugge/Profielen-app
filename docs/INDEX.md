@@ -28,6 +28,7 @@ Doorrijhoogte en kunstwerken:
 - [Doorrijprofielen volgens RWS](doorrijprofielen-rws.beslis.md) · [plan](doorrijprofielen-rws.plan.md): profiel 1 en 2, meetpunten, doorrijbreedte.
 - [Meerdere kunstwerken](kunstwerken-doorsnedes.beslis.md) · [plan](kunstwerken-doorsnedes.plan.md): voor- en achterzijde in het lengteprofiel, gedraaide doorsnedes, fictief dak, BGT onder het kunstwerk.
 - [RWS-opleverset](rws-oplevering.beslis.md) · [plan](rws-oplevering.plan.md): invulscherm, blad 2 met de uitkomst, toets bewaren in het project, verificatierapport.
+- [Foto bij het doorrijprofiel](rws-foto.beslis.md) · [plan](rws-foto.plan.md): per doorsnede een foto vanaf de weg met de doorrijhoogtes op kant asfalt links, as en kant asfalt rechts.
 
 Inlezen en grote scans:
 - [Kiezen welke classificaties worden ingelezen](klassen-kiezen.beslis.md) · [plan](klassen-kiezen.plan.md): minder klassen, minder punten.

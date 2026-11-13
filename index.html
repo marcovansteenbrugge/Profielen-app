@@ -872,6 +872,7 @@
         <div class="rij"><span></span><button type="button" id="drRwsMeten" class="primair" title="De ruwe punten onder de doorsnedes van elk kunstwerk lezen en de doorrijhoogtes op de meetpunten berekenen">Profielen meten</button> <button type="button" id="drRwsStop" hidden title="Het meten stoppen">Stoppen</button></div>
         <div class="rij"><span>Meetpunten</span><select id="drMeetSoort" title="Soort van het volgende aangeklikte meetpunt"><option value="markering">wegmarkering</option><option value="kantstreep">kantstreep + 1 m</option><option value="ophang">ophangconstructie</option><option value="overig">overig</option></select> <button type="button" id="drRwsKlik" title="Het venster gaat dicht; klik in het dwarsprofiel op de plekken, Esc om te stoppen">Meetpunten aanklikken</button></div>
         <div id="drMeetLijst"></div>
+        <div class="rij" title="De foto's van de meting met waar de camera stond (uit Metashape: Export Cameras als Omega Phi Kappa (.txt) en Export Calibration (.xml)). Kies de foto's en die twee bestanden tegelijk."><span>Foto's van de meting</span><button type="button" id="drFotoKies">Foto's kiezen…</button> <input type="file" id="drFotoBestand" multiple accept=".jpg,.jpeg,.png,.txt,.xml" hidden> <span id="drFotoInfo" class="zacht">nog geen foto's</span></div>
         <div id="drRwsResultaat"></div>
         <div class="rij" title="Komt in het tekstvak onder elk doorrijprofiel in de PDF"><span>Weg / straat</span><input type="text" id="drRwsWeg" style="width:180px" placeholder="bv. Bergstraat"></div>
         <div class="rij" title="Standaard de datum uit het LAS-bestand (of de datum van het bestand)"><span>Meetdatum</span><input type="text" id="drRwsMeetdatum" style="width:120px"></div>
@@ -886,6 +887,16 @@
   </div>
   <div class="pdf-voet"><span class="info">Na "Controleren" springt het dwarsprofiel naar de plek met de kleinste vrije hoogte.</span>
     <button id="drSluit">Sluiten</button><button id="drControleer" class="primair">Controleren</button></div>
+</dialog>
+
+<dialog id="fotoDialoog" class="dvDialoog" style="width:min(1400px, calc(100vw - 32px))">
+  <div class="pdf-kop"><img src="merk-lutrea.png" alt=""><h2>Foto doorrijprofiel</h2><span class="zacht" id="fotoKopTekst"></span></div>
+  <div style="padding:12px 20px; overflow:auto; max-height:calc(100vh - 170px)">
+    <canvas id="fotoCanvas" style="display:block; max-width:100%; max-height:calc(100vh - 250px); width:auto; height:auto; margin:0 auto; border:1px solid var(--line)"></canvas>
+    <p class="hint" id="fotoUitleg" style="font-size:12px; color:var(--ink-dim); margin:8px 0 0"></p>
+  </div>
+  <div class="pdf-voet"><span class="info" id="fotoInfo"></span>
+    <button type="button" id="fotoVorige" title="Vorige doorsnede">◀</button><button type="button" id="fotoVolgende" title="Volgende doorsnede">▶</button><button type="button" id="fotoSluit">Sluiten</button></div>
 </dialog>
 
 <dialog id="paalDialoog" class="dvDialoog" style="width:min(760px, calc(100vw - 32px))">

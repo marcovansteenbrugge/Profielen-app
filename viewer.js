@@ -9164,7 +9164,7 @@
     if (!drRws) { vak.innerHTML = '<p class="hint">Klik op <b>Profielen meten</b>: de ruwe punten onder de doorsnedes van elk kunstwerk worden gelezen.</p>'; return; }
     const kop = '<tr><th>meetpunt</th><th>offset</th><th>weg</th><th>dak</th><th>doorrij&shy;hoogte</th><th>dak bepaald</th><th>punten weg/dak</th><th>spreiding weg/dak</th></tr>';
     vak.innerHTML = (drRws.bron === 'strook' ? '<p class="hint waarschuw">Geen bestand bij de hand: de hoogtes komen uit de uitgedunde strook, niet uit de ruwe punten.</p>' : '') +
-      drRws.profielen.map(pr => `<p style="margin:6px 0 2px"><b>${pr.label}</b> · ${kwNaam(pr.kw)}${pr.hoek ? ` · schuin ${komma(pr.hoek, 1)}°` : ''} · st. ${komma(pr.station, 2)}${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''} <button type="button" class="drToon" data-nr="${pr.nr}">Toon</button></p>` +
+      drRws.profielen.map(pr => `<p style="margin:6px 0 2px"><b>${pr.label}</b> · ${kwNaam(pr.kw)}${pr.hoek ? ` · schuin ${komma(pr.hoek, 1)}°` : ''} · st. ${komma(pr.station, 2)}${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''} <button type="button" class="drToon" data-nr="${pr.nr}">Toon</button> <button type="button" class="drFoto" data-nr="${pr.nr}"${rwsFotoSet ? '' : ' disabled title="Kies eerst de foto\'s van de meting (hieronder)"'}>Foto</button></p>` +
         '<table class="snTabel">' + kop + pr.meetpunten.map(m => `<tr class="${pr.min === m ? 'rood' : ''}"><td>${rwsSoortTekst(m)}</td><td>${komma(m.offset, 2)}</td><td>${rwsM(m.weg)}</td><td>${rwsM(m.dak)}</td><td><b>${m.h == null ? (m.weg == null ? 'weg niet gemeten' : 'geen dak (niet gemeten)') : komma(m.h, 3)}</b></td><td${m.dakBron === 'ingevuld' ? ' style="color:#7A3E9D"' : ''}>${dakBronTekst(m)}</td><td>${m.nW} / ${m.nD}</td><td>${m.sW == null ? '—' : Math.round(m.sW * 1000)} / ${m.sD == null ? '—' : Math.round(m.sD * 1000)} mm</td></tr>`).join('') + '</table>').join('') +
       (() => {
         const b = (x) => `${komma(x.breedte, 3)} m <span class="zacht">(L: ${x.links.soort} op ${komma(x.links.offset, 2)}, R: ${x.rechts.soort} op ${komma(x.rechts.offset, 2)})</span>`;
@@ -9220,6 +9220,8 @@
       statusEl.textContent = 'Klik in het dwarsprofiel op de plek van een meetpunt (strepen, 1 m uit de kantstreep, ophangconstructie) — Esc om te stoppen';
     });
     document.getElementById('drRwsResultaat')?.addEventListener('click', (e) => {
+      const f = e.target.closest('.drFoto');
+      if (f) { toonRwsFoto(Number(f.dataset.nr) - 1).catch(err => { statusEl.style.color = '#B3261E'; statusEl.textContent = '⚠ Foto: ' + err.message; }); return; }
       const b = e.target.closest('.drToon'); if (!b) return;
       drDialoog.close(); rwsToon(Number(b.dataset.nr));
     });
@@ -9250,6 +9252,249 @@
       setTimeout(toonRwsResultaat, 0);   // niet tijdens de blur: dan wordt de lijst vervangen terwijl de focus nog verhuist
     });
   }
+
+  /* ──────── Foto bij het doorrijprofiel (plan rws-foto, F0) ────────
+     De foto's van de meting met hun camerastand (Metashape: Export Cameras als "Omega Phi Kappa" en Export
+     Calibration als XML). Per RWS-doorsnede kiest de viewer de foto die de meetpunten het best ziet en projecteert
+     hij de meetpunten erop: een maatlijn van de weg tot de onderkant van het kunstwerk met de doorrijhoogte in drie
+     decimalen (de laagste in rood). De waarden komen uit dezelfde meting als de tabel (rwsMeet): geen tweede berekening.
+     Camera-model: fotogrammetrische conventie, R = Rx(ω)·Ry(φ)·Rz(κ) van camera naar wereld, de camera kijkt langs
+     −z, y omhoog; lensvervorming zoals Metashape (f, cx, cy vanaf het beeldmidden, b1, b2, k1–k4, p1, p2). */
+  let rwsFotoSet = null;     // { kal, cams: [{ naam, file, X, Y, Z, R }], tijd }
+  let rwsFotoLaatst = null;  // gegevens van de laatst getekende foto (voor de tests)
+  const FOTO_MAX_PX = 2400;
+  const graad = (g) => g * Math.PI / 180;
+  /** Rotatiematrix (rijen) van camera naar wereld uit ω, φ, κ in graden. */
+  function rotatieOpk(omega, phi, kappa) {
+    const [co, so] = [Math.cos(graad(omega)), Math.sin(graad(omega))], [cp, sp] = [Math.cos(graad(phi)), Math.sin(graad(phi))], [ck, sk] = [Math.cos(graad(kappa)), Math.sin(graad(kappa))];
+    // Rx(ω)·Ry(φ)·Rz(κ)
+    return [
+      [cp * ck, -cp * sk, sp],
+      [co * sk + so * sp * ck, co * ck - so * sp * sk, -so * cp],
+      [so * sk - co * sp * ck, so * ck + co * sp * sk, co * cp],
+    ];
+  }
+  /** Punt (RD, NAP) naar pixel (u, v) in de oorspronkelijke foto; null als het punt achter de camera ligt. */
+  function projecteerFoto(cam, kal, X, Y, Z) {
+    const d = [X - cam.X, Y - cam.Y, Z - cam.Z], R = cam.R;
+    const px = R[0][0] * d[0] + R[1][0] * d[1] + R[2][0] * d[2];   // Rᵀ·d
+    const py = R[0][1] * d[0] + R[1][1] * d[1] + R[2][1] * d[2];
+    const pz = R[0][2] * d[0] + R[1][2] * d[1] + R[2][2] * d[2];
+    if (pz > -0.05) return null;                                   // de camera kijkt langs −z
+    const x = px / -pz, y = -py / -pz;                              // beeldvlak, y naar beneden
+    const r2 = x * x + y * y, rad = 1 + r2 * (kal.k1 + r2 * (kal.k2 + r2 * (kal.k3 + r2 * kal.k4)));
+    const xd = x * rad + kal.p1 * (r2 + 2 * x * x) + 2 * kal.p2 * x * y;
+    const yd = y * rad + kal.p2 * (r2 + 2 * y * y) + 2 * kal.p1 * x * y;
+    return { u: kal.w * 0.5 + kal.cx + xd * kal.f + xd * kal.b1 + yd * kal.b2, v: kal.h * 0.5 + kal.cy + yd * kal.f, diepte: -pz };
+  }
+  /** Kalibratie uit de XML van Metashape (Export Calibration, "Agisoft Camera Calibration"). */
+  function leesFotoKalibratie(tekst) {
+    const doc = new DOMParser().parseFromString(tekst, 'application/xml');
+    if (doc.querySelector('parsererror')) throw new Error('de kalibratie (XML) is niet te lezen');
+    const g = (tag, standaard = 0) => { const e = doc.getElementsByTagName(tag)[0]; const v = e ? Number(e.textContent) : NaN; return Number.isFinite(v) ? v : standaard; };
+    const kal = { w: g('width', NaN), h: g('height', NaN), f: g('f', NaN), cx: g('cx'), cy: g('cy'), b1: g('b1'), b2: g('b2'), k1: g('k1'), k2: g('k2'), k3: g('k3'), k4: g('k4'), p1: g('p1'), p2: g('p2') };
+    const proj = doc.getElementsByTagName('projection')[0]?.textContent?.trim();
+    if (proj && proj !== 'frame') throw new Error(`de kalibratie is voor een ${proj}-camera; alleen gewone (frame) camera's worden nu ondersteund`);
+    if (!Number.isFinite(kal.w) || !Number.isFinite(kal.h) || !Number.isFinite(kal.f)) throw new Error('de kalibratie mist width, height of f');
+    return kal;
+  }
+  /** Camerastanden uit de tekst van Metashape (Export Cameras, Omega Phi Kappa): naam X Y Z ω φ κ [r11 … r33]. */
+  function leesFotoStanden(tekst) {
+    const cams = [];
+    for (const regel of tekst.split(/\r?\n/)) {
+      const t = regel.trim();
+      if (!t || t.startsWith('#')) continue;
+      const delen = t.split(/[\t,;]+|\s+/).filter(Boolean);
+      // de naam kan spaties bevatten: de getallen staan achteraan (6 of 15)
+      let n = 0; while (n < delen.length && Number.isFinite(Number(delen[delen.length - 1 - n]))) n++;
+      if (n < 6) continue;
+      const getallen = delen.slice(delen.length - n).map(Number);
+      const naam = delen.slice(0, delen.length - n).join(' ') || `foto ${cams.length + 1}`;
+      const [X, Y, Z, om, ph, ka] = n >= 15 ? getallen.slice(n - 15, n - 9) : getallen.slice(n - 6);
+      cams.push({ naam, X, Y, Z, omega: om, phi: ph, kappa: ka, R: rotatieOpk(om, ph, ka) });
+    }
+    return cams;
+  }
+  /** Foto's, camerastanden en kalibratie uit de gekozen bestanden. */
+  async function leesFotoSet(files) {
+    const lijst = [...files];
+    const xml = lijst.find(f => /\.xml$/i.test(f.name)), txt = lijst.find(f => /\.txt$/i.test(f.name));
+    const fotos = lijst.filter(f => /\.(jpe?g|png)$/i.test(f.name));
+    if (!txt) throw new Error('de camerastanden (.txt, Omega Phi Kappa) ontbreken');
+    if (!xml) throw new Error('de kalibratie (.xml) ontbreekt');
+    if (!fotos.length) throw new Error('geen foto\'s (.jpg of .png) gekozen');
+    const kal = leesFotoKalibratie(await xml.text());
+    const standen = leesFotoStanden(await txt.text());
+    const opNaam = new Map(fotos.map(f => [f.name.toLowerCase(), f]));
+    const zonderExt = (n) => n.toLowerCase().replace(/\.[^.]+$/, '');
+    const opStam = new Map(fotos.map(f => [zonderExt(f.name), f]));
+    const cams = [];
+    for (const c of standen) {
+      const file = opNaam.get(c.naam.toLowerCase()) || opStam.get(zonderExt(c.naam));
+      if (file) cams.push({ ...c, file });
+    }
+    if (!cams.length) throw new Error(`geen van de ${standen.length} camerastanden hoort bij een gekozen foto (de namen komen niet overeen)`);
+    return { kal, cams, nStanden: standen.length, nFotos: fotos.length, tijd: new Date() };
+  }
+  /** Is het doel vanaf de camera te zien? Afgedekt door het dak (dakmodel) of onder de weg (wegmodel) = nee. */
+  function fotoZichtbaar(cam, doel, r) {
+    const dx = doel.x - cam.X, dy = doel.y - cam.Y, dz = doel.z - cam.Z, len = Math.hypot(dx, dy, dz);
+    const stap = 0.1, n = Math.floor((len - 0.3) / stap);    // de laatste 0,3 m (het doel zelf) niet
+    for (let i = 1; i <= n; i++) {
+      const t = i * stap / len, x = cam.X + dx * t, y = cam.Y + dy * t, z = cam.Z + dz * t;
+      const so = stationOffsetVanPunt(x, y);
+      if (!so) continue;
+      const q = r.dakOp?.(so.station, so.offset);
+      if (q && z > q.z + 0.05) return false;
+      const w = r.wegOp(so.station, so.offset);
+      if (w != null && z < w - 0.05) return false;
+    }
+    return true;
+  }
+  /** De te projecteren punten van een doorsnede: per meetpunt de voet (weg) en de kop (dak) in RD/NAP. */
+  function rwsFotoDoelen(pr) {
+    return pr.meetpunten.filter(m => m.h != null && m.weg != null && m.dak != null).map(m => {
+      const p = puntOpDwarslijn(pr.station, m.offset, pr.hoek || 0);
+      return { m, voet: { x: p.x, y: p.y, z: m.weg }, kop: { x: p.x, y: p.y, z: m.dak } };
+    });
+  }
+  /** Alle camera's beoordelen voor een doorsnede; de beste eerst. Elke kandidaat: { cam, ok, reden, score, punten }. */
+  function rwsFotoKandidaten(pr) {
+    const r = drGeldig(); if (!r || !rwsFotoSet) return [];
+    const { kal } = rwsFotoSet, doelen = rwsFotoDoelen(pr);
+    const as = puntOpStation(pr.station), tx = Math.cos(as.richting), ty = Math.sin(as.richting);
+    const voor = pr.kant !== 'achter', zin = voor ? 1 : -1;   // voorzijde: kijken in de richting van oplopend station
+    const margeU = kal.w * 0.02, margeV = kal.h * 0.02;
+    const uit = rwsFotoSet.cams.map(cam => {
+      const k = { cam, ok: false, reden: '', score: -Infinity, punten: [] };
+      if (!doelen.length) { k.reden = 'geen meetpunten met weg en dak'; return k; }
+      const so = stationOffsetVanPunt(cam.X, cam.Y);
+      if (!so || (voor ? so.station > pr.station - 1 : so.station < pr.station + 1)) { k.reden = `staat niet aan de ${voor ? 'voorkant' : 'achterkant'}`; return k; }
+      for (const d of doelen) {
+        const a = projecteerFoto(cam, kal, d.voet.x, d.voet.y, d.voet.z), b = projecteerFoto(cam, kal, d.kop.x, d.kop.y, d.kop.z);
+        if (!a || !b) { k.reden = 'meetpunt achter de camera'; return k; }
+        if ([a, b].some(q => q.u < margeU || q.u > kal.w - margeU || q.v < margeV || q.v > kal.h - margeV)) { k.reden = 'meetpunt buiten de foto'; return k; }
+        if (!fotoZichtbaar(cam, d.voet, r) || !fotoZichtbaar(cam, d.kop, r)) { k.reden = 'meetpunt afgedekt'; return k; }
+        k.punten.push({ m: d.m, voet: a, kop: b });
+      }
+      // richting: de kijkas (−z van de camera) zo recht mogelijk op de doorsnede; dichtbij de as; niet te ver weg
+      const ax = -cam.R[0][2], ay = -cam.R[1][2], az = -cam.R[2][2];
+      const cosA = (ax * tx + ay * ty) * zin;   // ook kantelen omhoog of omlaag kost score
+      const afstand = Math.hypot(as.x - cam.X, as.y - cam.Y);
+      k.ok = true; k.reden = 'ziet alle meetpunten';
+      k.score = 2 * cosA - Math.abs(so.offset) / 10 - Math.abs(afstand - 25) / 50 - Math.abs(az) * 0.5;
+      return k;
+    });
+    return uit.sort((a, b) => (b.ok - a.ok) || (b.score - a.score));
+  }
+  /** Foto van doorsnede i met de maatlijnen tekenen op canvas (oorspronkelijke foto, hooguit FOTO_MAX_PX breed). */
+  async function tekenRwsFoto(i, canvas) {
+    const pr = drRws?.profielen[i];
+    if (!pr) throw new Error('meet eerst de profielen');
+    if (!rwsFotoSet) throw new Error('kies eerst de foto\'s van de meting');
+    const kand = rwsFotoKandidaten(pr), keuze = kand.find(k => k.ok);
+    if (!keuze) throw new Error(`geen foto ziet alle meetpunten van ${pr.label} (${[...new Set(kand.map(k => k.reden))].join('; ')})`);
+    const { kal } = rwsFotoSet;
+    // de pixels zoals ze in het bestand staan (Metashape rekent met het bestand, niet met de EXIF-draaiing)
+    const beeld = await createImageBitmap(keuze.cam.file, { imageOrientation: 'none' });
+    const sKal = beeld.width / kal.w;                         // foto verkleind opgeslagen? dan schalen
+    const s = Math.min(1, FOTO_MAX_PX / beeld.width), schaal = s * sKal;
+    canvas.width = Math.round(beeld.width * s); canvas.height = Math.round(beeld.height * s);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(beeld, 0, 0, canvas.width, canvas.height);
+    beeld.close?.();
+    const px = (q) => ({ x: q.u * schaal, y: q.v * schaal });
+    const lw = Math.max(2, canvas.width / 700), fs = Math.max(14, Math.round(canvas.width / 55));
+    const r = drGeldig();
+    // de doorsnedelijn over de weg (gestippeld)
+    const offs = pr.meetpunten.map(m => m.offset), o0 = Math.min(...offs) - 0.5, o1 = Math.max(...offs) + 0.5, lijn = [];
+    for (let k = 0; k <= 40; k++) {
+      const o = o0 + (o1 - o0) * k / 40, p = puntOpDwarslijn(pr.station, o, pr.hoek || 0), w = r?.wegOp(...opLijn(pr.station, o, pr.hoek || 0));
+      const q = w != null && projecteerFoto(keuze.cam, kal, p.x, p.y, w); if (q) lijn.push(px(q));
+    }
+    ctx.save(); ctx.lineCap = 'round';
+    for (const [kleur, dikte] of [['rgba(0,0,0,.55)', lw * 2.2], ['#FFD43B', lw]]) {
+      ctx.setLineDash(kleur === '#FFD43B' ? [lw * 4, lw * 3] : []); ctx.strokeStyle = kleur; ctx.lineWidth = dikte; ctx.beginPath();
+      lijn.forEach((q, k) => k ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.stroke();
+    }
+    ctx.restore();
+    // maatlijnen met pijlpunten en de waarde
+    const laagste = pr.min, labels = [];
+    ctx.font = `700 ${fs}px "Segoe UI", Arial, sans-serif`; ctx.textBaseline = 'middle';
+    const gegevens = [];
+    for (const p of keuze.punten) {
+      const a = px(p.voet), b = px(p.kop), rood = p.m === laagste, kleur = rood ? '#D7261E' : '#0B4F9C';
+      const pijl = (van, naar) => { const hk = Math.atan2(naar.y - van.y, naar.x - van.x), L = lw * 5; ctx.beginPath(); ctx.moveTo(naar.x, naar.y); ctx.lineTo(naar.x - L * Math.cos(hk - 0.45), naar.y - L * Math.sin(hk - 0.45)); ctx.lineTo(naar.x - L * Math.cos(hk + 0.45), naar.y - L * Math.sin(hk + 0.45)); ctx.closePath(); ctx.fill(); };
+      for (const [k, d] of [['#FFFFFF', lw * 2.6], [kleur, lw]]) { ctx.strokeStyle = k; ctx.fillStyle = k; ctx.lineWidth = d; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); if (k === kleur) { pijl(a, b); pijl(b, a); } }
+      const tekst = p.m.h.toFixed(3);                         // drie decimalen met een punt (RWS § 2.6)
+      const tw = ctx.measureText(tekst).width, bh = fs * 1.35;
+      let lx = (a.x + b.x) / 2 + lw * 4, ly = (a.y + b.y) / 2;
+      for (const l of labels) if (Math.abs(l.x - lx) < tw + 8 && Math.abs(l.y - ly) < bh) ly = l.y + bh + 2;   // niet over elkaar
+      labels.push({ x: lx, y: ly });
+      ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fillRect(lx - 4, ly - bh / 2, tw + 8, bh);
+      ctx.strokeStyle = kleur; ctx.lineWidth = Math.max(1, lw / 2); ctx.strokeRect(lx - 4, ly - bh / 2, tw + 8, bh);
+      ctx.fillStyle = kleur; ctx.fillText(tekst, lx, ly);
+      gegevens.push({ offset: p.m.offset, soort: p.m.soort, tekst, kleur, rood, voet: { u: p.voet.u, v: p.voet.v }, kop: { u: p.kop.u, v: p.kop.v } });
+    }
+    // kader linksonder: waar de foto bij hoort
+    const rw = rwsInst(), md = rw.meetdatum || document.getElementById('drRwsMeetdatum')?.placeholder || '';
+    const regels = [`${pr.label} · ${kwNaam(pr.kw)}`, `st. ${pr.station.toFixed(2)}${pr.hoek ? ` · schuin ${pr.hoek.toFixed(1)}°` : ''}${md ? ` · meetdatum ${md}` : ''}`, `foto ${keuze.cam.naam} · doorrijhoogtes in m`];
+    const fk = Math.round(fs * 0.8);
+    ctx.font = `600 ${fk}px "Segoe UI", Arial, sans-serif`;
+    const kw = Math.max(...regels.map(t => ctx.measureText(t).width)) + fk, kh = regels.length * fk * 1.35 + fk * 0.6;
+    ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(fk * 0.6, canvas.height - kh - fk * 0.6, kw, kh);
+    ctx.fillStyle = '#1B2A38'; regels.forEach((t, k) => ctx.fillText(t, fk * 1.1, canvas.height - kh - fk * 0.6 + fk * 0.95 + k * fk * 1.35));
+    rwsFotoLaatst = { nr: pr.nr, label: pr.label, foto: keuze.cam.naam, lijnen: gegevens, kandidaten: kand.map(k => ({ foto: k.cam.naam, ok: k.ok, reden: k.reden, score: Number.isFinite(k.score) ? k.score : null })) };
+    return rwsFotoLaatst;
+  }
+  let fotoDoorsnede = 0;
+  async function toonRwsFoto(i) {
+    const dlg = document.getElementById('fotoDialoog'), canvas = document.getElementById('fotoCanvas');
+    if (!dlg || !canvas || !drRws) return;
+    fotoDoorsnede = (i + drRws.profielen.length) % drRws.profielen.length;
+    const pr = drRws.profielen[fotoDoorsnede];
+    document.getElementById('fotoKopTekst').textContent = `${pr.label} · ${kwNaam(pr.kw)} · st. ${komma(pr.station, 2)}`;
+    document.getElementById('fotoInfo').textContent = 'Foto zoeken…';
+    if (!dlg.open) dlg.showModal();
+    try {
+      const res = await tekenRwsFoto(fotoDoorsnede, canvas);
+      const andere = res.kandidaten.filter(k => k.ok).length - 1;
+      document.getElementById('fotoInfo').textContent = `Foto ${res.foto}${andere > 0 ? ` (nog ${andere} andere foto${andere === 1 ? '' : "'s"} zien deze doorsnede)` : ''}`;
+      document.getElementById('fotoUitleg').textContent = 'Maatlijnen: doorrijhoogte van de weg tot de onderkant van het kunstwerk op de meetpunten uit de tabel, in meters met drie decimalen; de laagste in rood. Gestippeld: de doorsnede over de weg.';
+    } catch (err) {
+      const ctx = canvas.getContext('2d'); canvas.width = 900; canvas.height = 120; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 900, 120);
+      document.getElementById('fotoInfo').textContent = '⚠ ' + err.message;
+      document.getElementById('fotoUitleg').textContent = '';
+    }
+  }
+  {
+    const kies = document.getElementById('drFotoKies'), inp = document.getElementById('drFotoBestand'), info = document.getElementById('drFotoInfo');
+    kies?.addEventListener('click', () => inp?.click());
+    inp?.addEventListener('change', async () => {
+      if (!inp.files?.length) return;
+      try {
+        rwsFotoSet = await leesFotoSet(inp.files);
+        const t = `${rwsFotoSet.cams.length} foto's met camerastand${rwsFotoSet.nFotos > rwsFotoSet.cams.length ? ` (${rwsFotoSet.nFotos - rwsFotoSet.cams.length} zonder stand)` : ''}`;
+        if (info) { info.textContent = t; info.style.color = ''; }
+        statusEl.style.color = ''; statusEl.textContent = `Foto's van de meting: ${t}`;
+      } catch (err) {
+        rwsFotoSet = null;
+        if (info) { info.textContent = '⚠ ' + err.message; info.style.color = '#B3261E'; }
+        statusEl.style.color = '#B3261E'; statusEl.textContent = `⚠ Foto's van de meting: ${err.message}`;
+      }
+      inp.value = '';
+      toonRwsResultaat();
+    });
+    document.getElementById('fotoSluit')?.addEventListener('click', () => document.getElementById('fotoDialoog')?.close());
+    document.getElementById('fotoVorige')?.addEventListener('click', () => toonRwsFoto(fotoDoorsnede - 1));
+    document.getElementById('fotoVolgende')?.addEventListener('click', () => toonRwsFoto(fotoDoorsnede + 1));
+  }
+  // voor de tests
+  Object.assign(window.__pvTest, {
+    rwsFoto: async (i) => { const c = document.createElement('canvas'); return tekenRwsFoto(i, c); },
+    rwsFotoProjecteer: (kal, opk, punten) => { const cam = { X: opk[0], Y: opk[1], Z: opk[2], R: rotatieOpk(opk[3], opk[4], opk[5]) }; const k = { b1: 0, b2: 0, k1: 0, k2: 0, k3: 0, k4: 0, p1: 0, p2: 0, cx: 0, cy: 0, ...kal }; return punten.map(p => projecteerFoto(cam, k, ...p)); },
+    rwsFotoSet: () => rwsFotoSet ? { kal: rwsFotoSet.kal, cams: rwsFotoSet.cams.map(c => c.naam) } : null,
+  });
 
   /* ────────────────────────────────────────────────────────────────
      GIS: GeoPackage-export (QGIS, ArcGIS, FME) en as inlezen uit
