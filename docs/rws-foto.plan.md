@@ -3,7 +3,7 @@ plan: rws-foto
 titel: Foto bij het doorrijprofiel met de drie doorrijhoogtes
 versie: 1
 status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ✅ · F1 ⏳ · F2 ⏳ · F3 ⏳ · F4 ⏳           # berekend door de skill
+voortgang: F0 ✅ · F1 ✅ · F2 ⏳ · F3 ○ · F4 ⏳           # berekend door de skill
 opgesteld: 2026-11-13
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -93,9 +93,9 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
 | F0 | ✅ gebouwd | Foto's met camerastand inlezen (Metashape: Omega Phi Kappa + kalibratie-XML), camera-model met lensvervorming, per doorsnede de beste foto kiezen, overlay met de maatlijnen; knop "Foto" per doorsnede; testset: foto's gerenderd uit `twee_viaducten` vanuit bekende camera's, met een bijbehorend standen- en kalibratiebestand | 1. Eenheidstest projectie: bekende punten komen binnen 0,5 px op de verwachte pixel, ook met vervorming. 2. Testset: voor alle vier doorsnedes wordt een foto gekozen en elke maatlijn ligt binnen 3 px van het meetpunt in die foto (test). 3. De getoonde waarden zijn tekstueel gelijk aan de tabel; de laagste is rood (test). 4. Een foto die het meetpunt niet ziet (afgedekt of erachter) wordt niet gekozen (test). 5. Screenshot `tests/uit/rws_foto.png`, door Marco bekeken. 6. `node run_alle.js` geheel groen | B1, B3 | L | claude-opus-5-5, medium | `F0:` |
-| F1 | ⏳ wacht op B2 | Terugval: beeld uit de puntenwolk (strook punten, camera op de weg volgens B2, zelfde overlay) voor doorsnedes zonder geschikte foto | 1. Zonder fotoset ontstaat voor alle vier doorsnedes een beeld (test). 2. Waarden gelijk aan de tabel, laagste rood (test). 3. Maatlijnen binnen 5 px van de projectie (test). 4. Screenshot `tests/uit/rws_foto_wolk.png`, door Marco bekeken. 5. `node run_alle.js` geheel groen | F0, B2 | M | claude-opus-5-5, medium | `F1:` |
+| F1 | ✅ gebouwd | Terugval: beeld uit de puntenwolk (strook punten, camera op de weg volgens B2, zelfde overlay) voor doorsnedes zonder geschikte foto | 1. Zonder fotoset ontstaat voor alle vier doorsnedes een beeld (test). 2. Waarden gelijk aan de tabel, laagste rood (test). 3. Maatlijnen binnen 5 px van de projectie (test). 4. Screenshot `tests/uit/rws_foto_wolk.png`, door Marco bekeken. 5. `node run_alle.js` geheel groen | F0, B2 | M | claude-opus-5-5, medium | `F1:` |
 | F2 | ⏳ wacht op B4, B6 | Uitvoer: fotoblad na elk doorsnedeblad (keuze Doorrijprofielen RWS en de opleverset), JPG per doorsnede in `uitvoer\`, bron op het blad; vervagen volgens B6 vóór de uitvoer; geen foto in de DXF | 1. PDF van de test heeft na elk van de vier doorsnedebladen een fotoblad (test). 2. Vier JPG's met de juiste namen in `uitvoer\` (test). 3. Zonder het vinkje "gecontroleerd" gaat geen echte foto de uitvoer in (test). 4. Een vervaagd vlak is in de JPG vervaagd (test vergelijkt pixels). 5. DXF zonder fotobladen en zonder fout (test). 6. Blad als PNG `tests/uit/rws_foto_blad.png`, door Marco bekeken. 7. `node run_alle.js` geheel groen | F1, B4, B6 | M | claude-opus-5-5, medium | `F2:` |
-| F3 | ⏳ wacht op B2 | Per doorsnede een andere foto kiezen, of bij de terugval het standpunt bijstellen; keuze en vervaagde vlakken bewaard in het project | 1. Een andere foto kiezen geeft dezelfde waarden op het andere beeld (test). 2. Opslaan en openen: keuze, standpunt en vlakken gelijk (test). 3. `node run_alle.js` geheel groen | F2, B2 | S | claude-opus-5-5, medium | `F3:` |
+| F3 | ○ niet vrijgegeven | Per doorsnede een andere foto kiezen, of bij de terugval het standpunt bijstellen; keuze en vervaagde vlakken bewaard in het project | 1. Een andere foto kiezen geeft dezelfde waarden op het andere beeld (test). 2. Opslaan en openen: keuze, standpunt en vlakken gelijk (test). 3. `node run_alle.js` geheel groen | F2, B2 | S | claude-opus-5-5, medium | `F3:` |
 | F4 | ⏳ wacht op B5 | Opleveren: versie volgens B5, LEESMIJ, handleiding, controle met echte foto's van een echte meting door Marco | 1. Marco beoordeelt de foto's van een echte meting als bruikbaar (zijn woorden in punt 11). 2. LEESMIJ en handleiding bijgewerkt (plek in het bestand). 3. Installatietoets eindigt met `fouten: geen` | F3, B5 | S | claude-opus-5-5, medium | `F4:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
@@ -130,6 +130,7 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
 | F0 | 2026-11-13 13:56 | 2026-11-13 14:16 | Marco van Steenbrugge ("Akkoord, bouw F0") | claude-opus-5-5, sessie 31c4edf1-472e-408e-b8d3-24e0044ed5c6 | medium | 54 / 43.297 | onbekend (nog niet gecommit) | transcript (Claude Code 2.1.321) |
+| F1 | 2026-11-13 14:57 | 2026-11-13 15:15 | Marco van Steenbrugge ("akkoord"; "maar een proefversie") | claude-opus-5-5, sessie 31c4edf1-472e-408e-b8d3-24e0044ed5c6 | medium | 46 / 32.145 | onbekend (nog niet gecommit) | transcript (Claude Code 2.1.321) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -144,6 +145,17 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 | F0 | 2026-11-13 14:16 | 4. Een foto die het meetpunt niet ziet wordt niet gekozen | zelfde run: "4 drone: meetpunt afgedekt · weg-kijkend: meetpunt achter de camera"; geen van beide gekozen | gehaald |
 | F0 | 2026-11-13 14:16 | 5. Screenshot `tests/uit/rws_foto.png`, door Marco bekeken | Screenshot en venster getoond in de chat; Marco van Steenbrugge, 2026-11-13 (tussen 14:00 en 14:16), via chat: "ja zo iets wil ik hebben op een echt foto" | gehaald |
 | F0 | 2026-11-13 14:16 | 6. `node run_alle.js` geheel groen | `node tests/run_alle.js` (met rws_foto.test.js erbij): 44 regels OK, slot "Alle tests geslaagd" | gehaald |
+| F1 | 2026-11-13 15:15 | 1. Zonder fotoset voor alle vier doorsnedes een beeld | `node tests/rws_foto.test.js`: "F1 KW1 voor: wolk", KW1 achter, KW2 voor, KW2 achter: alle vier bron wolk | gehaald |
+| F1 | 2026-11-13 15:15 | 2. Waarden gelijk aan de tabel, laagste rood | zelfde run: per doorsnede tekst = h.toFixed(3) uit de tabel, alleen de laagste rood (bv. 4.094 / 3.995 / 3.896 rood); geen fouten | gehaald |
+| F1 | 2026-11-13 15:15 | 3. Maatlijnen binnen 5 px van de projectie | zelfde run: eigen pinhole-projectie in de test met de camera van het beeld: alle lijnen binnen 0,07 px; camera op de as 25 m ervoor, 1,80 m boven de weg (B2) | gehaald |
+| F1 | 2026-11-13 15:15 | 4. Screenshot `tests/uit/rws_foto_wolk.png`, door Marco bekeken | getoond in de chat (tussen 14:57 en 15:15); oordeel van Marco nog niet gegeven (proefversie `dist/test/Lutrea-Profielviewer-2.15.0-test-rwsfoto.exe` om het op Loon op Zand te bekijken) | niet toetsbaar |
+| F1 | 2026-11-13 15:15 | 5. `node run_alle.js` geheel groen | `node tests/run_alle.js`: "Alle tests geslaagd" | gehaald |
+| F1 | 2026-11-13 15:15 | 4. Screenshot `tests/uit/rws_foto_wolk.png`, door Marco bekeken | Marco van Steenbrugge, 2026-11-13 15:15, via chat: "Ja, goed zo", als antwoord op de vraag "Is het beeld uit de puntenwolk zo goed, na het proberen op Loon op Zand?" (of hij de proefversie op LoZ heeft gedraaid, staat niet vast) | gehaald |
+| F1 | 2026-11-13 15:16 | 1. Zonder fotoset voor alle vier doorsnedes een beeld | zelfde testrun als 15:15 (`node tests/rws_foto.test.js`): alle vier bron wolk | gehaald |
+| F1 | 2026-11-13 15:16 | 2. Waarden gelijk aan de tabel, laagste rood | zelfde testrun als 15:15: tekst = tabel, alleen de laagste rood | gehaald |
+| F1 | 2026-11-13 15:16 | 3. Maatlijnen binnen 5 px van de projectie | zelfde testrun als 15:15: alle lijnen binnen 0,07 px; camera volgens B2 | gehaald |
+| F1 | 2026-11-13 15:16 | 4. Screenshot `tests/uit/rws_foto_wolk.png`, door Marco bekeken | Marco van Steenbrugge, 2026-11-13 15:15, via chat: "Ja, goed zo", als antwoord op de vraag "Is het beeld uit de puntenwolk zo goed, na het proberen op Loon op Zand?" (of hij de proefversie op LoZ heeft gedraaid, staat niet vast) | gehaald |
+| F1 | 2026-11-13 15:16 | 5. `node run_alle.js` geheel groen | `node tests/run_alle.js` van vóór 15:15: "Alle tests geslaagd" | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
@@ -151,6 +163,7 @@ Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en 
 | Fase | Wat week af van het plan | Waarom |
 |---|---|---|
 | F0 | Zichtbaarheid alleen getoetst tegen het dakmodel en het wegmodel; een pijler of portaal tussen camera en meetpunt wordt niet herkend. De testfoto's zijn gerenderd (PNG), nog niet getoetst op een echte Metashape-export | Pijlers zitten niet in het wegmodel of dakmodel; een echte export was er nog niet (Open vragen). Toetsen op de foto's van Loon op Zand zodra Marco die levert |
+| F1 | Weg en dak komen uit de strook van de doorrijtoets (drWolk, zonder kleur), met de kleur van het dichtstbijzijnde werkwolkpunt; het plan noemde alleen een strook uit de vakken. Proefversie als losse test-exe in dist/test, geen oplevering | De werkwolk houdt per vakje vaak alleen het bovenste punt: onder het dak ontbrak de weg (lucht onder het viaduct). Marco: "maar een proefversie" |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |

@@ -152,6 +152,42 @@ function maakData() {
   console.log(`1 projectie: ${nVergeleken} punten, grootste verschil ${maxD.toFixed(4)} px`);
   if (nVergeleken < 30 || maxD > 0.5) fouten.push(`1: projectie wijkt ${maxD.toFixed(3)} px af (max 0,5)`);
 
+  // F1: zonder foto's een beeld uit de puntenwolk, met dezelfde maatlijnen
+  const pinhole = (cam, P) => {
+    const n = (a) => { const l = Math.hypot(...a); return a.map(v => v / l); };
+    const f = n([cam.doel.x - cam.pos.x, cam.doel.y - cam.pos.y, cam.doel.z - cam.pos.z]);
+    const re = n([f[1], -f[0], 0]), op = [re[1] * f[2] - re[2] * f[1], re[2] * f[0] - re[0] * f[2], re[0] * f[1] - re[1] * f[0]];
+    const d = [P[0] - cam.pos.x, P[1] - cam.pos.y, P[2] - cam.pos.z], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    const fp = cam.h / 2 / Math.tan(cam.fovV * Math.PI / 360);
+    return { u: cam.w / 2 + fp * dot(d, re) / dot(d, f), v: cam.h / 2 - fp * dot(d, op) / dot(d, f) };
+  };
+  for (let i = 0; i < rws.length; i++) {
+    const d = rws[i], res = await p.evaluate((k) => window.__pvTest.rwsFoto(k), i);
+    console.log(`F1 ${d.label}: ${res.bron} · ${res.lijnen.map(l => `${l.tekst}${l.rood ? ' (rood)' : ''}`).join(' | ')}`);
+    if (res.bron !== 'wolk') fouten.push(`F1-1: ${d.label}: bron ${res.bron} (verwacht een beeld uit de puntenwolk)`);
+    if (res.lijnen.length !== d.meetpunten.length) fouten.push(`F1-1: ${d.label}: ${res.lijnen.length} maatlijnen (verwacht ${d.meetpunten.length})`);
+    let maxL = 0;
+    for (const l of res.lijnen) {
+      const m = d.meetpunten.find(x => Math.abs(x.offset - l.offset) < 1e-9);
+      if (!m || l.tekst !== m.h.toFixed(3)) fouten.push(`F1-2: ${d.label} op ${l.offset}: "${l.tekst}" ≠ tabel ${m?.h?.toFixed(3)}`);
+      const X = X0 + d.station, Y = Y0 - l.offset;
+      const a = pinhole(res.camera, [X, Y, weg(d.station, l.offset)]), bk = pinhole(res.camera, [X, Y, dakOp(d.station)]);
+      maxL = Math.max(maxL, Math.hypot(a.u - l.voet.u, a.v - l.voet.v), Math.hypot(bk.u - l.kop.u, bk.v - l.kop.v));
+    }
+    const minH = Math.min(...d.meetpunten.filter(m => m.h != null).map(m => m.h)), rood = res.lijnen.filter(l => l.rood);
+    if (rood.length !== 1 || rood[0].tekst !== minH.toFixed(3)) fouten.push(`F1-2: ${d.label}: de laagste (${minH.toFixed(3)}) is niet als enige rood`);
+    console.log(`  camera ${(res.camera.pos.x - X0).toFixed(1)} m langs de as, ${(res.camera.pos.z - weg(res.camera.pos.x - X0, 0)).toFixed(2)} m boven de weg · lijnen binnen ${maxL.toFixed(2)} px`);
+    if (maxL > 5) fouten.push(`F1-3: ${d.label}: maatlijn ${maxL.toFixed(2)} px naast het meetpunt (max 5)`);
+    const verwachtS = d.kant === 'achter' ? d.station + 25 : d.station - 25;
+    if (Math.abs(res.camera.pos.x - X0 - verwachtS) > 0.05 || Math.abs(res.camera.pos.z - weg(verwachtS, 0) - 1.8) > 0.05) fouten.push(`F1: ${d.label}: camera niet op de as 25 m ervoor op 1,80 m (B2)`);
+  }
+  await p.click('.drFoto[data-nr="1"]'); await p.waitForSelector('#fotoDialoog[open]');
+  for (let i = 0; i < 40 && !/^Beeld uit de puntenwolk:/.test(await p.textContent('#fotoInfo')); i++) await p.waitForTimeout(250);
+  console.log('F1 venster:', await p.textContent('#fotoInfo'));
+  if (!/^Beeld uit de puntenwolk:/.test(await p.textContent('#fotoInfo'))) fouten.push('F1: het fotovenster toont geen beeld uit de puntenwolk');
+  { const dURL = await p.evaluate(() => document.getElementById('fotoCanvas').toDataURL('image/png')); fs.writeFileSync(path.join(H.UIT, 'rws_foto_wolk.png'), Buffer.from(dURL.split(',')[1], 'base64')); }
+  await p.click('#fotoSluit');
+
   // foto's kiezen
   await p.setInputFiles('#drFotoBestand', [...fotos, opk, kal]);
   await wacht(/Foto's van de meting:/);

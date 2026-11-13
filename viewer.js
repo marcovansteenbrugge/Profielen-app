@@ -9164,7 +9164,7 @@
     if (!drRws) { vak.innerHTML = '<p class="hint">Klik op <b>Profielen meten</b>: de ruwe punten onder de doorsnedes van elk kunstwerk worden gelezen.</p>'; return; }
     const kop = '<tr><th>meetpunt</th><th>offset</th><th>weg</th><th>dak</th><th>doorrij&shy;hoogte</th><th>dak bepaald</th><th>punten weg/dak</th><th>spreiding weg/dak</th></tr>';
     vak.innerHTML = (drRws.bron === 'strook' ? '<p class="hint waarschuw">Geen bestand bij de hand: de hoogtes komen uit de uitgedunde strook, niet uit de ruwe punten.</p>' : '') +
-      drRws.profielen.map(pr => `<p style="margin:6px 0 2px"><b>${pr.label}</b> · ${kwNaam(pr.kw)}${pr.hoek ? ` · schuin ${komma(pr.hoek, 1)}°` : ''} · st. ${komma(pr.station, 2)}${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''} <button type="button" class="drToon" data-nr="${pr.nr}">Toon</button> <button type="button" class="drFoto" data-nr="${pr.nr}"${rwsFotoSet ? '' : ' disabled title="Kies eerst de foto\'s van de meting (hieronder)"'}>Foto</button></p>` +
+      drRws.profielen.map(pr => `<p style="margin:6px 0 2px"><b>${pr.label}</b> · ${kwNaam(pr.kw)}${pr.hoek ? ` · schuin ${komma(pr.hoek, 1)}°` : ''} · st. ${komma(pr.station, 2)}${paalAchter(pr.station, ' (') ? paalAchter(pr.station, ' (') + ')' : ''} <button type="button" class="drToon" data-nr="${pr.nr}">Toon</button> <button type="button" class="drFoto" data-nr="${pr.nr}" title="${rwsFotoSet ? 'Foto van de meting met de doorrijhoogtes; zonder geschikte foto een beeld uit de puntenwolk' : 'Beeld uit de puntenwolk met de doorrijhoogtes (of kies eerst de foto\'s van de meting)'}">Foto</button></p>` +
         '<table class="snTabel">' + kop + pr.meetpunten.map(m => `<tr class="${pr.min === m ? 'rood' : ''}"><td>${rwsSoortTekst(m)}</td><td>${komma(m.offset, 2)}</td><td>${rwsM(m.weg)}</td><td>${rwsM(m.dak)}</td><td><b>${m.h == null ? (m.weg == null ? 'weg niet gemeten' : 'geen dak (niet gemeten)') : komma(m.h, 3)}</b></td><td${m.dakBron === 'ingevuld' ? ' style="color:#7A3E9D"' : ''}>${dakBronTekst(m)}</td><td>${m.nW} / ${m.nD}</td><td>${m.sW == null ? '—' : Math.round(m.sW * 1000)} / ${m.sD == null ? '—' : Math.round(m.sD * 1000)} mm</td></tr>`).join('') + '</table>').join('') +
       (() => {
         const b = (x) => `${komma(x.breedte, 3)} m <span class="zacht">(L: ${x.links.soort} op ${komma(x.links.offset, 2)}, R: ${x.rechts.soort} op ${komma(x.rechts.offset, 2)})</span>`;
@@ -9387,30 +9387,149 @@
     });
     return uit.sort((a, b) => (b.ok - a.ok) || (b.score - a.score));
   }
-  /** Foto van doorsnede i met de maatlijnen tekenen op canvas (oorspronkelijke foto, hooguit FOTO_MAX_PX breed). */
+  /** F1: een beeld uit de puntenwolk vanaf de weg (B2: op de as, 25 m vóór de doorsnede, 1,80 m boven de weg, kijkend
+   *  naar het kunstwerk; bij de achterkant vanaf de andere kant). Punten in de kleur van de scan; zonder kleuren weg,
+   *  berm en kunstwerk in eigen tinten. Geeft { canvas, proj(x, y, z) → { x, y } | null in canvaspixels, camera }. */
+  const WOLKBEELD = { afstand: 25, ooghoogte: 1.8, fovV: 40, w: 2000, h: 1250 };
+  function rwsWolkBeeld(pr) {
+    if (!window.THREE) throw new Error('3D (three.js) is niet geladen');
+    if (!xs || !xs.length) throw new Error('geen puntenwolk geladen');
+    const r = drGeldig();
+    const A = puntOpStation(pr.station), dx = Math.cos(A.richting), dy = Math.sin(A.richting), nx = Math.sin(A.richting), ny = -Math.cos(A.richting);
+    const zin = pr.kant === 'achter' ? -1 : 1;                 // voorkant: kijken in de richting van oplopend station
+    const asM = pr.meetpunten.find(m => m.soort === 'as' && m.weg != null) || pr.meetpunten.find(m => m.weg != null);
+    const wegAs = asM?.weg ?? hoogteOp(A.x, A.y) ?? 0;
+    const dakMin = pr.meetpunten.filter(m => m.dak != null).reduce((lo, m) => Math.min(lo, m.dak), Infinity);
+    const top = Number.isFinite(dakMin) ? dakMin : wegAs + 4.5;
+    const C = { x: A.x - zin * WOLKBEELD.afstand * dx, y: A.y - zin * WOLKBEELD.afstand * dy };
+    const wegCam = r?.wegOp(pr.station - zin * WOLKBEELD.afstand, 0) ?? hoogteOp(C.x, C.y) ?? wegAs;
+    C.z = wegCam + WOLKBEELD.ooghoogte;
+    const doel = { x: A.x, y: A.y, z: (wegAs + top) / 2 };
+    // Punten in beeld: van net achter de camera tot 20 m voorbij de doorsnede, over de breedte van het profiel.
+    // De werkwolk houdt per vakje vaak alleen het bovenste punt (onder een dak is dat het dak): daarom komen weg en dak
+    // uit de strook van de doorrijtoets (in 3D), en vult de werkwolk alleen aan buiten die strook (berm, verder weg).
+    const breed = Math.max(profielL(), profielR()) + 3;
+    const inBeeld = (x, y, z) => {
+      const ex = x - A.x, ey = y - A.y, t = (ex * dx + ey * dy) * zin;
+      if (t < -WOLKBEELD.afstand - 1 || t > 20 || z < wegAs - 4 || z > top + 10) return null;
+      const o = ex * nx + ey * ny;
+      return Math.abs(o) > breed ? null : o;
+    };
+    const strook = drWolk && drWolk.xs.length ? drWolk : null, halfStrook = strook ? (strook.half ?? 0) : 0;
+    const px3 = [], kleurBron = [];                       // [x, y, z] en de index in de werkwolk (of -1)
+    if (strook) for (let i = 0; i < strook.xs.length; i++) { if (inBeeld(strook.xs[i], strook.ys[i], strook.zs[i]) != null) { px3.push(strook.xs[i], strook.ys[i], strook.zs[i]); kleurBron.push(-1); } }
+    // werkwolk: binnen de strook alleen voor de kleur (raster van 0,25 m), daarbuiten ook als punt
+    const KC = 0.25, kleurRaster = new Map();
+    for (let i = 0; i < xs.length; i++) {
+      const o = inBeeld(xs[i], ys[i], zs[i]); if (o == null) continue;
+      if (strook && Math.abs(o) <= halfStrook - 0.2) { if (cs) { const k = `${Math.floor(xs[i] / KC)},${Math.floor(ys[i] / KC)}`; (kleurRaster.get(k) || kleurRaster.set(k, []).get(k)).push(i); } }
+      else { px3.push(xs[i], ys[i], zs[i]); kleurBron.push(i); }
+    }
+    const n = kleurBron.length;
+    if (n < 50) throw new Error('te weinig punten van de puntenwolk rond deze doorsnede');
+    const kleurVan = (x, y, z) => {                       // kleur van het dichtstbijzijnde werkwolkpunt op dezelfde hoogte
+      if (!cs) return -1;
+      const gx = Math.floor(x / KC), gy = Math.floor(y / KC);
+      let beste = -1, bd = 0.09;
+      for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const i of kleurRaster.get(`${gx + a},${gy + b}`) || []) {
+        if (Math.abs(zs[i] - z) > 0.3) continue;
+        const d = (xs[i] - x) ** 2 + (ys[i] - y) ** 2; if (d < bd) { bd = d; beste = i; }
+      }
+      return beste;
+    };
+    const kantMax = Math.max(0, ...pr.meetpunten.filter(m => m.soort === 'kant').map(m => Math.abs(m.offset)));
+    const pos = new Float32Array(n * 3), kl = new Float32Array(n * 3);
+    for (let k = 0; k < n; k++) {
+      const x = px3[k * 3], y = px3[k * 3 + 1], z = px3[k * 3 + 2];
+      pos[k * 3] = x - C.x; pos[k * 3 + 1] = z - C.z; pos[k * 3 + 2] = -(y - C.y);
+      const i = kleurBron[k] >= 0 ? kleurBron[k] : kleurVan(x, y, z);
+      let c3;
+      if (cs && i >= 0) { const c = cs[i]; c3 = [((c >> 16) & 255) / 255, ((c >> 8) & 255) / 255, (c & 255) / 255]; }
+      else {
+        // geen kleur: weg grijs, berm groen, obstakels middengrijs, kunstwerk licht beton (naar hoogte boven de weg)
+        const ex = x - A.x, ey = y - A.y, o = ex * nx + ey * ny, st = pr.station + ex * dx + ey * dy;
+        const dz = z - (r?.wegOp(st, o) ?? wegAs), ruis = (((k * 2654435761) >>> 0) % 7) / 255;
+        if (dz < 0.3) c3 = kantMax && Math.abs(o) > kantMax + 0.3 ? [0.36 + ruis, 0.5 + ruis, 0.28] : [0.35 + ruis, 0.36 + ruis, 0.38 + ruis];
+        else if (dz < 2) c3 = [0.55, 0.55, 0.52];
+        else { const g = 0.72 - Math.min(0.2, (dz - 2) * 0.04) + ruis; c3 = [g, g - 0.02, g - 0.05]; }
+      }
+      kl[k * 3] = c3[0]; kl[k * 3 + 1] = c3[1]; kl[k * 3 + 2] = c3[2];
+    }
+    const sel = { length: n };
+    // puntgrootte uit de dichtheid (ruim twee keer de onderlinge afstand), zodat vlakken dicht ogen
+    const tussen = 1.3 * Math.sqrt((WOLKBEELD.afstand + 21) * 2 * breed / n);
+    const W = WOLKBEELD.w, Hh = WOLKBEELD.h;
+    const gl = document.createElement('canvas'); gl.width = W; gl.height = Hh;
+    const uit = document.createElement('canvas'); uit.width = W; uit.height = Hh;
+    const camera = new THREE.PerspectiveCamera(WOLKBEELD.fovV, W / Hh, 0.3, 500);
+    camera.position.set(0, 0, 0); camera.up.set(0, 1, 0);
+    camera.lookAt(doel.x - C.x, doel.z - C.z, -(doel.y - C.y));
+    camera.updateMatrixWorld(); camera.updateProjectionMatrix();
+    let renderer = null; const weg = [];
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas: gl, antialias: true, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(1); renderer.setSize(W, Hh, false);
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xC9DCEB);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(kl, 3));
+      const mat = new THREE.PointsMaterial({ size: Math.min(0.5, Math.max(0.03, tussen * 2)), sizeAttenuation: true, vertexColors: true });
+      scene.add(new THREE.Points(geo, mat)); weg.push(geo, mat);
+      renderer.render(scene, camera);
+      uit.getContext('2d').drawImage(gl, 0, 0);
+    } finally {
+      weg.forEach(o => o.dispose?.());
+      if (renderer) { renderer.dispose(); renderer.forceContextLoss?.(); }
+    }
+    const proj = (x, y, z) => {
+      const v = new THREE.Vector3(x - C.x, z - C.z, -(y - C.y));
+      if (v.clone().applyMatrix4(camera.matrixWorldInverse).z > -0.3) return null;   // achter de camera
+      v.project(camera);
+      return { x: (v.x + 1) / 2 * W, y: (1 - v.y) / 2 * Hh };
+    };
+    return { canvas: uit, proj, camera: { pos: C, doel, fovV: WOLKBEELD.fovV, w: W, h: Hh }, nPunten: sel.length };
+  }
+  /** Foto van doorsnede i met de maatlijnen tekenen op canvas: een foto van de meting als er een is die alle meetpunten
+   *  ziet (F0), anders een beeld uit de puntenwolk (F1). */
   async function tekenRwsFoto(i, canvas) {
     const pr = drRws?.profielen[i];
     if (!pr) throw new Error('meet eerst de profielen');
-    if (!rwsFotoSet) throw new Error('kies eerst de foto\'s van de meting');
-    const kand = rwsFotoKandidaten(pr), keuze = kand.find(k => k.ok);
-    if (!keuze) throw new Error(`geen foto ziet alle meetpunten van ${pr.label} (${[...new Set(kand.map(k => k.reden))].join('; ')})`);
-    const { kal } = rwsFotoSet;
-    // de pixels zoals ze in het bestand staan (Metashape rekent met het bestand, niet met de EXIF-draaiing)
-    const beeld = await createImageBitmap(keuze.cam.file, { imageOrientation: 'none' });
-    const sKal = beeld.width / kal.w;                         // foto verkleind opgeslagen? dan schalen
-    const s = Math.min(1, FOTO_MAX_PX / beeld.width), schaal = s * sKal;
-    canvas.width = Math.round(beeld.width * s); canvas.height = Math.round(beeld.height * s);
+    const kand = rwsFotoSet ? rwsFotoKandidaten(pr) : [], keuze = kand.find(k => k.ok);
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(beeld, 0, 0, canvas.width, canvas.height);
-    beeld.close?.();
-    const px = (q) => ({ x: q.u * schaal, y: q.v * schaal });
+    let px, punten, proj, bron, camInfo = null;
+    if (keuze) {
+      const { kal } = rwsFotoSet;
+      // de pixels zoals ze in het bestand staan (Metashape rekent met het bestand, niet met de EXIF-draaiing)
+      const beeld = await createImageBitmap(keuze.cam.file, { imageOrientation: 'none' });
+      const sKal = beeld.width / kal.w;                       // foto verkleind opgeslagen? dan schalen
+      const s = Math.min(1, FOTO_MAX_PX / beeld.width), schaal = s * sKal;
+      canvas.width = Math.round(beeld.width * s); canvas.height = Math.round(beeld.height * s);
+      ctx.drawImage(beeld, 0, 0, canvas.width, canvas.height);
+      beeld.close?.();
+      px = (q) => ({ x: q.u * schaal, y: q.v * schaal });
+      proj = (x, y, z) => { const q = projecteerFoto(keuze.cam, kal, x, y, z); return q && px(q); };
+      punten = keuze.punten;                                  // voet en kop in pixels van de oorspronkelijke foto
+      bron = { soort: 'foto', naam: keuze.cam.naam, tekst: `foto ${keuze.cam.naam}` };
+    } else {
+      const wb = rwsWolkBeeld(pr);
+      canvas.width = wb.canvas.width; canvas.height = wb.canvas.height;
+      ctx.drawImage(wb.canvas, 0, 0);
+      px = (q) => ({ x: q.u, y: q.v });
+      proj = wb.proj; camInfo = wb.camera;
+      punten = [];
+      for (const d of rwsFotoDoelen(pr)) {
+        const a = proj(d.voet.x, d.voet.y, d.voet.z), b = proj(d.kop.x, d.kop.y, d.kop.z);
+        if (a && b) punten.push({ m: d.m, voet: { u: a.x, v: a.y }, kop: { u: b.x, v: b.y } });
+      }
+      bron = { soort: 'wolk', naam: 'beeld uit de puntenwolk', tekst: 'beeld uit de puntenwolk (geen foto)' };
+    }
     const lw = Math.max(2, canvas.width / 700), fs = Math.max(14, Math.round(canvas.width / 55));
     const r = drGeldig();
     // de doorsnedelijn over de weg (gestippeld)
     const offs = pr.meetpunten.map(m => m.offset), o0 = Math.min(...offs) - 0.5, o1 = Math.max(...offs) + 0.5, lijn = [];
     for (let k = 0; k <= 40; k++) {
       const o = o0 + (o1 - o0) * k / 40, p = puntOpDwarslijn(pr.station, o, pr.hoek || 0), w = r?.wegOp(...opLijn(pr.station, o, pr.hoek || 0));
-      const q = w != null && projecteerFoto(keuze.cam, kal, p.x, p.y, w); if (q) lijn.push(px(q));
+      const q = w != null && proj(p.x, p.y, w); if (q) lijn.push(q);
     }
     ctx.save(); ctx.lineCap = 'round';
     for (const [kleur, dikte] of [['rgba(0,0,0,.55)', lw * 2.2], ['#FFD43B', lw]]) {
@@ -9422,7 +9541,7 @@
     const laagste = pr.min, labels = [];
     ctx.font = `700 ${fs}px "Segoe UI", Arial, sans-serif`; ctx.textBaseline = 'middle';
     const gegevens = [];
-    for (const p of keuze.punten) {
+    for (const p of punten) {
       const a = px(p.voet), b = px(p.kop), rood = p.m === laagste, kleur = rood ? '#D7261E' : '#0B4F9C';
       const pijl = (van, naar) => { const hk = Math.atan2(naar.y - van.y, naar.x - van.x), L = lw * 5; ctx.beginPath(); ctx.moveTo(naar.x, naar.y); ctx.lineTo(naar.x - L * Math.cos(hk - 0.45), naar.y - L * Math.sin(hk - 0.45)); ctx.lineTo(naar.x - L * Math.cos(hk + 0.45), naar.y - L * Math.sin(hk + 0.45)); ctx.closePath(); ctx.fill(); };
       for (const [k, d] of [['#FFFFFF', lw * 2.6], [kleur, lw]]) { ctx.strokeStyle = k; ctx.fillStyle = k; ctx.lineWidth = d; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); if (k === kleur) { pijl(a, b); pijl(b, a); } }
@@ -9436,15 +9555,15 @@
       ctx.fillStyle = kleur; ctx.fillText(tekst, lx, ly);
       gegevens.push({ offset: p.m.offset, soort: p.m.soort, tekst, kleur, rood, voet: { u: p.voet.u, v: p.voet.v }, kop: { u: p.kop.u, v: p.kop.v } });
     }
-    // kader linksonder: waar de foto bij hoort
+    // kader linksonder: waar het beeld bij hoort
     const rw = rwsInst(), md = rw.meetdatum || document.getElementById('drRwsMeetdatum')?.placeholder || '';
-    const regels = [`${pr.label} · ${kwNaam(pr.kw)}`, `st. ${pr.station.toFixed(2)}${pr.hoek ? ` · schuin ${pr.hoek.toFixed(1)}°` : ''}${md ? ` · meetdatum ${md}` : ''}`, `foto ${keuze.cam.naam} · doorrijhoogtes in m`];
+    const regels = [`${pr.label} · ${kwNaam(pr.kw)}`, `st. ${pr.station.toFixed(2)}${pr.hoek ? ` · schuin ${pr.hoek.toFixed(1)}°` : ''}${md ? ` · meetdatum ${md}` : ''}`, `${bron.tekst} · doorrijhoogtes in m`];
     const fk = Math.round(fs * 0.8);
     ctx.font = `600 ${fk}px "Segoe UI", Arial, sans-serif`;
     const kw = Math.max(...regels.map(t => ctx.measureText(t).width)) + fk, kh = regels.length * fk * 1.35 + fk * 0.6;
     ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(fk * 0.6, canvas.height - kh - fk * 0.6, kw, kh);
     ctx.fillStyle = '#1B2A38'; regels.forEach((t, k) => ctx.fillText(t, fk * 1.1, canvas.height - kh - fk * 0.6 + fk * 0.95 + k * fk * 1.35));
-    rwsFotoLaatst = { nr: pr.nr, label: pr.label, foto: keuze.cam.naam, lijnen: gegevens, kandidaten: kand.map(k => ({ foto: k.cam.naam, ok: k.ok, reden: k.reden, score: Number.isFinite(k.score) ? k.score : null })) };
+    rwsFotoLaatst = { nr: pr.nr, label: pr.label, bron: bron.soort, foto: bron.naam, camera: camInfo, lijnen: gegevens, kandidaten: kand.map(k => ({ foto: k.cam.naam, ok: k.ok, reden: k.reden, score: Number.isFinite(k.score) ? k.score : null })) };
     return rwsFotoLaatst;
   }
   let fotoDoorsnede = 0;
@@ -9454,12 +9573,15 @@
     fotoDoorsnede = (i + drRws.profielen.length) % drRws.profielen.length;
     const pr = drRws.profielen[fotoDoorsnede];
     document.getElementById('fotoKopTekst').textContent = `${pr.label} · ${kwNaam(pr.kw)} · st. ${komma(pr.station, 2)}`;
-    document.getElementById('fotoInfo').textContent = 'Foto zoeken…';
+    document.getElementById('fotoInfo').textContent = rwsFotoSet ? 'Foto zoeken…' : 'Beeld uit de puntenwolk maken…';
     if (!dlg.open) dlg.showModal();
+    await new Promise(r => setTimeout(r, 30));
     try {
       const res = await tekenRwsFoto(fotoDoorsnede, canvas);
       const andere = res.kandidaten.filter(k => k.ok).length - 1;
-      document.getElementById('fotoInfo').textContent = `Foto ${res.foto}${andere > 0 ? ` (nog ${andere} andere foto${andere === 1 ? '' : "'s"} zien deze doorsnede)` : ''}`;
+      const waarom = rwsFotoSet && res.bron === 'wolk' ? ` — geen foto ziet alle meetpunten (${[...new Set(res.kandidaten.map(k => k.reden))].join('; ')})` : '';
+      document.getElementById('fotoInfo').textContent = res.bron === 'foto' ? `Foto ${res.foto}${andere > 0 ? ` (nog ${andere} andere foto${andere === 1 ? '' : "'s"} zien deze doorsnede)` : ''}`
+        : `Beeld uit de puntenwolk: op de as, ${komma(WOLKBEELD.afstand, 0)} m ${res.label.includes('achter') ? 'achter' : 'vóór'} de doorsnede, ${komma(WOLKBEELD.ooghoogte, 2)} m boven de weg${waarom}`;
       document.getElementById('fotoUitleg').textContent = 'Maatlijnen: doorrijhoogte van de weg tot de onderkant van het kunstwerk op de meetpunten uit de tabel, in meters met drie decimalen; de laagste in rood. Gestippeld: de doorsnede over de weg.';
     } catch (err) {
       const ctx = canvas.getContext('2d'); canvas.width = 900; canvas.height = 120; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 900, 120);
