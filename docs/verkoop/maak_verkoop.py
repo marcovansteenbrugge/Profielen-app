@@ -8,7 +8,7 @@ STAND = 'november 2026'
 CONTACT = 'Lutrea Group B.V. · Ceresstraat 13, 4811 CA Breda · 06 14 15 57 26 · info@lutrea.nl · www.lutrea.nl'
 
 TOOLS = [
-  dict(code='profielen', naam='Profielen Tool', kleur='#C2650A', licht='#FDF1E4', donker='#7A3E05',
+  dict(code='profielen', voor='Voor tekenaars, ontwerpers en adviseurs bij gemeente, waterschap en ingenieursbureau', naam='Profielen Tool', kleur='#C2650A', licht='#FDF1E4', donker='#7A3E05',
     sub='Van puntenwolk naar lengte- en dwarsprofielen op schaal',
     belofte='Open de puntenwolk, leg de as en je hebt in een paar minuten een <b>lengteprofiel en dwarsprofielen op schaal</b>, '
             'met je eigen stempel. <b>Alles draait op je eigen pc</b>; alleen de ondergrond komt van PDOK. '
@@ -22,7 +22,7 @@ TOOLS = [
            ('blad_lengteprofiel.png', 'PDF-blad lengteprofiel met dijkpalen langs de as.')],
     cijfers=[('A4 – A0', 'PDF op schaal, één bestand of losse bladen, met stempel, logo\'s en QR-code'),
              ('5 formaten', 'PDF, DXF (AutoCAD / Civil 3D), IFC 4.3, GeoPackage (QGIS) en CSV'),
-             ('441 mln', 'punten in één project getest, dankzij de vakken van 50 × 50 m'),
+             ('Alle punten', 'grote scans in vakken van 50 × 50 m; getest met een dijk van 16 mln punten en een dichte dronescan van 441 mln (met klassen kiezen)'),
              ('DP 12 +40', 'stationering op dijkpalen of hectometrering in plaats van alleen meters')],
     krijgt=['Een as met stations, ook links en rechts los in te stellen',
             'Lengteprofiel en dwarsprofielen op elke gewenste afstand',
@@ -36,21 +36,21 @@ TOOLS = [
             'Windows-programma met een setup, zonder beheerdersrechten',
             'DXF met dezelfde bladen als de PDF: wat je ziet is wat je levert']),
 
-  dict(code='doorvaart', naam='Doorvaarthoogte', kleur='#185FA5', licht='#E6F1FB', donker='#0C447C',
+  dict(code='doorvaart', voor='Voor vaarwegbeheerders en hun meetbureaus', naam='Doorvaarthoogte', kleur='#185FA5', licht='#E6F1FB', donker='#0C447C',
     sub='Past het schip onder de brug, in hoogte én diepte?',
     belofte='De tool zet een <b>doorvaartprofiel</b> in het water en toetst het tegen de <b>echte onderzijde van de brug</b> '
             'en de echte bodem, allebei uit metingen. Je krijgt een helder oordeel, met de plek en de maat van elk tekort, '
             'en een kaart van wat niet gemeten is.',
     stappen=[('Inlezen', 'Bodempeiling of multibeam als puntenwolk, met de as van de vaarweg in de vaarrichting.'),
              ('Brug erbij', 'De scan van de onderzijde van de brug; de bovenzijde mag erbij voor beeld en tekening.'),
-             ('Toetsen', 'Toetswaterstand, hoogte H, breedte B, verschuiving en vereiste diepte D. Maatgevend schip CEMT I t/m Va.'),
+             ('Toetsen', 'Toetswaterstand, hoogte H, breedte B, verschuiving en vereiste diepte D. Het maatgevend schip (CEMT I t/m Va) komt in de tekening.'),
              ('Opleveren', 'PDF-blad Doorvaartcontrole met de maatgevende doorsnede, de dekkingskaart en GeoPackage.')],
     groot=('dv_scherm.png', 'Doorvaartbox onder de brug in bovenaanzicht, lengte- en dwarsprofiel; de conflicten in rood (testgegevens).'),
     klein=[('blad_doorvaart.png', 'PDF-blad Doorvaartcontrole met doorsnede en oordeel.'),
            ('dv_dialoog.png', 'Het venster Doorvaart met profiel en uitkomst.')],
     cijfers=[('Ruwe punten', 'getoetst op de meetpunten van de onderzijde, niet op een gemiddeld vlak'),
              ('Hoogte + diepte', 'vrije hoogte boven de toetswaterstand én waterdiepte in het profiel'),
-             ('CEMT I – Va', 'maatgevend schip in de tekening, of eigen maten'),
+             ('CEMT I – Va', 'maatgevend schip in de tekening; de toets zelf is het profiel dat je opgeeft'),
              ('Dekkingskaart', 'laat zien waar niet gemeten is, met station, oppervlak en advies')],
     krijgt=['Oordeel voldoet / voldoet niet, met de kleinste vrije hoogte en waar',
             'Het tekort, de vrije breedte op hoogte H en de kleinste waterdiepte',
@@ -64,50 +64,47 @@ TOOLS = [
             'De dekkingskaart voorkomt een "voldoet" op een plek die niet gemeten is',
             'Alles in RD en m NAP, klaar voor de vaarwegbeheerder']),
 
-  dict(code='doorrij', naam='Doorrijhoogte', kleur='#A32D2D', licht='#FCEBEB', donker='#791F1F',
+  dict(code='doorrij', voor='Voor gemeenten, provincies en opdrachtnemers van Rijkswaterstaat', naam='Doorrijhoogte', kleur='#A32D2D', licht='#FCEBEB', donker='#791F1F',
     sub='Vrije hoogte onder viaduct, dak of kunstwerk, ook als RWS-doorrijprofiel',
     belofte='Kan het verkeer hier onderdoor? De tool zet een <b>box op het wegdek</b> en meet de ruimte tot het dak, '
-            '<b>weg en dak uit één puntenwolk</b>. Hij vindt zelf de kunstwerken langs de weg en maakt de '
-            '<b>opleverset in de opzet van de RWS-productspecificatie</b> Doorrijprofielen.',
+            '<b>weg en dak uit één puntenwolk</b>, en maakt het <b>doorrijprofiel in de opzet van de RWS-productspecificatie</b>.',
     stappen=[('Inlezen', 'Eén scan met weg en dak; niets splitsen. Vegetatie laat je bij een LAS/LAZ gewoon weg.'),
              ('As over de weg', 'Onder het kunstwerk door. Kant verharding komt uit de BGT en loopt onder het dak door.'),
-             ('Toetsen', 'Tot vier boxen per rijbaan of fietspad. Per kunstwerk een doorsnede voor en achter, ook als het schuin over de weg ligt.'),
-             ('Opleveren', 'Overzichtsblad, lengteprofiel en een blad per doorsnede, met de doorrijhoogtes in drie decimalen.')],
+             ('Toetsen', 'Tot vier boxen per rijbaan of fietspad. Per kunstwerk een doorsnede voor en achter, ook als het schuin over de weg ligt.§'),
+             ('Opleveren', 'Een PDF-blad per doorrijprofiel met meetpunten, tabel en tekstvak. De opleverset met overzichtsblad.§')],
     groot=('doorrijprofiel_rws_LoZ.png', 'Echte scan, Loon op Zand: weg onder het dak, met het doorrijprofiel in het dwarsprofiel en de vrije hoogte in het lengteprofiel.'),
-    klein=[('rws_opleverset_blad2.png', 'Overzichtsblad: wat is getest, welke profielen, resultaat en de maten per doorsnede (testgegevens).'),
-           ('kunstwerken_blad_1.png', 'Blad per doorsnede: kant links, as en kant rechts, met punten en spreiding (testgegevens).')],
+    klein=[('rws_opleverset_blad2.png', 'Overzichtsblad van de opleverset: wat is getest, welke profielen, resultaat en de maten per doorsnede (testgegevens).§'),
+           ('kunstwerken_blad_1.png', 'Blad per doorsnede van een kunstwerk: kant links, as en kant rechts, met punten en spreiding (testgegevens).§')],
     cijfers=[('1 puntenwolk', 'weg en dak samen; waar onder het dak geen weg gemeten is, wordt die overbrugd en gemeld'),
-             ('2 per kunstwerk', 'doorsnedes aan voor- en achterkant, vanzelf gevonden en te verschuiven'),
-             ('3 decimalen', 'doorrijhoogtes uit de ruwe punten binnen 10 cm, met aantal punten en spreiding'),
+             ('2 per kunstwerk', 'doorsnedes aan voor- en achterkant, vanzelf gevonden en te verschuiven§'),
+             ('Per meetpunt', 'het aantal punten en de spreiding binnen 10 cm: zo zie je of de meting de precisie haalt die RWS vraagt'),
              ('4 boxen', 'tegelijk toetsen, bv. rijbaan en fietspad, met voorwaarden van 2,30 tot 4,50 m')],
     krijgt=['De kleinste vrije hoogte per rijbaan, ook buiten de profielen',
-            'Doorrijbreedte op 0,5 – 1,0 m boven de weg, en de kleinste over 30 m vóór en na',
-            'Dakmodel: ook bij een dunne scan overal een dak, met "gemeten" of "ingevuld" per meetpunt',
-            'Kunstwerken met naam (KW1, KW2) in het lengteprofiel',
-            'Invulvelden voor weg, object, meetdatum, meetbedrijf en controle',
-            'De toets blijft bewaard in het project: na openen dezelfde uitkomst'],
-    waarom=['Gemeten op de ruwe punten: of de 1 cm van RWS gehaald wordt, zie je aan de spreiding',
+            'Doorrijbreedte op 0,5 – 1,0 m boven de weg',
+            'Dakmodel: ook bij een dunne scan overal een dak§',
+            'Kunstwerken met naam (KW1, KW2) in het lengteprofiel§',
+            'Invulvelden voor de RWS-gegevens§'],
+    waarom=['Gemeten op de ruwe punten. De 1 cm van RWS vraagt een terrestrische of goede MLS-scan; de spreiding laat zien of je die hebt',
             'De dekkingskaart laat zien waar onder het dak niet gemeten is',
             'Vangrails en auto\'s onder het dak tellen niet als dak',
-            'Zelfde maten in dwarsprofiel, lengteprofiel en PDF-blad',
-            'Voor gemeente én Rijkswaterstaat: het blad of de hele opleverset']),
+            "Voor de gemeente het blad; voor werk aan RWS de basis (portalen, foto's en verificatierapport nog niet)"]),
 
-  dict(code='snoei', naam='Snoeien', kleur='#3B6D11', licht='#EAF3DE', donker='#27500A',
+  dict(code='snoei', voor='Voor groenbeheerders van gemeente en waterschap, en hun aannemers', naam='Snoeien', kleur='#3B6D11', licht='#EAF3DE', donker='#27500A',
     sub='Takken in de vrije ruimte boven pad of weg, of langs de gevel',
     belofte='De tool legt een <b>doorloopprofiel</b> over het pad en vindt <b>elke tak die erin steekt</b>: '
             'waar, hoe hoog, hoeveel er terug moet en <b>op welk perceel de boom staat</b>. '
             'Een genummerde snoeikaart en snoeilijst, klaar voor de ploeg en de brief aan de eigenaar.',
     stappen=[('Inlezen', 'De scan van het pad of de straat. Takken blijven staan: de begroeiing wordt in 3D gelezen.'),
-             ('As leggen', 'Langs het pad tekenen of inlezen, of langs de straat uit de voorgevels van de BGT-panden.'),
-             ('Controleren', 'Standaard 2,00 × 2,50 m met 0,50 m marge, of van de gevel tot een vaste afstand. Gras en ruis tellen niet mee.'),
+             ('As leggen', 'Langs het pad tekenen of inlezen. Langs de straat: uit de voorgevels van de BGT-panden.§'),
+             ('Controleren', 'Standaard 2,00 × 2,50 m met 0,50 m marge; langs gevels van de gevel tot een vaste afstand§. Gras en ruis tellen niet mee.'),
              ('Opleveren', 'Snoeikaart, snoeilijst en snoeilijst per perceel als PDF, CSV voor Excel en GeoPackage.')],
     groot=('paal_snoei_kaart.png', 'Snoeikaart: genummerde snoeipunten langs het schouwpad. Rood steekt in het profiel, oranje alleen in de marge (testgegevens).'),
-    klein=[('gevel_dataset_1.png', 'Langs de gevels: as uit de BGT-voorgevels, de vrije ruimte aan de straatkant (testgegevens).'),
+    klein=[('gevel_dataset_1.png', 'Langs de gevels: as uit de BGT-voorgevels, de vrije ruimte aan de straatkant (testgegevens).§'),
            ('blad_snoeilijst.png', 'PDF-blad Snoeilijst met dijkpalen.')],
     cijfers=[('2,00 × 2,50 m', 'standaard doorloopprofiel met 0,50 m snoeimarge; alles instelbaar'),
              ('Rood / oranje', 'snoeien (in het profiel) of meenemen (alleen in de marge)'),
              ('Per perceel', 'stam en kadastraal perceel bij elk snoeipunt, voor de brief aan de eigenaar'),
-             ('Langs gevels', 'as uit de BGT-voorgevels, de gevel zelf telt niet mee')],
+             ('Langs gevels', 'as uit de BGT-voorgevels, de gevel zelf telt niet mee§')],
     krijgt=['Snoeipunten genummerd langs de as, met station of dijkpaal',
             'Per punt: kant, hoogte boven het pad, afstand tot het hart en hoeveel terug',
             'De soort: tak van opzij, kroon van boven, of struik/stam vanaf de grond',
@@ -133,6 +130,8 @@ header { display:flex; justify-content:space-between; align-items:flex-start; bo
 .titel .boven { font-size:10pt; letter-spacing:.12em; text-transform:uppercase; color:var(--grijs); font-weight:600; }
 .titel h1 { margin:1mm 0 0; font-size:36pt; color:var(--t-d); letter-spacing:-0.5pt; line-height:1.05; }
 .titel p { margin:2mm 0 0; font-size:16pt; color:var(--t); font-weight:600; }
+.titel .voor { font-size:10.5pt; color:var(--grijs); margin-top:1.5mm; }
+.nieuw { display:inline-block; font-size:7.4pt; font-weight:700; letter-spacing:.03em; padding:.2mm 1.6mm; border-radius:3mm; background:#fff4d6; color:#7a5300; border:.4pt solid #e0b84a; vertical-align:1pt; white-space:nowrap; }
 .merk { display:grid; justify-items:end; gap:3mm; }
 .merk img { height:24mm; }
 .chips { display:flex; gap:1.5mm; }
@@ -169,18 +168,23 @@ footer .ook { font-size:9.5pt; color:var(--grijs); margin-top:2mm; }
 
 def e(t): return html.escape(t, quote=False)
 
+NIEUW = '<span class="nieuw">binnenkort</span>'
+def m(t): return e(t).replace('§', ' ' + NIEUW)   # § = zit in de volgende versie
+
 def plaat(t, nr):
     chips = ''.join(f'<span class="chip{" nu" if x["code"] == t["code"] else ""}" style="--c:{x["kleur"]}">{e(x["naam"])}</span>' for x in TOOLS)
-    stappen = ''.join(f'<div class="stap"><div class="nr">{i}</div><h3>{e(a)}</h3><p>{e(b)}</p></div>' for i, (a, b) in enumerate(t['stappen'], 1))
-    groot = f'<figure><img src="beelden/{t["groot"][0]}" alt=""><figcaption>{e(t["groot"][1])}</figcaption></figure>'
-    klein = ''.join(f'<figure><img src="beelden/{f}" alt=""><figcaption>{e(o)}</figcaption></figure>' for f, o in t['klein'])
-    cijfers = ''.join(f'<div class="cijfer"><div class="getal">{e(a)}</div><div class="wat">{e(b)}</div></div>' for a, b in t['cijfers'])
-    krijgt = ''.join(f'<li>{e(x)}</li>' for x in t['krijgt'])
+    stappen = ''.join(f'<div class="stap"><div class="nr">{i}</div><h3>{e(a)}</h3><p>{m(b)}</p></div>' for i, (a, b) in enumerate(t['stappen'], 1))
+    groot = f'<figure><img src="beelden/{t["groot"][0]}" alt=""><figcaption>{m(t["groot"][1])}</figcaption></figure>'
+    klein = ''.join(f'<figure><img src="beelden/{f}" alt=""><figcaption>{m(o)}</figcaption></figure>' for f, o in t['klein'])
+    cijfers = ''.join(f'<div class="cijfer"><div class="getal">{e(a)}</div><div class="wat">{m(b)}</div></div>' for a, b in t['cijfers'])
+    krijgt = ''.join(f'<li>{m(x)}</li>' for x in t['krijgt'])
     waarom = ''.join(f'<li>{e(x)}</li>' for x in t['waarom'])
     andere = ', '.join(x['naam'] for x in TOOLS if x['code'] != t['code'])
     noot = 'Beelden: testgegevens van Lutrea, tenzij anders vermeld.'
+    if '§' in repr(t):
+        noot += ' "Binnenkort": in de volgende versie.'
     if t['code'] == 'doorrij':
-        noot += ' De opleverset volgt de opzet van de Productspecificaties Doorrijprofielen (RWS, 1 juli 2022), maar is geen officieel RWS-product.'
+        noot += ' Opzet volgens de Productspecificaties Doorrijprofielen (RWS, 2022); geen officieel RWS-product.'
     if t['code'] == 'doorvaart':
         noot += ' Het oordeel is een toets op de meetgegevens en hoort te worden beoordeeld door een specialist.'
     return f'''<!doctype html>
@@ -188,7 +192,7 @@ def plaat(t, nr):
 <style>:root{{--t:{t["kleur"]};--t-l:{t["licht"]};--t-d:{t["donker"]};}}{CSS}</style></head>
 <body><div class="vel">
 <header>
-  <div class="titel"><div class="boven">Lutrea Profielviewer · tool {nr} van 4</div><h1>{e(t["naam"])}</h1><p>{e(t["sub"])}</p></div>
+  <div class="titel"><div class="boven">Lutrea Profielviewer · tool {nr} van 4</div><h1>{e(t["naam"])}</h1><p>{e(t["sub"])}</p><div class="voor">{e(t["voor"])}</div></div>
   <div class="merk"><img src="beelden/merk-lutrea.png" alt="Lutrea"><div class="chips">{chips}</div></div>
 </header>
 <div class="belofte">{t["belofte"]}</div>
@@ -215,7 +219,7 @@ EXPORT = [
     items=['Elk PDF-blad als layout, met kader en stempel', 'Viewports op schaal, vergrendeld', 'Model space: de situatie in 3D op RD/NAP',
            'Model space: profielen op ware grootte', 'Eigen lagen PV_PROF, PV_KAART, PV_BLAD', 'Zonder luchtfoto en 3D-beeld (dat zijn beelden)'],
     tools='pvds'),
-  dict(code='IFC', naam='IFC 4.3', sub='openBIM, voor ontwerp en botsingscontrole', voor='BIM-coördinator, ontwerper', open='Civil 3D, Solibri, Navisworks, Revit',
+  dict(code='IFC', naam='IFC 4.3', sub='openBIM, voor ontwerp en botsingscontrole', voor='BIM-coördinator, ontwerper', open='BIM-pakketten; Civil 3D nog te testen',
     items=['De as als IfcAlignment', 'Station 0, dijkpalen, hectometers (IfcReferent)', 'Maaiveld als licht driehoeksnet',
            'Dwarsprofielen als 3D-lijnen', 'Vrije ruimtes als IfcSpatialZone', 'Bevindingen met eigenschappen Lutrea_…'],
     tools='pvs'),

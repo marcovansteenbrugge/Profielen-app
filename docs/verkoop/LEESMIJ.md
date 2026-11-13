@@ -25,7 +25,10 @@ Het script schrijft de HTML, maakt via Edge (headless) de PDF's en een voorbeeld
 ## Om op te letten
 
 - Stand november 2026. Kunstwerken met doorsnedes, dakmodel, RWS-opleverset en snoeien langs gevels zitten nog niet in een
-  uitgeleverde versie (verwacht 2.16.0).
+  uitgeleverde versie (verwacht 2.16.0). Op de platen staan ze met het label "binnenkort" (teken `§` achter de tekst in het
+  script). Haal het teken weg zodra de versie uit is.
+- Rechtgezet na de zelfreflectie van 13 november ([zelfreflectie-2026-11-13.md](../zelfreflectie-2026-11-13.md)): CEMT is alleen
+  tekening, 441 mln punten met de juiste context, IFC "Civil 3D nog te testen", geen "3 decimalen" als prestatie, en per plaat voor wie.
 - Beelden zijn testgegevens, behalve Loon op Zand (echte scan). Dat staat klein onder elke plaat.
 - De doorrijplaat zegt dat de opleverset de opzet van de RWS-specificatie volgt, maar geen officieel RWS-product is.
 - Doorrijhoogte gaat nog niet naar IFC en GeoPackage; CSV is alleen de snoeilijst. Bijwerken als dat verandert.
