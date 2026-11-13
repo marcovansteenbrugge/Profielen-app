@@ -4,14 +4,14 @@ titel: Snoeien langs gevels: vrije ruimte vanaf de voorgevel, as uit de BGT
 plan: gevel-snoei.plan.md
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
 voorgelegd: 2026-11-13 08:57          # datum en tijd waarop de beslisser dit heeft gekregen; wordt door de skill gezet
-status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
 ---
 
 > Legenda: ✅ akkoord of klaar · ✏️ akkoord, maar anders · ⏳ nog niet beoordeeld · 🔨 wordt gebouwd · ▶ vrijgegeven, nog niet gestart · ○ nog niet vrijgegeven · ⚠ vrijgave vervallen door planwijziging
 
 # Beslisdocument: Snoeien langs gevels: vrije ruimte vanaf de voorgevel, as uit de BGT
 
-> **Nu van jou gevraagd:** B1 tot en met B4 en de vrijgave van F0 tot en met F3.
+> **Nu van jou gevraagd:** niets; F0 tot en met F3 worden gebouwd.
 > **Later nodig:** B5 (versie) en de vrijgave van F4.
 
 De snoeitool krijgt een toets langs gevels: tussen de voorkant van de gevel en de begroeiing moet een vaste afstand vrij zijn (bijvoorbeeld 2 m). De as komt uit de voorgevels van de BGT-panden, de box ligt vanzelf aan de straatkant, de gevel zelf telt niet mee (ook zonder classificatie) en de snoeilijst blijft per perceel. Het werk is verdeeld in vijf fasen.
@@ -21,24 +21,26 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 
 | Fase | Wat wordt gebouwd | Vrijgave | Door, wanneer | Leunt op | Gebouwd |
 |---|---|---|---|---|---|
-| F0 | Box van de gevel tot 2 m (instelbaar) aan de straatkant; de gevel zelf telt niet als begroeiing | ○ nog niet | - | B1 | - |
-| F1 | De as uit de voorgevels van de BGT-panden, met één ruwe lijn langs de straat | ○ nog niet | - | B2 | - |
-| F2 | Zonder classificatie: luifels, balkons en dakranden als "twijfel" in plaats van snoeipunt | ○ nog niet | - | B3 | - |
-| F3 | Snoeilijst per perceel met de afstand tot de gevel, in PDF en GeoPackage | ○ nog niet | - | B4 | - |
+| F0 | Box van de gevel tot 2 m (instelbaar) aan de straatkant; de gevel zelf telt niet als begroeiing | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-13 08:58 | B1 | ✅ 2026-11-13 09:14 |
+| F1 | De as uit de voorgevels van de BGT-panden, met één ruwe lijn langs de straat | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-13 08:58 | B2 | ✅ 2026-11-13 09:30 |
+| F2 | Zonder classificatie: luifels, balkons en dakranden als "twijfel" in plaats van snoeipunt | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-13 08:58 | B3 | - |
+| F3 | Snoeilijst per perceel met de afstand tot de gevel, in PDF en GeoPackage | ✅ ja, op planversie 1 | Marco van Steenbrugge · 2026-11-13 08:58 | B4 | - |
 | F4 | Opleveren, met jouw controle op een echte straat | ○ nog niet | - | B5 | - |
+
+Letterlijk akkoord (F0 tot en met F3, via chat): "Akkoord, bouw F0–F3", als antwoord op de vraag "Akkoord met B1–B4 zoals voorgesteld en bouwen op planversie 1, fase F0 tot en met F3?"
 
 ## Overzicht besluiten
 | | # | Onderwerp | Besluit | Nodig vóór |
 |---|---|---|---|---|
-| ⏳ | B1 | Box langs de gevel | **Nog niet beoordeeld** | F0 |
-| ⏳ | B2 | As uit de BGT | **Nog niet beoordeeld** | F1 |
-| ⏳ | B3 | Bouwdelen zonder classificatie | **Nog niet beoordeeld** | F2 |
-| ⏳ | B4 | Snoeilijst | **Nog niet beoordeeld** | F3 |
+| ✅ | B1 | Box langs de gevel | Ons voorstel | F0 |
+| ✅ | B2 | As uit de BGT | Ons voorstel | F1 |
+| ✅ | B3 | Bouwdelen zonder classificatie | Ons voorstel | F2 |
+| ✅ | B4 | Snoeilijst | Ons voorstel | F3 |
 | ⏳ | B5 | Versie | **Nog niet beoordeeld** | F4 |
 
 ## Besluiten
 
-### ⏳ B1 · Box langs de gevel
+### ✅ B1 · Box langs de gevel
 **Je beslist:** hoe groot de vrije ruimte vóór de gevel is.
 
 | | Ons voorstel | Alternatief |
@@ -48,15 +50,15 @@ Een fase mag pas starten als de vrijgave er staat én alle besluiten waar de fas
 | **Nadeel** | Eén hoogte voor de hele straat | Hangt af van de scan; lastiger te controleren |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-13 08:57 · **nodig vóór** F0
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-13 08:58 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B1
 
-### ⏳ B2 · As uit de BGT
+### ✅ B2 · As uit de BGT
 **Je beslist:** hoe de as op de voorgevels komt.
 
 | | Ons voorstel | Alternatief |
@@ -66,15 +68,15 @@ Meer uitleg: plan, punt 6, B1
 | **Nadeel** | Bij een hoekpand soms de verkeerde gevel (dan bijwerken) | Veel klikken |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-13 08:57 · **nodig vóór** F1
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-13 08:58 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B2
 
-### ⏳ B3 · Bouwdelen zonder classificatie
+### ✅ B3 · Bouwdelen zonder classificatie
 **Je beslist:** wat er gebeurt met een luifel, balkon of dakrand die vóór de gevel uitsteekt als de puntenwolk niet geclassificeerd is.
 
 | | Ons voorstel | Alternatief |
@@ -84,15 +86,15 @@ Meer uitleg: plan, punt 6, B2
 | **Nadeel** | Een paar regels om na te lopen | Begroeiing tegen de gevel wordt gemist |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-13 08:57 · **nodig vóór** F2
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-13 08:58 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B3
 
-### ⏳ B4 · Snoeilijst
+### ✅ B4 · Snoeilijst
 **Je beslist:** hoe de snoeilijst is ingedeeld.
 
 | | Ons voorstel | Alternatief |
@@ -102,11 +104,11 @@ Meer uitleg: plan, punt 6, B3
 | **Nadeel** | - | Een boom staat vaak niet in het pand-vlak |
 
 **Jouw keuze**
-- [ ] Akkoord met ons voorstel
+- [x] Akkoord met ons voorstel
 - [ ] Anders:
 - [ ] Vervalt
 
-**Besloten door** nog niemand · **status** nog niet beoordeeld · **wacht op** Marco van Steenbrugge · **voorgelegd op** 2026-11-13 08:57 · **nodig vóór** F3
+**Besloten door** Marco van Steenbrugge · **op** 2026-11-13 08:58 · **via** chat · **over** ons voorstel, planversie 1
 
 Meer uitleg: plan, punt 6, B4
 
@@ -135,5 +137,8 @@ Alleen aanvullen, nooit herschrijven. De technische uitvoeringsdetails staan in 
 |---|---|---|
 | 2026-11-13 (vóór 08:55) | Vraag: vrije afstand vanaf de voorgevels; antwoorden: 2 m, ook zonder classificatie, voorgevel uit de BGT, per perceel | Marco van Steenbrugge, via chat |
 | 2026-11-13 08:57 | Plan opgesteld en voorgelegd | Claude Opus 5.5 (agent) |
+| 2026-11-13 08:58 | B1–B4 akkoord (ons voorstel) en vrijgave F0–F3 op planversie 1: "Akkoord, bouw F0–F3" | Marco van Steenbrugge, via chat |
+| 2026-11-13 09:14 | F0 gebouwd: gevelmodus in de snoeitool: box van de gevel tot de afstand D aan de straatkant, vrije hoogte H; de gevel zelf (klasse 6/17, binnen het BGT-pand, 0,3 m tegen de gevel) telt niet als begroeiing | Claude Opus 5.5 (agent) |
+| 2026-11-13 09:30 | F1 gebouwd: as uit de BGT-voorgevels: ruwe lijn langs de straat → voorgevels → as per straatkant, straatkant automatisch, tussen panden en voorbij de hoek telt de box niet | Claude Opus 5.5 (agent) |
 
 *Powered by BRBNT · AI als Engineeringsdiscipline (Lutrea Group B.V.) · brbnt-plan v1.2*

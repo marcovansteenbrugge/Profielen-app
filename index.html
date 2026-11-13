@@ -799,10 +799,15 @@
       </fieldset>
       <fieldset>
         <legend>Doorloopprofiel</legend>
-        <div class="rij"><span>Breedte B</span><input type="number" id="snBreedte" step="0.1" min="0"> m (midden op de as)</div>
-        <div class="rij"><span>Vrije hoogte H</span><input type="number" id="snHoogte" step="0.1" min="0"> m boven het pad</div>
+        <div class="rij" title="Langs een pad: een doorloopprofiel rond de as. Langs gevels: de as ligt op de voorgevel en de vrije ruimte loopt van de gevel tot de afstand aan de straatkant."><span>Toets</span><select id="snModus"><option value="pad">langs een pad</option><option value="gevel">langs gevels (vrije ruimte voor de gevel)</option></select></div>
+        <div class="rij snGevel" hidden title="Tussen de voorkant van de gevel en de begroeiing moet zoveel vrij zijn"><span>Afstand vanaf de gevel</span><input type="number" id="snGevelAfstand" step="0.1" min="0"> m</div>
+        <div class="rij snGevel" hidden title="Aan welke kant van de as (de voorgevel) de straat ligt; kijkrichting oplopend station"><span>Straatkant</span><select id="snGevelKant"><option value="R">rechts van de as</option><option value="L">links van de as</option></select></div>
+        <div class="rij snGevel" hidden title="De voorgevels van de BGT-panden langs de lijn die je ruw langs de straat hebt getrokken (de actieve as) worden de nieuwe as; de straatkant volgt vanzelf"><span>As</span><button type="button" id="snGevelAs">As op de voorgevels (BGT)</button></div>
+        <div class="rij snGevel" hidden><span></span><span class="hint" id="snGevelInfo" style="margin:0"></span></div>
+        <div class="rij snPad"><span>Breedte B</span><input type="number" id="snBreedte" step="0.1" min="0"> m (midden op de as)</div>
+        <div class="rij"><span>Vrije hoogte H</span><input type="number" id="snHoogte" step="0.1" min="0"> <span id="snHoogteTekst">m boven het pad</span></div>
         <div class="rij" title="Ruimer snoeien dan het profiel, i.v.m. aangroei. Begroeiing in deze marge wordt oranje: meenemen bij het snoeien, maar het pad is niet geblokkeerd."><span>Snoeimarge</span><input type="number" id="snMarge" step="0.1" min="0"> m rondom</div>
-        <div class="rij" title="Midden van het profiel t.o.v. de as; positief = rechts (kijkrichting oplopend station)"><span>Verschuiving</span><input type="number" id="snVerschuiving" step="0.1"> m (+ = rechts)</div>
+        <div class="rij snPad" title="Midden van het profiel t.o.v. de as; positief = rechts (kijkrichting oplopend station)"><span>Verschuiving</span><input type="number" id="snVerschuiving" step="0.1"> m (+ = rechts)</div>
         <div class="rij" title="Stations langs de as die gecontroleerd worden. Leeg = de hele as."><span>Lengte</span>st. <input type="number" id="snVan" step="1"> tot <input type="number" id="snTot" step="1"> <button type="button" id="snAuto" title="De hele as">hele as</button> <span class="zacht" id="snAutoTekst"></span></div>
         <div class="rij" title="Gras, strooisel en lage planten tellen niet mee: alleen begroeiing die hoger staat dan dit boven het eigen maaiveld."><span>Negeer lager dan</span><input type="number" id="snMinHoogte" step="0.05" min="0"> m boven maaiveld</div>
         <div class="rij" title="Losse punten (vogel, vlieg, spinrag) tellen niet mee: een punt telt alleen als er binnen 0,5 m minstens zoveel andere begroeiingspunten liggen."><span>Ruisfilter</span><input type="number" id="snMinPunten" step="1" min="1"> punten binnen 0,5 m</div>

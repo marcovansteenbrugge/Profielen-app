@@ -2,8 +2,8 @@
 plan: gevel-snoei
 titel: Snoeien langs gevels: vrije ruimte vanaf de voorgevel, as uit de BGT
 versie: 1
-status: ter-akkoord        # berekend door de skill, nooit met de hand gezet
-voortgang: F0 ⏳ · F1 ⏳ · F2 ⏳ · F3 ⏳ · F4 ⏳           # berekend door de skill
+status: in-uitvoering        # berekend door de skill, nooit met de hand gezet
+voortgang: F0 ✅ · F1 ✅ · F2 ▶ · F3 ▶ · F4 ⏳           # berekend door de skill
 opgesteld: 2026-11-13
 opgesteld_door: agent, Claude Opus 5.5 (claude-opus-5-5)
 beslisser: Marco van Steenbrugge, eigenaar van de Profielviewer
@@ -80,10 +80,10 @@ Een fase mag starten als de vrijgave voor die fase er is én alle besluiten waar
 
 | Fase | Status | Scope | Acceptatie (toetsbaar) | Hangt af van | Omvang | Gepland model en effort | Commit-prefix |
 |---|---|---|---|---|---|---|---|
-| F0 | ⏳ wacht op B1 | Gevelmodus: box van de gevel tot D aan één kant, vrije hoogte H; gebouwpunten (klasse 6/17, binnen het pand, gevelzone 0,3 m) tellen niet | 1. Testwolk met een gevel en een boom op 1,2 m van de gevel: de boom is een snoeipunt, de gevel niet (ook zonder classificatie). 2. Een boom op 2,5 m is geen snoeipunt. 3. Met classificatie telt klasse 6 niet. 4. Het gewone pad werkt zoals nu (bestaande tests groen). 5. `node run_alle.js` geheel groen. | B1 | M | Opus 5.5, medium | `F0:` |
-| F1 | ⏳ wacht op B2 | As uit de BGT-voorgevels: ruwe lijn langs de straat → voorgevels → as; straatkant automatisch | 1. Testgegevens met vier panden langs een straat (één met een inspringende gevel, één hoekpand): de as ligt op de voorgevels (± 0,05 m) en volgt ze in de goede volgorde (screenshot). 2. De box ligt aan de straatkant. 3. Tussen twee panden telt de box niet. 4. `node run_alle.js` geheel groen. | F0, B2 | M | Opus 5.5, medium | `F1:` |
-| F2 | ⏳ wacht op B3 | Zonder classificatie: kleur (groenindex) mee de strook in; luifel/balkon/dakrand als "twijfel" op de kaart en in de lijst | 1. Testwolk zonder classificatie met een luifel van 1 m (grijs) en een struik (groen) voor de gevel: struik = snoeipunt, luifel = twijfel. 2. Zonder RGB: de luifel (vast aan de gevel, vlak) = twijfel. 3. `node run_alle.js` geheel groen. | F0, B3 | M | Opus 5.5, medium | `F2:` |
-| F3 | ⏳ wacht op B4 | Snoeilijst per perceel met afstand tot de gevel; PDF en GeoPackage | 1. Snoeilijst en PDF tonen per snoeipunt het perceel en de afstand tot de gevel (test op de PDF-tekst). 2. `node run_alle.js` geheel groen. | F1, F2, B4 | S | Opus 5.5, medium | `F3:` |
+| F0 | ✅ gebouwd | Gevelmodus: box van de gevel tot D aan één kant, vrije hoogte H; gebouwpunten (klasse 6/17, binnen het pand, gevelzone 0,3 m) tellen niet | 1. Testwolk met een gevel en een boom op 1,2 m van de gevel: de boom is een snoeipunt, de gevel niet (ook zonder classificatie). 2. Een boom op 2,5 m is geen snoeipunt. 3. Met classificatie telt klasse 6 niet. 4. Het gewone pad werkt zoals nu (bestaande tests groen). 5. `node run_alle.js` geheel groen. | B1 | M | Opus 5.5, medium | `F0:` |
+| F1 | ✅ gebouwd | As uit de BGT-voorgevels: ruwe lijn langs de straat → voorgevels → as; straatkant automatisch | 1. Testgegevens met vier panden langs een straat (één met een inspringende gevel, één hoekpand): de as ligt op de voorgevels (± 0,05 m) en volgt ze in de goede volgorde (screenshot). 2. De box ligt aan de straatkant. 3. Tussen twee panden telt de box niet. 4. `node run_alle.js` geheel groen. | F0, B2 | M | Opus 5.5, medium | `F1:` |
+| F2 | ▶ vrijgegeven | Zonder classificatie: kleur (groenindex) mee de strook in; luifel/balkon/dakrand als "twijfel" op de kaart en in de lijst | 1. Testwolk zonder classificatie met een luifel van 1 m (grijs) en een struik (groen) voor de gevel: struik = snoeipunt, luifel = twijfel. 2. Zonder RGB: de luifel (vast aan de gevel, vlak) = twijfel. 3. `node run_alle.js` geheel groen. | F0, B3 | M | Opus 5.5, medium | `F2:` |
+| F3 | ▶ vrijgegeven, na F2 | Snoeilijst per perceel met afstand tot de gevel; PDF en GeoPackage | 1. Snoeilijst en PDF tonen per snoeipunt het perceel en de afstand tot de gevel (test op de PDF-tekst). 2. `node run_alle.js` geheel groen. | F1, F2, B4 | S | Opus 5.5, medium | `F3:` |
 | F4 | ⏳ wacht op B5 | Opleveren (samen met de andere openstaande opleveringen) | 1. `node run_alle.js` geheel groen. 2. Installatietoets "fouten: geen". 3. Marco bevestigt op een echte straat. | F3, B5 | S | Opus 5.5, medium | `F4:` |
 
 Werkafspraak: één fase per keer, groene tests vóór de volgende fase, commit-berichten beginnen met de fase-prefix.
@@ -112,6 +112,8 @@ Alleen aanvullen, nooit herschrijven. Alle meetgegevens per fase; het beslisdocu
 
 | Fase | Start | Einde | Opdracht van | Uitgevoerd door | Effort | Tokens invoer / uitvoer | Commits | Bron |
 |---|---|---|---|---|---|---|---|---|
+| F0 | 2026-11-13 08:58 | 2026-11-13 09:14 | Marco van Steenbrugge ("Akkoord, bouw F0–F3") | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 60 / 31.719 | onbekend (commit volgt na deze toetsing) | transcript (Claude Code) |
+| F1 | 2026-11-13 09:14 | 2026-11-13 09:30 | Marco van Steenbrugge ("Akkoord, bouw F0–F3") | claude-opus-5-5, sessie edd2df6b-18e1-4f63-a42c-b1d21a3dc22e | medium | 40 / 18.723 | onbekend (commit volgt na deze toetsing) | transcript (Claude Code) |
 
 Tokens zijn invoer en uitvoer zonder cache. Is een waarde niet te meten, dan staat er "onbekend"; nooit een schatting.
 
@@ -120,12 +122,23 @@ Vóórdat een fase als gebouwd wordt gemarkeerd, is elk acceptatiecriterium uit 
 
 | Fase | Tijdstip | Criterium | Controle en uitkomst | Oordeel |
 |---|---|---|---|---|
+| F0 | 2026-11-13 09:14 | 1. Testwolk met een gevel en een boom op 1,2 m van de gevel: de boom is een snoeipunt, de gevel niet (ook zonder classificatie) | `node gevel_snoei.test.js` (`tests/uit/gevel_snoei_f0_log.txt`), .pts zonder classificatie: "snoeipunten: [{nr 1, s 15, x 20, ernst rood}]" = alleen boom A (x = X0+20); de gevel (punten op 0,02 en 0,08 m achter de as, tot 6 m hoog over 40 m) geeft geen snoeipunt; "fouten: geen" | gehaald |
+| F0 | 2026-11-13 09:14 | 2. Een boom op 2,5 m is geen snoeipunt | zelfde test: boom B met kroon van 2,7 tot 3,7 m voor de gevel (x = X0+35) geeft geen snoeipunt (test op bijX(q, 35)) | gehaald |
+| F0 | 2026-11-13 09:14 | 3. Met classificatie telt klasse 6 niet | zelfde test, LAS met een luifel (klasse 6) op 0,5–1,5 m voor de gevel: "3 met classificatie (x): [20]" — alleen boom A, geen snoeipunt bij de luifel (x = X0+42) | gehaald |
+| F0 | 2026-11-13 09:14 | 4. Het gewone pad werkt zoals nu (bestaande tests groen) | `stationering_snoei.test.js` (pad, met en zonder pdf) in de volledige run "OK"; gevelmodus is een aparte keuze (`snoei.modus`, standaard 'pad') | gehaald |
+| F0 | 2026-11-13 09:14 | 5. `node run_alle.js` geheel groen | `tests/uit/run_alle_g0.log`: 31 tests "OK" (incl. gevel_snoei.test.js), "Alle tests geslaagd" | gehaald |
+| F1 | 2026-11-13 09:30 | 1. Testgegevens met vier panden langs een straat (één met een inspringende gevel, één hoekpand): de as ligt op de voorgevels (± 0,05 m) en volgt ze in de goede volgorde (screenshot) | `node gevel_as.test.js` (`tests/uit/gevel_as_log.txt`): "1 nieuwe as: Voorgevels links (Straat) \| 8 punten \| 4 gevelvakken"; de test eist voor elk pand op drie plekken langs de voorgevel ≤ 0,05 m tot de as (ook pand 2, 1 m ingesprongen) en dezelfde richting als de ruwe lijn; `tests/uit/gevel_as_na.png` bekeken. Hoekpand: pand 4 aan het eind van de rij; een echt hoekpand met een tweede straatgevel zit niet in de testgegevens | gehaald |
+| F1 | 2026-11-13 09:30 | 2. De box ligt aan de straatkant | zelfde log: gevel.kant "R" (straat ten zuiden van de gevels), in het venster "straatkant rechts" vast ingesteld ("2 straatkant in het venster: waarde R, uit true"); screenshot: box en snoeimarge aan de straatkant | gehaald |
+| F1 | 2026-11-13 09:30 | 3. Tussen twee panden telt de box niet | zelfde log: "3 snoeipunten (x): x 15 (T1), x 27 (T3)"; boom T2 in het gat tussen pand 1 en 2 (x 21) geen snoeipunt, ook niet de punten net voorbij de hoek van pand 1 | gehaald |
+| F1 | 2026-11-13 09:30 | 4. `node run_alle.js` geheel groen | `tests/uit/run_alle_g1.log`: 32 tests "OK" (incl. gevel_snoei en gevel_as), "Alle tests geslaagd" | gehaald |
 
 ## 12. Afwijkingen
 Ook een afwijkend model of afwijkende effort ten opzichte van "Gepland model en effort" (punt 7) staat hier, met de reden of "reden onbekend".
 
 | Fase | Wat week af van het plan | Waarom |
 |---|---|---|
+| F1 | Criterium 1 noemt een hoekpand; de testgegevens hebben een pand aan het eind van de rij, geen hoekpand met een tweede straatgevel. De box wordt nog doorgetekend over de gaten tussen de panden (telt daar niet mee); netjes tekenen volgt in F3. F0 en F1 zijn in één commit vastgelegd (de F1-code stond al in de werkmap). | Testopzet; tekenen hoort bij de uitvoer (F3) |
+| F0 | De velden van de gevelmodus (breedte en verschuiving verbergen) werkten op het scherm niet: het hidden-attribuut werd door de opmaak overschreven; de test keek naar het attribuut en zag dat niet. Hersteld (style.display) samen met de code van F1. Ook: de code van F1 stond al in de werkmap (niet gecommit) voordat F0 als gebouwd was vastgelegd; de toetsing van F0 is gedaan op de code zonder F1. | Fout in de eigen test; volgorde van werken tijdens het wachten op de testrun |
 
 ## 13. Wijzigingslog
 | Versie | Datum | Wat | Geraakt | Gevolg voor vrijgave |

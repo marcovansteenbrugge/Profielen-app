@@ -3245,6 +3245,8 @@
     dakModelInfo: () => drResultaat?.dakModel ? { cel: drResultaat.dakModel.cel, gemeten: drResultaat.dakModel.nGemeten, ingevuld: drResultaat.dakModel.nIngevuld, gered: drResultaat.gered, ruis: drResultaat.ruis } : null,
     rwsToon: (nr) => rwsToon(nr),
     dwarsStations: () => dwarsStations.slice(),
+    asNu: () => ({ naam: assen[actieveAs].naam, punten: asPunten.map(q => ({ x: q.x, y: q.y })), gevel: assen[actieveAs].gevel || null, aantal: assen.length }),
+    snoeiPunten: () => snResultaat ? snResultaat.snoeipunten.map(q => ({ nr: q.nr, s0: q.s0, s1: q.s1, oDicht: q.oDicht, ernst: q.ernst, soort: q.soort, x: q.x, y: q.y, twijfel: !!q.twijfel, afstandGevel: q.afstandGevel ?? null, perceel: q.perceel ?? null })) : null,
     doorrijVingerafdruk: () => drVingerafdruk(drResultaat, drRws),
     projectRondjeVol: async () => { const blob = maakProjectBlob(); drWolk = null; drDak = null; drRws = null; drResultaat = null; await laadProjectBestand(new File([blob], 'rondje.json')); return drVingerafdruk(drResultaat, drRws); },
     langsAs: () => { const a = svgLangs.__pvY; return a || null; },
@@ -5603,7 +5605,7 @@
       if (w && w.xs.length >= 50) { zetBegroeiing(project.begroeiing.naam || 'begroeiing', w.xs, w.ys, w.zs, null, project.begroeiing.half || 8); begroeiing.asSleutel = project.begroeiing.asSleutel || begroeiing.asSleutel; }
     }
     if (Array.isArray(project.assen) && project.assen.length) {
-      resetAssen(project.assen.map((a, i) => ({ naam: String(a.naam || `As ${i + 1}`), punten: (a.punten || []).map(p => ({ x: p.x, y: p.y })) })), project.actieveAs || 0);
+      resetAssen(project.assen.map((a, i) => ({ naam: String(a.naam || `As ${i + 1}`), punten: (a.punten || []).map(p => ({ x: p.x, y: p.y })), ...(a.gevel ? { gevel: a.gevel } : {}) })), project.actieveAs || 0);
     } else {
       resetAssen([{ naam: 'As 1', punten: (project.asPunten || []).map(p => ({ x: p.x, y: p.y })) }]);
     }
@@ -7278,7 +7280,9 @@
        een paar meter lang, genummerd langs de as.
      ──────────────────────────────────────────────────────────────── */
   let begroeiing = null;   // { naam, xs, ys, zs, ks, idx, r, half, asSleutel, grond }
-  const SN_STANDAARD = { breedte: 2.0, hoogte: 2.5, marge: 0.5, verschuiving: 0, minHoogte: 0.3, stVan: '', stTot: '', minPunten: 3, maxLengte: 5, tonen: true, maaiveld: true };
+  const SN_STANDAARD = { breedte: 2.0, hoogte: 2.5, marge: 0.5, verschuiving: 0, minHoogte: 0.3, stVan: '', stTot: '', minPunten: 3, maxLengte: 5, tonen: true, maaiveld: true,
+    modus: 'pad', gevelAfstand: 2.0, gevelKant: 'R' };   // (gevel-snoei) modus 'gevel': box van de gevel tot gevelAfstand aan de straatkant
+  const GEVEL_ZONE = 0.3;   // m: punten zo dicht tegen de gevel horen bij de gevel (BGT-pand ligt niet op de cm nauwkeurig)
   let snoei = { ...SN_STANDAARD };
   let snResultaat = null;
   const SN_KLEUR = { rood: '#C6472B', oranje: '#E08A1E', groen: '#6F9A5B', profiel: '#1B2A38' };
@@ -7449,7 +7453,87 @@
     const van = dvGetal(snoei.stVan), tot = dvGetal(snoei.stTot);
     const s0 = van != null ? Math.max(0, van) : 0, s1 = tot != null ? Math.min(L, tot) : L;
     if (!(s1 > s0)) return null;
-    return { B, H, M, c: dvGetal(snoei.verschuiving) ?? 0, minH: Math.max(0, dvGetal(snoei.minHoogte) ?? 0.3), s0, s1, L, heel: van == null && tot == null };
+    const basis = { B, H, M, c: dvGetal(snoei.verschuiving) ?? 0, minH: Math.max(0, dvGetal(snoei.minHoogte) ?? 0.3), s0, s1, L, heel: van == null && tot == null };
+    if (snoei.modus !== 'gevel') return basis;
+    // (gevel-snoei F0, B1) box van de gevel (de as) tot D aan de straatkant
+    const D = dvGetal(snoei.gevelAfstand);
+    if (!(D > 0)) return null;
+    const asG = assen[actieveAs]?.gevel;
+    const kant = (asG ? asG.kant : snoei.gevelKant) === 'L' ? -1 : 1;
+    return { ...basis, B: D, c: kant * D / 2, gevel: { kant, D, vakken: asG?.vakken || null } };
+  }
+  /** (gevel-snoei F1, B2) De voorgevels van de BGT-panden langs een ruwe lijn (de actieve as) als nieuwe as, per
+   *  straatkant één. Een rand telt als voorgevel als hij binnen 30 m van de lijn ligt, ongeveer evenwijdig is (≤ 30°),
+   *  minstens 1 m lang is en met de buitenkant naar de lijn kijkt. De randen worden langs de lijn gesorteerd en
+   *  verbonden; tussen twee panden loopt de as recht door, maar daar telt de box niet (gevelvakken). */
+  function asUitVoorgevels() {
+    if (asPunten.length < 2) throw new Error('trek eerst ruw een lijn langs de straat (Teken as)');
+    const ruwNaam = assen[actieveAs].naam;
+    const randen = [];
+    for (const l of bgtLagen) {
+      if (l.lijnAlleen || l.puntAlleen || !(/pand|gebouw/i.test(l.label || '') || l.stijl?.naam === 'Pand / gebouw')) continue;
+      const r = l.ringen[0]; if (!r || r.length < 4) continue;
+      let A = 0; for (let i = 0, j = r.length - 1; i < r.length; j = i++) A += (r[j].x * r[i].y - r[i].x * r[j].y);
+      const ccw = A > 0;
+      for (let i = 1; i < r.length; i++) {
+        const a = r[i - 1], b = r[i], dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+        if (len < 1) continue;
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, so = stationOffsetVanPunt(mx, my);
+        if (!so || Math.abs(so.offset) > 30) continue;
+        const q = puntOpStation(so.station), tx = Math.cos(q.richting), ty = Math.sin(q.richting);
+        if (Math.abs((dx * ty - dy * tx) / len) > Math.sin(Math.PI / 6)) continue;   // niet evenwijdig
+        const nx = ccw ? dy / len : -dy / len, ny = ccw ? -dx / len : dx / len;      // buitenkant van het pand
+        if (nx * (q.x - mx) + ny * (q.y - my) <= 0) continue;                        // kijkt niet naar de straat
+        const sa = stationOffsetVanPunt(a.x, a.y), sb = stationOffsetVanPunt(b.x, b.y);
+        if (!sa || !sb) continue;
+        const [p0, p1, s0, s1] = sa.station <= sb.station ? [a, b, sa.station, sb.station] : [b, a, sb.station, sa.station];
+        randen.push({ p0, p1, s0, s1, kant: so.offset < 0 ? 'links' : 'rechts', afst: Math.abs(so.offset) });
+      }
+    }
+    if (!randen.length) throw new Error('geen voorgevels van BGT-panden gevonden langs de lijn (BGT met panden ingelezen? lijn binnen 30 m van de gevels?)');
+    const nieuw = [];
+    for (const zijde of ['links', 'rechts']) {
+      let lijst = randen.filter(e => e.kant === zijde).sort((a, b) => a.s0 - b.s0);
+      // overlappende randen (bv. een erker of de achterkant van een ander pand): de rand het dichtst bij de straat houden
+      lijst = lijst.filter(e => !lijst.some(f => f !== e && f.afst < e.afst - 0.05 && Math.min(e.s1, f.s1) - Math.max(e.s0, f.s0) > 0.5 * (e.s1 - e.s0)));
+      if (!lijst.length) continue;
+      const punten = [], vakken = [];
+      let lengte = 0;
+      const voeg = (pt) => { const v = punten[punten.length - 1]; if (v) { const d = Math.hypot(pt.x - v.x, pt.y - v.y); if (d < 0.01) return; lengte += d; } punten.push({ x: pt.x, y: pt.y }); };
+      for (const e of lijst) {
+        voeg(e.p0); const van = lengte;
+        voeg(e.p1); vakken.push([van, lengte]);
+      }
+      // de straat ligt aan de kant van de ruwe lijn: gevels links van de lijn → straat rechts van de gevelas
+      nieuw.push({ naam: `Voorgevels ${zijde} (${ruwNaam})`, punten, gevel: { kant: zijde === 'links' ? 'R' : 'L', vakken } });
+    }
+    bewaarActieveAs();
+    const eerste = assen.length;
+    for (const a of nieuw) assen.push(a);
+    zetTekenModus(false);
+    zetActieveAs(eerste);
+    vulAsKeuze();
+    return nieuw;
+  }
+  /** (gevel-snoei) Ligt (x, y) binnen een BGT-pand? Snel via een raster van 10 m over de omhullende van de panden. */
+  function maakPandToets() {
+    const panden = [];
+    for (const l of bgtLagen) {
+      if (l.lijnAlleen || l.puntAlleen) continue;
+      if (!(/pand|gebouw/i.test(l.label || '') || l.stijl?.naam === 'Pand / gebouw')) continue;
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const q of l.ringen[0] || []) { if (q.x < x0) x0 = q.x; if (q.x > x1) x1 = q.x; if (q.y < y0) y0 = q.y; if (q.y > y1) y1 = q.y; }
+      if (Number.isFinite(x0)) panden.push({ ringen: l.ringen, x0, y0, x1, y1 });
+    }
+    if (!panden.length) return () => false;
+    const C = 10, raster = new Map(), sl = (i, j) => i * 100003 + j;
+    panden.forEach((pd, n) => { for (let i = Math.floor(pd.x0 / C); i <= Math.floor(pd.x1 / C); i++) for (let j = Math.floor(pd.y0 / C); j <= Math.floor(pd.y1 / C); j++) { const k = sl(i, j); if (!raster.has(k)) raster.set(k, []); raster.get(k).push(n); } });
+    const inRing = (r, x, y) => { let binnen = false; for (let a = 0, b = r.length - 1; a < r.length; b = a++) { if ((r[a].y > y) !== (r[b].y > y) && x < (r[b].x - r[a].x) * (y - r[a].y) / (r[b].y - r[a].y) + r[a].x) binnen = !binnen; } return binnen; };
+    return (x, y) => {
+      const lijst = raster.get(sl(Math.floor(x / C), Math.floor(y / C))); if (!lijst) return false;
+      for (const n of lijst) { const pd = panden[n]; if (x < pd.x0 || x > pd.x1 || y < pd.y0 || y > pd.y1) continue; if (inRing(pd.ringen[0], x, y) && !pd.ringen.slice(1).some(g => inRing(g, x, y))) return true; }
+      return false;
+    };
   }
 
   /** De toets zelf. */
@@ -7469,6 +7553,8 @@
     const n = w.xs.length;
     const S = new Float32Array(n), O = new Float32Array(n), HP = new Float32Array(n), HL = new Float32Array(n), cls = new Uint8Array(n);
     const half = k.B / 2, halfM = half + k.M, ks = w.ks, grondK = w.grond.heeftGrondKlasse;
+    const inPand = k.gevel ? maakPandToets() : null;
+    let nGevel = 0;
     for (let i = 0; i < n; i++) {
       const so = proj(w.xs[i], w.ys[i]);
       if (!so || so.d > w.half + 0.5) { S[i] = NaN; continue; }
@@ -7476,6 +7562,13 @@
       const z = w.zs[i], zp = zcOp(so.s), g = w.grond.op(w.xs[i], w.ys[i]);
       HP[i] = z - zp; HL[i] = g == null ? HP[i] : z - g;
       if ((grondK && ks[i] === 2) || (ks && ks[i] === 7) || HL[i] < k.minH) continue;   // grond, gras, ruis-klasse
+      // (F1) tussen twee panden: geen gevel, niets te toetsen; ook niet voorbij de hoek van een gevel (de loodlijn op de
+      // as valt dan buiten het lijnstuk: de afstand tot de as is groter dan de dwarsafstand)
+      if (k.gevel?.vakken && (Math.sqrt(Math.max(0, so.d * so.d - so.o * so.o)) > 0.02 || !k.gevel.vakken.some(([a, b]) => so.s >= a - 0.001 && so.s <= b + 0.001))) { cls[i] = 1; continue; }
+      if (k.gevel) {
+        // (gevel-snoei F0) de gevel zelf is geen begroeiing: achter of tegen de gevel, gebouw-/brugklasse, of binnen het BGT-pand
+        if (so.o * k.gevel.kant < GEVEL_ZONE || (ks && (ks[i] === 6 || ks[i] === 17)) || inPand(w.xs[i], w.ys[i])) { nGevel++; continue; }
+      }
       if (so.s < k.s0 || so.s > k.s1) { cls[i] = 1; continue; }
       const ad = Math.abs(so.o - k.c);
       if (HP[i] > 0 && ad <= half && HP[i] <= k.H) cls[i] = 3;
@@ -7817,11 +7910,24 @@
 
   /* ── dialoog ── */
   const snDialoog = document.getElementById('snDialoog');
-  const SN_VELDEN = { snBreedte: 'breedte', snHoogte: 'hoogte', snMarge: 'marge', snVerschuiving: 'verschuiving', snMinHoogte: 'minHoogte', snVan: 'stVan', snTot: 'stTot', snMinPunten: 'minPunten', snMaxLengte: 'maxLengte' };
+  const SN_VELDEN = { snBreedte: 'breedte', snHoogte: 'hoogte', snMarge: 'marge', snVerschuiving: 'verschuiving', snMinHoogte: 'minHoogte', snVan: 'stVan', snTot: 'stTot', snMinPunten: 'minPunten', snMaxLengte: 'maxLengte',
+    snModus: 'modus', snGevelAfstand: 'gevelAfstand', snGevelKant: 'gevelKant' };
   function zetSnoeiVelden() {
     for (const [id, sl] of Object.entries(SN_VELDEN)) { const e = document.getElementById(id); if (e) e.value = snoei[sl] ?? ''; }
     const t = document.getElementById('snTonen'); if (t) t.checked = snoei.tonen !== false;
     const mv = document.getElementById('snMaaiveld'); if (mv) mv.checked = snoei.maaiveld !== false;
+    werkSnModusBij();
+  }
+  /** (gevel-snoei) Velden van de gekozen soort toets tonen: langs een pad (breedte, verschuiving) of langs gevels. */
+  function werkSnModusBij() {
+    const gevel = (document.getElementById('snModus')?.value || snoei.modus) === 'gevel';
+    for (const el of document.querySelectorAll('#snDialoog .snPad')) { el.hidden = gevel; el.style.display = gevel ? 'none' : ''; }
+    for (const el of document.querySelectorAll('#snDialoog .snGevel')) { el.hidden = !gevel; el.style.display = gevel ? '' : 'none'; }
+    const asG = assen[actieveAs]?.gevel, kantSel = document.getElementById('snGevelKant');
+    if (kantSel) { kantSel.disabled = !!asG; if (asG) kantSel.value = asG.kant; }
+    const info = document.getElementById('snGevelInfo');
+    if (info) info.textContent = asG ? `as "${assen[actieveAs].naam}" uit de BGT: ${asG.vakken.length} gevel${asG.vakken.length === 1 ? '' : 's'}, straatkant ${asG.kant === 'R' ? 'rechts' : 'links'}` : 'trek ruw een lijn langs de straat (Teken as) en klik dan op "As op de voorgevels"';
+    const hh = document.getElementById('snHoogteTekst'); if (hh) hh.textContent = gevel ? 'm boven het maaiveld voor de gevel' : 'm boven het pad';
   }
   function leesSnoeiVelden() {
     for (const [id, sl] of Object.entries(SN_VELDEN)) { const e = document.getElementById(id); if (e) snoei[sl] = e.value; }
@@ -7832,7 +7938,8 @@
   /** Samenvatting [label, waarde, status]. */
   function snRegels(r) {
     const regels = [];
-    regels.push(['Doorloopprofiel', `${komma(r.B, 2)} m breed × ${komma(r.H, 2)} m hoog boven het pad`, null]);
+    if (r.gevel) regels.push(['Vrije ruimte voor de gevel', `${komma(r.gevel.D, 2)} m vanaf de gevel (${r.gevel.kant > 0 ? 'rechts' : 'links'} van de as) × ${komma(r.H, 2)} m hoog boven het maaiveld; de gevel zelf (pand, gebouwpunten, ${komma(GEVEL_ZONE, 1)} m tegen de gevel) telt niet mee`, null]);
+    else regels.push(['Doorloopprofiel', `${komma(r.B, 2)} m breed × ${komma(r.H, 2)} m hoog boven het pad`, null]);
     regels.push(['Snoeimarge', r.M ? `${komma(r.M, 2)} m rondom (oranje)` : 'geen', null]);
     regels.push(['Ligging', Math.abs(r.c) < 1e-9 ? 'midden op de as' : `${komma(Math.abs(r.c), 2)} m ${r.c < 0 ? 'links' : 'rechts'} van de as`, null]);
     regels.push(['Gecontroleerd', `st. ${komma(r.s0, 1)} – ${komma(r.s1, 1)} m (${komma(r.s1 - r.s0, 1)} m)`, null]);
@@ -7913,6 +8020,15 @@
   }
   if (snDialoog) {
     for (const id of [...Object.keys(SN_VELDEN), 'snTonen']) document.getElementById(id)?.addEventListener('input', snGewijzigd);
+    for (const id of ['snModus', 'snGevelKant']) document.getElementById(id)?.addEventListener('change', () => { leesSnoeiVelden(); werkSnModusBij(); snGewijzigd(); });
+    document.getElementById('snGevelAs')?.addEventListener('click', () => {
+      try {
+        const nieuw = asUitVoorgevels();
+        statusEl.style.color = '';
+        statusEl.textContent = `As op de voorgevels: ${nieuw.map(a => `${a.naam}, ${a.gevel.vakken.length} gevel${a.gevel.vakken.length === 1 ? '' : 's'}`).join(' · ')}`;
+        snResultaat = null; werkSnModusBij(); werkSnoeiPaneelBij(); bijwerkenProfielen(); tekenVlak();
+      } catch (err) { toonFout('As op de voorgevels: ' + err.message); }
+    });
     document.getElementById('snTonen')?.addEventListener('change', snGewijzigd);
     document.getElementById('snMaaiveld')?.addEventListener('change', () => { leesSnoeiVelden(); bijwerkenProfielen(); });
     document.getElementById('snoeiKnop')?.addEventListener('click', () => { zetSnoeiVelden(); werkSnoeiPaneelBij(); snDialoog.showModal(); });
@@ -11352,7 +11468,7 @@ ${r3d}
       percelen: percelen.length ? { bron: perceelBron, lijst: percelen.map(pc => ({ gemeente: pc.gemeente, code: pc.code, sectie: pc.sectie, nummer: pc.nummer, grootte: pc.grootte, ringen: pc.ringen.map(r => r.map(q => [Math.round(q.x * 1000) / 1000, Math.round(q.y * 1000) / 1000])) })) } : null,
       stationering: { ...palen, lijst: palen.lijst.map(p => ({ naam: p.naam, x: Math.round(p.x * 1000) / 1000, y: Math.round(p.y * 1000) / 1000 })) },
       asPunten,          // actieve as (voor oudere versies van de viewer)
-      assen: (bewaarActieveAs(), assen.map(a => ({ naam: a.naam, punten: a.punten }))),
+      assen: (bewaarActieveAs(), assen.map(a => ({ naam: a.naam, punten: a.punten, ...(a.gevel ? { gevel: a.gevel } : {}) }))),
       actieveAs,
       bgtLagen,
       boomLagen,
