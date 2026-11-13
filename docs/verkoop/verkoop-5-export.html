@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><title>Exportproducten · Lutrea Profielviewer</title>
+<style>
+@page { size: A3 portrait; margin: 0; }
+* { box-sizing: border-box; }
+:root { --navy:#2a2a5e; --grijs:#5b6070; --lijn:#d5dbe6; }
+html, body { margin:0; }
+body { font-family:"Segoe UI", Arial, sans-serif; color:#1d2033; background:#fff;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.vel { width:297mm; height:420mm; padding:14mm 16mm 11mm; display:flex; flex-direction:column; gap:6mm; overflow:hidden; }
+header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2mm solid var(--t); padding-bottom:5mm; }
+.titel .boven { font-size:10pt; letter-spacing:.12em; text-transform:uppercase; color:var(--grijs); font-weight:600; }
+.titel h1 { margin:1mm 0 0; font-size:36pt; color:var(--t-d); letter-spacing:-0.5pt; line-height:1.05; }
+.titel p { margin:2mm 0 0; font-size:16pt; color:var(--t); font-weight:600; }
+.merk { display:grid; justify-items:end; gap:3mm; }
+.merk img { height:24mm; }
+.chips { display:flex; gap:1.5mm; }
+.chip { font-size:7.6pt; font-weight:600; padding:.8mm 2.4mm; border:.6pt solid var(--c); color:var(--c); white-space:nowrap; border-radius:5mm; }
+.chip.nu { background:var(--c); color:#fff; }
+.belofte { background:var(--t-d); color:#fff; border-radius:4mm; padding:6mm 8mm; font-size:15pt; line-height:1.38; }
+.belofte b { color:#fff; background:rgba(255,255,255,.14); padding:0 1mm; border-radius:1mm; }
+.stappen { display:grid; grid-template-columns:repeat(4,1fr); gap:4mm; }
+.stap { background:var(--t-l); border-radius:3mm; padding:4.5mm 5mm; border-top:1.5mm solid var(--t); }
+.stap .nr { font-size:20pt; font-weight:700; color:var(--t); line-height:1; }
+.stap h3 { margin:1.5mm 0 1.5mm; font-size:13pt; color:var(--t-d); }
+.stap p { margin:0; font-size:10pt; color:var(--grijs); line-height:1.35; }
+.beeld { display:grid; grid-template-columns:2fr 1fr; gap:5mm; }
+.beeld .links, .beeld .rechts { display:grid; gap:4mm; align-content:start; }
+.beeld .cijfers { grid-template-columns:1fr 1fr; gap:3mm; }
+.beeld .links img { aspect-ratio:1600/950; object-fit:cover; object-position:center bottom; }
+.beeld figure { margin:0; }
+.beeld img { width:100%; border-radius:2mm; border:.4mm solid var(--lijn); display:block; }
+.beeld figcaption { font-size:9pt; color:var(--grijs); margin-top:1.2mm; line-height:1.3; }
+.cijfers { display:grid; grid-template-columns:repeat(4,1fr); gap:4mm; }
+.cijfer { border:.5mm solid var(--lijn); border-left:1.5mm solid var(--t); border-radius:3mm; padding:3.5mm 4.5mm; }
+.cijfer .getal { font-size:19pt; font-weight:700; color:var(--t-d); white-space:nowrap; }
+.cijfer .wat { font-size:9.5pt; color:var(--grijs); line-height:1.3; margin-top:.5mm; }
+.kolommen { display:grid; grid-template-columns:1fr 1fr; gap:8mm; }
+.kolommen h2 { font-size:15pt; color:var(--t-d); margin:0 0 2mm; padding-bottom:1.2mm; border-bottom:.8pt solid var(--t); }
+.kolommen ul { margin:0; padding-left:5mm; font-size:10.8pt; line-height:1.48; }
+.kolommen li::marker { color:var(--t); }
+footer { margin-top:auto; display:grid; grid-template-columns:1fr auto; gap:6mm; align-items:end; border-top:.5mm solid var(--lijn); padding-top:4mm; }
+footer .contact { font-size:13pt; color:var(--t-d); font-weight:700; }
+footer .adres { font-size:10pt; color:var(--navy); margin-top:1mm; }
+footer .ook { font-size:9.5pt; color:var(--grijs); margin-top:2mm; }
+.klein { font-size:8pt; color:#8a8fa0; text-align:right; line-height:1.35; max-width:95mm; }
+
+.vel { --t:#2a2a5e; --t-d:#2a2a5e; --t-l:#eef1f8; }
+.wortel { align-self:center; background:var(--navy); color:#fff; border-radius:4mm; padding:4mm 12mm; text-align:center; }
+.wortel b { font-size:18pt; display:block; } .wortel span { font-size:10.5pt; opacity:.85; }
+.stam { align-self:center; width:0; height:7mm; border-left:.8mm solid var(--navy); margin:-6mm 0; }
+.takken { display:grid; grid-template-columns:repeat(3,1fr); gap:9mm 5mm; border-top:.8mm solid var(--navy); padding-top:7mm; position:relative; }
+.prod { border:.5mm solid var(--lijn); border-radius:3mm; padding:4mm 4.5mm; position:relative; display:flex; flex-direction:column; gap:2mm; }
+.prod:before { content:""; position:absolute; top:-7.6mm; left:50%; height:7.2mm; border-left:.8mm solid var(--navy); }
+.prod:nth-child(n+4):before { display:none; }
+.prod .kop { display:flex; align-items:center; gap:3mm; }
+.prod .tag { background:var(--navy); color:#fff; font-weight:700; font-size:10pt; border-radius:1.5mm; padding:1.2mm 2.4mm; letter-spacing:.04em; }
+.prod.map .tag { background:#fff; color:var(--navy); border:.5mm dashed var(--navy); }
+.prod h3 { margin:0; font-size:15pt; color:var(--navy); }
+.prod .sub { font-size:10pt; color:var(--grijs); margin-top:-1mm; }
+.prod dl { margin:0; display:grid; grid-template-columns:auto 1fr; gap:.6mm 2.5mm; font-size:9pt; background:#f4f6fa; border-radius:2mm; padding:2mm 3mm; }
+.prod dt { color:var(--grijs); } .prod dd { margin:0; color:#1d2033; font-weight:600; }
+.prod ul { margin:0; padding-left:4.5mm; font-size:9.8pt; line-height:1.42; }
+.prod li::marker { color:var(--navy); }
+.prod .tools { margin-top:auto; display:flex; gap:1.5mm; flex-wrap:wrap; }
+.tl { font-size:7.6pt; font-weight:600; padding:.5mm 2mm; border-radius:5mm; border:.5pt solid var(--c); color:var(--c); }
+.tl.aan { background:var(--c); color:#fff; } .tl.uit { border-style:dashed; color:#a2a7b4; border-color:#c4c9d4; }
+table.mx { width:100%; border-collapse:collapse; font-size:10pt; }
+.mx th, .mx td { padding:2mm 3mm; border-bottom:.4mm solid var(--lijn); text-align:center; }
+.mx th { color:var(--navy); font-size:10pt; } .mx td:first-child, .mx th:first-child { text-align:left; }
+.mx .ja { font-weight:700; } .mx .nee { color:#b3b8c4; }
+.mx td:first-child { font-weight:600; color:var(--c); }
+.mx td:first-child i { display:inline-block; width:3mm; height:3mm; border-radius:50%; background:var(--c); margin-right:2mm; }
+h2.kl { font-size:14pt; color:var(--navy); margin:0 0 2mm; padding-bottom:1.2mm; border-bottom:.8pt solid var(--navy); }
+</style></head>
+<body><div class="vel">
+<header>
+  <div class="titel"><div class="boven">Lutrea Profielviewer · uitvoer</div><h1>Wat je eruit krijgt</h1><p>Eén project, zes takken: van PDF op schaal tot BIM en GIS</p></div>
+  <div class="merk"><img src="beelden/merk-lutrea.png" alt="Lutrea"></div>
+</header>
+<div class="belofte">Alles komt uit <b>hetzelfde project</b> en ligt in <b>RD New met hoogtes in m NAP</b>: niets omrekenen. Met een projectmap gaat elk bestand vanzelf naar <b>uitvoer\</b>, zonder vragen.</div>
+<div class="wortel"><b>Lutrea Profielviewer</b><span>puntenwolk · as · profielen · toetsen</span></div>
+<div class="stam"></div>
+<div class="takken"><div class="prod"><div class="kop"><span class="tag">PDF</span><h3>PDF</h3></div><div class="sub">De tekening op schaal</div><dl><dt>Voor</dt><dd>Opdrachtgever, archief, printen</dd><dt>Openen in</dt><dd>Elke PDF-lezer</dd></dl><ul><li>Bovenaanzicht en een groot 3D-blad</li><li>Lengteprofiel en dwarsprofielen 1:50 – 1:500</li><li>Doorvaartcontrole en dekkingskaart</li><li>Snoeilijst, ook per perceel</li><li>Doorrijhoogte, RWS-bladen en de RWS-opleverset</li><li>A4 – A0, stempel, logo's en QR-code</li></ul><div class="tools"><span class="tl aan" style="--c:#C2650A">Profielen</span><span class="tl aan" style="--c:#185FA5">Doorvaart</span><span class="tl aan" style="--c:#A32D2D">Doorrij</span><span class="tl aan" style="--c:#3B6D11">Snoeien</span></div></div><div class="prod"><div class="kop"><span class="tag">DXF</span><h3>DXF</h3></div><div class="sub">Dezelfde bladen, maar bewerkbaar</div><dl><dt>Voor</dt><dd>Tekenaar, ontwerper</dd><dt>Openen in</dt><dd>AutoCAD, Civil 3D</dd></dl><ul><li>Elk PDF-blad als layout, met kader en stempel</li><li>Viewports op schaal, vergrendeld</li><li>Model space: de situatie in 3D op RD/NAP</li><li>Model space: profielen op ware grootte</li><li>Eigen lagen PV_PROF, PV_KAART, PV_BLAD</li><li>Zonder luchtfoto en 3D-beeld (dat zijn beelden)</li></ul><div class="tools"><span class="tl aan" style="--c:#C2650A">Profielen</span><span class="tl aan" style="--c:#185FA5">Doorvaart</span><span class="tl aan" style="--c:#A32D2D">Doorrij</span><span class="tl aan" style="--c:#3B6D11">Snoeien</span></div></div><div class="prod"><div class="kop"><span class="tag">IFC</span><h3>IFC 4.3</h3></div><div class="sub">openBIM, voor ontwerp en botsingscontrole</div><dl><dt>Voor</dt><dd>BIM-coördinator, ontwerper</dd><dt>Openen in</dt><dd>Civil 3D, Solibri, Navisworks, Revit</dd></dl><ul><li>De as als IfcAlignment</li><li>Station 0, dijkpalen, hectometers (IfcReferent)</li><li>Maaiveld als licht driehoeksnet</li><li>Dwarsprofielen als 3D-lijnen</li><li>Vrije ruimtes als IfcSpatialZone</li><li>Bevindingen met eigenschappen Lutrea_…</li></ul><div class="tools"><span class="tl aan" style="--c:#C2650A">Profielen</span><span class="tl aan" style="--c:#185FA5">Doorvaart</span><span class="tl uit" style="--c:#A32D2D">Doorrij</span><span class="tl aan" style="--c:#3B6D11">Snoeien</span></div></div><div class="prod"><div class="kop"><span class="tag">GPKG</span><h3>GeoPackage</h3></div><div class="sub">Losse GIS-lagen met opmaak, ook in 3D</div><dl><dt>Voor</dt><dd>GIS-specialist, beheerder</dd><dt>Openen in</dt><dd>QGIS, ArcGIS, FME</dd></dl><ul><li>as_lijn, lengteprofiel, stationering</li><li>dwarsprofiel_lijnen en dwarsprofiel_3d</li><li>profielpunten, met verschil A/B</li><li>bgt_grenzen</li><li>doorvaart_box, doorvaart_conflicten</li><li>snoeipunten, snoeiprofiel, kadastrale_percelen, niet_gemeten</li></ul><div class="tools"><span class="tl aan" style="--c:#C2650A">Profielen</span><span class="tl aan" style="--c:#185FA5">Doorvaart</span><span class="tl uit" style="--c:#A32D2D">Doorrij</span><span class="tl aan" style="--c:#3B6D11">Snoeien</span></div></div><div class="prod"><div class="kop"><span class="tag">CSV</span><h3>CSV</h3></div><div class="sub">De snoeilijst als tabel</div><dl><dt>Voor</dt><dd>Snoeiploeg, aannemer, eigenaar</dd><dt>Openen in</dt><dd>Excel</dd></dl><ul><li>Eén regel per snoeipunt</li><li>Station, dijkpaal en kant (L, R, L+R)</li><li>Hoogte boven het pad, afstand tot het hart</li><li>Hoeveel terug en de soort</li><li>RD-coördinaat, perceel en stam</li><li>Puntkomma en decimale komma: opent direct goed</li></ul><div class="tools"><span class="tl uit" style="--c:#C2650A">Profielen</span><span class="tl uit" style="--c:#185FA5">Doorvaart</span><span class="tl uit" style="--c:#A32D2D">Doorrij</span><span class="tl aan" style="--c:#3B6D11">Snoeien</span></div></div><div class="prod map"><div class="kop"><span class="tag">MAP</span><h3>Projectmap</h3></div><div class="sub">Geen uitvoer, wel al je werk</div><dl><dt>Voor</dt><dd>Jij, morgen of op een andere pc</dd><dt>Openen in</dt><dd>De Profielviewer</dd></dl><ul><li>&lt;map&gt;.pvproj: as, instellingen, stempel, logo's</li><li>puntenwolk\ : alle punten in vakken van 50 × 50 m</li><li>ondergrond\ : BGT, bomen, kadaster, ook offline</li><li>uitvoer\ : alle bestanden hiernaast</li><li>backup\ : de laatste 10 versies</li><li>Toetsen bewaard: na openen dezelfde uitkomst</li></ul><div class="tools"><span class="tl aan" style="--c:#C2650A">Profielen</span><span class="tl aan" style="--c:#185FA5">Doorvaart</span><span class="tl aan" style="--c:#A32D2D">Doorrij</span><span class="tl aan" style="--c:#3B6D11">Snoeien</span></div></div></div>
+<div><h2 class="kl">Wat er per tool in welk bestand komt</h2>
+<table class="mx"><tr><th>Tool</th><th>PDF</th><th>DXF</th><th>IFC 4.3</th><th>GeoPackage</th><th>CSV</th></tr><tr style="--c:#C2650A"><td><i></i>Profielen</td><td class="ja">profielen op schaal</td><td class="ja">bewerkbare bladen</td><td class="ja">as, maaiveld, profielen</td><td class="ja">as, profielen, punten</td><td class="nee">nog niet</td></tr><tr style="--c:#185FA5"><td><i></i>Doorvaart</td><td class="ja">blad + dekkingskaart</td><td class="ja">zelfde bladen</td><td class="ja">box + conflicten</td><td class="ja">box + conflicten</td><td class="nee">nog niet</td></tr><tr style="--c:#A32D2D"><td><i></i>Doorrij</td><td class="ja">blad, RWS-bladen, opleverset</td><td class="ja">zelfde bladen</td><td class="nee">nog niet</td><td class="nee">nog niet</td><td class="nee">nog niet</td></tr><tr style="--c:#3B6D11"><td><i></i>Snoeien</td><td class="ja">snoeikaart + lijsten</td><td class="ja">zelfde bladen</td><td class="ja">profiel + snoeipunten</td><td class="ja">snoeipunten + percelen</td><td class="ja">snoeilijst</td></tr></table></div>
+<footer>
+  <div><div class="contact" style="color:var(--navy)">Meer weten of een proef op je eigen project?</div><div class="adres">Lutrea Group B.V. · Ceresstraat 13, 4811 CA Breda · 06 14 15 57 26 · info@lutrea.nl · www.lutrea.nl</div></div>
+  <div class="klein">DXF gecontroleerd met ezdxf, IFC met IfcOpenShell en web-ifc.<br>Stand november 2026.</div>
+</footer>
+</div></body></html>

@@ -10,6 +10,10 @@ besluit): [Index van plannen en beslisdocumenten](plan-beslis-index.md), die `pl
 - [Architectuur](ARCHITECTUUR.md): hoe viewer, exe, tegelformaat en projectmap in elkaar zitten, vóór je code aanpast.
 - [Index van plannen en beslisdocumenten](plan-beslis-index.md): status en voortgang per plan; begin hier bij een vraag over een plan.
 
+## Verkoop
+
+- [Verkoopplaten](verkoop/LEESMIJ.md): vijf A3-platen (de vier tools en de exportproducten) als PDF en HTML; opnieuw maken met `maak_verkoop.py`.
+
 ## Plannen en beslisdocumenten
 
 Per onderwerp: het beslisdocument (gewone taal, wat Marco besliste en vrijgaf) en het plan (techniek, fasen, toetsing).
