@@ -7933,7 +7933,8 @@
     const asG = assen[actieveAs]?.gevel, kantSel = document.getElementById('snGevelKant');
     if (kantSel) { kantSel.disabled = !!asG; if (asG) kantSel.value = asG.kant; }
     const info = document.getElementById('snGevelInfo');
-    if (info) info.textContent = asG ? `as "${assen[actieveAs].naam}" uit de BGT: ${asG.vakken.length} gevel${asG.vakken.length === 1 ? '' : 's'}, straatkant ${asG.kant === 'R' ? 'rechts' : 'links'}` : 'trek ruw een lijn langs de straat (Teken as) en klik dan op "As op de voorgevels"';
+    if (info) info.style.color = '';
+    if (info) info.textContent = asG ? `as "${assen[actieveAs].naam}" uit de BGT: ${asG.vakken.length} gevel${asG.vakken.length === 1 ? '' : 's'}, straatkant ${asG.kant === 'R' ? 'rechts' : 'links'}` : 'trek ruw een lijn langs de straat (Teken as of As inlezen), lees de BGT met panden in (Ophalen of Bestand…) en klik dan op "As op de voorgevels"';
     const hh = document.getElementById('snHoogteTekst'); if (hh) hh.textContent = gevel ? 'm boven het maaiveld voor de gevel' : 'm boven het pad';
   }
   function leesSnoeiVelden() {
@@ -8034,7 +8035,18 @@
         statusEl.style.color = '';
         statusEl.textContent = `As op de voorgevels: ${nieuw.map(a => `${a.naam}, ${a.gevel.vakken.length} gevel${a.gevel.vakken.length === 1 ? '' : 's'}`).join(' · ')}`;
         snResultaat = null; werkSnModusBij(); werkSnoeiPaneelBij(); bijwerkenProfielen(); tekenVlak();
-      } catch (err) { toonFout('As op de voorgevels: ' + err.message); }
+        // ook in het venster zelf: de statusbalk zit achter het snoeivenster
+        const info = document.getElementById('snGevelInfo');
+        if (info) {
+          info.style.color = '';
+          info.textContent = `${nieuw.length === 1 ? 'Nieuwe as' : `${nieuw.length} nieuwe assen`}: ${nieuw.map(a => `"${a.naam}" (${a.gevel.vakken.length} gevel${a.gevel.vakken.length === 1 ? '' : 's'})`).join(' en ')}. `
+            + `Actief: "${assen[actieveAs].naam}"${nieuw.length > 1 ? '; de andere kies je bij As in de werkbalk' : ''}.`;
+        }
+      } catch (err) {
+        toonFout('As op de voorgevels: ' + err.message);
+        const info = document.getElementById('snGevelInfo');
+        if (info) { info.style.color = '#C6472B'; info.textContent = '⚠ ' + err.message; }
+      }
     });
     document.getElementById('snTonen')?.addEventListener('change', snGewijzigd);
     document.getElementById('snMaaiveld')?.addEventListener('change', () => { leesSnoeiVelden(); bijwerkenProfielen(); });
