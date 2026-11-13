@@ -1,5 +1,15 @@
 # Profielen-app
 
+De Lutrea Profielviewer: van een puntenwolk naar een as, lengte- en dwarsprofielen, met toetsen voor doorvaart,
+doorrijhoogte en snoeien. Gebruikersuitleg en "Nieuw in" per versie: `LEESMIJ.txt`.
+
+## Documentatie
+
+- [Projectregels voor Claude](CLAUDE.md): afspraken, opleveren en versie ophogen; eerst lezen bij werk aan de code.
+- [Documentatie](docs/INDEX.md): handleiding, architectuur en alle plannen en beslisdocumenten.
+- [Testen](tests/README.md): de automatische tests draaien en uitbreiden.
+- [Geheugenarchief](memory/MEMORY.md): vastgelegde besluiten en correcties.
+
 <!-- brbnt-scan:start (automatisch neergezet door de skill brbnt-scan; de inhoud tussen deze markeringen wordt bij een volgende installatie vervangen) -->
 ## BRBNT-scan
 

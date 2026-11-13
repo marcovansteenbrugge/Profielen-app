@@ -12,3 +12,9 @@ testdata/groot/*.laz
 # overig
 *.log
 __pycache__/
+
+# Obsidian: vensterindeling en cache blijven per computer; app.json (instellingen) gaat mee
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/plugins/*/data.json

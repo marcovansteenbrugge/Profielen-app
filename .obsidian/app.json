@@ -1,0 +1,16 @@
+{
+  "useMarkdownLinks": true,
+  "newLinkFormat": "relative",
+  "alwaysUpdateLinks": true,
+  "showUnsupportedFiles": false,
+  "userIgnoreFilters": [
+    "dist/",
+    "vendor/",
+    "testdata/",
+    "tests/uit/",
+    "tests/node_modules/",
+    "bron-exe/",
+    "icons/",
+    "Lutrea-Profielviewer_overdracht/"
+  ]
+}
