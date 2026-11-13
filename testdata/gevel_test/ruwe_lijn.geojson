@@ -1,0 +1,36 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "naam": "Gevelstraat"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      150818.067,
+      411759.485
+     ],
+     [
+      150839.336,
+      411765.117
+     ],
+     [
+      150860.656,
+      411770.547
+     ],
+     [
+      150882.046,
+      411775.696
+     ],
+     [
+      150901.526,
+      411780.237
+     ]
+    ]
+   }
+  }
+ ]
+}

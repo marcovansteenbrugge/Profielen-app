@@ -1,0 +1,12 @@
+boom;kant;x stam (RD);y stam (RD);waar;kroonrand tot voorgevel (m);snoeipunt bij D = 2 m en marge 0,5 m (rood, oranje of nee)
+N1;noord;150829.29;411768.19;voorgevel op 8 m;0,8;rood
+N2;noord;150840.87;411771.39;voorgevel op 9 m;1,5;rood
+N3;noord;150848.75;411772.84;gat tussen twee panden;1,0;nee
+N4;noord;150857.87;411773.46;voorgevel op 8 m;2,6;nee
+N5;noord;150870.17;411777.87;voorgevel op 8,5 m;1,8;rood
+N6;noord;150889.14;411780.33;voorgevel op 8 m;3,5;nee
+Z1;zuid;150835.84;411758.49;voorgevel op 8 m;1,2;rood
+Z2;zuid;150849.13;411763.04;voorgevel op 8 m;2,4;oranje
+Z3;zuid;150859.24;411763.81;gat tussen twee panden;0,7;nee
+Z4;zuid;150870.09;411765.79;voorgevel op 8,5 m;0,5;rood
+Z5;zuid;150886.83;411773.05;voorgevel op 8 m;3,0;nee

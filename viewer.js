@@ -7554,6 +7554,13 @@
     const S = new Float32Array(n), O = new Float32Array(n), HP = new Float32Array(n), HL = new Float32Array(n), cls = new Uint8Array(n);
     const half = k.B / 2, halfM = half + k.M, ks = w.ks, grondK = w.grond.heeftGrondKlasse;
     const inPand = k.gevel ? maakPandToets() : null;
+    // (F1) per gevelvak het lijnstuk van de voorgevel; een punt telt alleen als zijn loodlijn op dat lijnstuk valt
+    // (haaks afgekapt aan beide uiteinden, dus ook niet schuin om de hoek van een pand heen)
+    const gevelStukken = k.gevel?.vakken ? k.gevel.vakken.map(([a, b]) => {
+      const p0 = puntOpStation(a), p1 = puntOpStation(b), dx = p1.x - p0.x, dy = p1.y - p0.y, L = Math.hypot(dx, dy) || 1e-9;
+      return { x: p0.x, y: p0.y, ux: dx / L, uy: dy / L, L };
+    }) : null;
+    const opGevel = (x, y) => gevelStukken.some(g => { const t = (x - g.x) * g.ux + (y - g.y) * g.uy; return t >= -0.001 && t <= g.L + 0.001; });
     let nGevel = 0;
     for (let i = 0; i < n; i++) {
       const so = proj(w.xs[i], w.ys[i]);
@@ -7564,7 +7571,7 @@
       if ((grondK && ks[i] === 2) || (ks && ks[i] === 7) || HL[i] < k.minH) continue;   // grond, gras, ruis-klasse
       // (F1) tussen twee panden: geen gevel, niets te toetsen; ook niet voorbij de hoek van een gevel (de loodlijn op de
       // as valt dan buiten het lijnstuk: de afstand tot de as is groter dan de dwarsafstand)
-      if (k.gevel?.vakken && (Math.sqrt(Math.max(0, so.d * so.d - so.o * so.o)) > 0.02 || !k.gevel.vakken.some(([a, b]) => so.s >= a - 0.001 && so.s <= b + 0.001))) { cls[i] = 1; continue; }
+      if (gevelStukken && (Math.sqrt(Math.max(0, so.d * so.d - so.o * so.o)) > 0.02 || !k.gevel.vakken.some(([a, b]) => so.s >= a - 0.001 && so.s <= b + 0.001) || !opGevel(w.xs[i], w.ys[i]))) { cls[i] = 1; continue; }
       if (k.gevel) {
         // (gevel-snoei F0) de gevel zelf is geen begroeiing: achter of tegen de gevel, gebouw-/brugklasse, of binnen het BGT-pand
         if (so.o * k.gevel.kant < GEVEL_ZONE || (ks && (ks[i] === 6 || ks[i] === 17)) || inPand(w.xs[i], w.ys[i])) { nGevel++; continue; }

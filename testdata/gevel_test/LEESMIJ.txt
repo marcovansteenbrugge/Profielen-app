@@ -1,0 +1,30 @@
+Testset snoeien langs gevels (Gevelstraat)
+==========================================
+
+Een straat met aan beide kanten woningen (9 panden), twee gaten tussen panden, ingesprongen
+voorgevels (1 m en 0,5 m), 11 bomen op verschillende afstanden van de voorgevel en 4 lantaarnpalen
+op de stoep. RD/NAP, maaiveld ± 3,2 m NAP. Geen classificatie (gewone .pts).
+
+Bestanden
+  straat_gevels.pts      puntenwolk (177.164 punten, met kleur)
+  bgt_panden.geojson     de panden als BGT-vlakken
+  ruwe_lijn.geojson      een ruw getrokken lijn over het midden van de straat
+  verwacht.csv           per boom wat de snoeicheck moet geven
+  maak_testdata.py       maakt alles opnieuw (python maak_testdata.py)
+
+Zo doorloop je het
+  1. Puntenwolk: Openen... > straat_gevels.pts
+  2. As: As inlezen... > ruwe_lijn.geojson
+  3. BGT: Bestand... > bgt_panden.geojson
+  4. Snoeien... > Toets: "langs gevels (vrije ruimte voor de gevel)"
+  5. Klik "As op de voorgevels (BGT)": er komen twee assen bij,
+     "Voorgevels links (Gevelstraat)" (noordkant, 5 gevels) en "Voorgevels rechts (Gevelstraat)" (zuidkant, 4 gevels).
+  6. Begroeiing: "Uit puntenwolk A", Afstand vanaf de gevel 2 m, Vrije hoogte H 7 m, Controleren.
+  7. Kies bij As de andere gevelas en herhaal stap 6.
+
+Verwachte uitkomst (vrije ruimte 2 m, snoeimarge 0,5 m)
+  Noordkant: N1, N2, N5 rood. N3 (in het gat tussen twee panden), N4 (2,6 m) en N6 (3,5 m) geen snoeipunt.
+  Zuidkant:  Z1, Z4 rood; Z2 (2,4 m) oranje, in de snoeimarge. Z3 (in het gat), Z5 (3,0 m) geen snoeipunt.
+  De gevels en daken zelf geven nooit een snoeipunt, ook zonder classificatie.
+
+Automatische toets: tests\gevel_dataset.test.js (in node run_alle.js).
